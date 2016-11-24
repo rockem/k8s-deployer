@@ -3,15 +3,27 @@
   <component name="ChangeListManager">
     <list default="true" id="faad6745-dac7-4b2a-90c3-a47ffd278b43" name="Default" comment="">
       <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.gitignore" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/compiler.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/copyright/profiles_settings.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/misc.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/modules.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/vcs.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/deployer.iml" />
       <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/deployer/__init__.py" />
       <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/deployer/configuration_generator.py" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/deployer/deployer.py" />
       <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/deployer/k8sDeployer.py" />
       <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/deployer/orig/deployment.yml" />
       <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/deployer/orig/service.yml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/deployer/produce/deployment.yml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/deployer/produce/service.yml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/deployment.yml" />
       <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/features/deployer_actions.feature" />
       <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/features/service_stub/Dockerfile" />
       <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/features/service_stub/service.yml" />
       <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/features/steps/__init__.py" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/features/steps/deployer_steps.py" />
       <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/requirements.txt" />
       <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test/__init__.py" />
       <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test/test_configuration_generator.py" />
@@ -76,8 +88,8 @@
       <file leaf-file-name="deployer.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/deployer/deployer.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="342">
-              <caret line="20" column="66" selection-start-line="20" selection-start-column="66" selection-end-line="20" selection-end-column="66" />
+            <state relative-caret-position="300">
+              <caret line="18" column="71" selection-start-line="18" selection-start-column="71" selection-end-line="18" selection-end-column="71" />
               <folding>
                 <element signature="e#0#9#0" expanded="true" />
               </folding>
@@ -1072,7 +1084,7 @@
       <option name="presentableId" value="Default" />
       <updated>1479730258573</updated>
       <workItem from="1479730262670" duration="58618000" />
-      <workItem from="1479977276278" duration="13929000" />
+      <workItem from="1479977276278" duration="13970000" />
     </task>
     <servers />
   </component>
@@ -1109,7 +1121,7 @@
     </history-entry>
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="72547000" />
+    <option name="totallyTimeSpent" value="72588000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="23" width="1920" height="1000" extended-state="6" />
@@ -1434,8 +1446,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/deployer/deployer.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="342">
-          <caret line="20" column="66" selection-start-line="20" selection-start-column="66" selection-end-line="20" selection-end-column="66" />
+        <state relative-caret-position="300">
+          <caret line="18" column="71" selection-start-line="18" selection-start-column="71" selection-end-line="18" selection-end-column="71" />
           <folding>
             <element signature="e#0#9#0" expanded="true" />
           </folding>

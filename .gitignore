@@ -4,3 +4,4 @@ drop
 *.log
 thrift
 *.egg
+.idea
