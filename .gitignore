@@ -1,0 +1,6 @@
+drop
+*.egg-info
+*.pyc
+*.log
+thrift
+*.egg

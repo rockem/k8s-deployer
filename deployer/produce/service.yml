@@ -1,0 +1,15 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: dummy-service #configured
+  labels:
+    name: props
+spec:
+  selector:
+    name: dummy-service-selector #configured
+  ports:
+  - protocol: TCP
+    targetPort: 8080
+    nodePort: 30010
+    port: 80
+  type: LoadBalancer
