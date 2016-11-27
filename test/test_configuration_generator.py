@@ -38,6 +38,9 @@ class TestConfigurationGenerator(object):
         self.cg.generate(TARGET).by_template(SOURCE)
         assert self.assert_generated_configuration(open(TARGET).readlines(), dict(firstProp ="{first}",  secondProp = "{second}"))
 
+    def test_generate_configuration_with_params_not_in_order(self):
+        False
+
     @raises(TemplateCorruptedError)
     def test_throw_exception_given_prop_not_match_in_template(self):
         self.setupTest(dict(first ="first-prop", second = "second-prop"), dict(name = "{first}", lable = "{lable}"))

@@ -1,3 +1,4 @@
+import os
 import re
 
 
@@ -11,18 +12,12 @@ class ConfigurationGenerator(object):
     def __init__(self, serviceConfiguration):
         self.serviceConfiguration = serviceConfiguration
 
+
     def generate(self, target):
-        self.target = target
+        self.target = target#os.path.join('deployer/produce/', target)
         f = self.__open_file_for(self.target, "w")
         f.close()
         return self
-
-    def __validate_configuration_properties_against_template(self, lines):
-        params = re.findall(r"\{([A-Za-z0-9_]+)\}", str(lines))
-        if params:
-            keys =  self.serviceConfiguration.keys()
-            if set(params) - set(keys):
-                raise TemplateCorruptedError("template corrupted - we found properties in configuration that is missing in the template!:  " + str(set(keys) - set(params)))
 
     def by_template(self, source):
         lines = self.__read_lines_from_source(source)
@@ -32,6 +27,15 @@ class ConfigurationGenerator(object):
         self.__validate_service_configuration(f, lines)
         self.__find_and_replace_service_configuration(lines, newLines)
         self.__write_to_target(f, newLines)
+
+    def __validate_configuration_properties_against_template(self, lines):
+        params = re.findall(r"\{([A-Za-z0-9_]+)\}", str(lines))
+        if params:
+            keys =  self.serviceConfiguration.keys()
+            if set(params) - set(keys):
+                raise TemplateCorruptedError("template corrupted - we found properties in configuration that is missing in the template!:  " + str(set(keys) - set(params)))
+
+
 
     def __open_file_for(self, path, rw):
         f = open(str(path), rw)
@@ -52,6 +56,7 @@ class ConfigurationGenerator(object):
             self.__write_to_target(f, lines)
 
     def __read_lines_from_source(self, source):
+        # f = self.__open_file_for(os.path.join('deployer/orig/', source), "r")
         f = self.__open_file_for(source, "r")
         lines = []
         for line in f.readlines():
