@@ -1,4 +1,3 @@
-import os
 import re
 
 
@@ -12,9 +11,8 @@ class ConfigurationGenerator(object):
     def __init__(self, serviceConfiguration):
         self.serviceConfiguration = serviceConfiguration
 
-
     def generate(self, target):
-        self.target = target#os.path.join('deployer/produce/', target)
+        self.target = target
         f = self.__open_file_for(self.target, "w")
         f.close()
         return self
@@ -35,8 +33,6 @@ class ConfigurationGenerator(object):
             if set(params) - set(keys):
                 raise TemplateCorruptedError("template corrupted - we found properties in configuration that is missing in the template!:  " + str(set(keys) - set(params)))
 
-
-
     def __open_file_for(self, path, rw):
         f = open(str(path), rw)
         return f
@@ -56,7 +52,6 @@ class ConfigurationGenerator(object):
             self.__write_to_target(f, lines)
 
     def __read_lines_from_source(self, source):
-        # f = self.__open_file_for(os.path.join('deployer/orig/', source), "r")
         f = self.__open_file_for(source, "r")
         lines = []
         for line in f.readlines():

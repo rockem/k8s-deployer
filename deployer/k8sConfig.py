@@ -4,7 +4,6 @@ import yaml
 
 from configuration_generator import ConfigurationGenerator
 
-
 class k8sConfig(object):
 
     def by(self, image_name):
