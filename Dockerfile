@@ -1,6 +1,5 @@
 FROM docker
 
-
 # install kubectl
 ENV KUBECTL_VERSION 1.2.0
 
@@ -22,15 +21,21 @@ RUN aws configure set aws_access_key_id AKIAJTCRJYJZ3MKMILYQ
 RUN aws configure set aws_secret_access_key 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
 
 #copy code
-COPY . /opt/app
+COPY . /kubebase
 
 #dependecies installations
-RUN pip install -r /opt/app/requirements.txt
+RUN pip install -r /kubebase/requirements.txt
 
 #change permissions files
-RUN chmod +x /opt/app/*
+RUN chmod +x /kubebase/*
 
-WORKDIR /opt/app
+RUN python 
+
+WORKDIR /kubebase
 
 # login to aws and run script
-CMD $(aws ecr get-login --region us-east-1) && python deployer/deployer.py ${IMAGE_NAME}
+CMD $(aws ecr get-login --region us-east-1) && \
+            mkdir .cfssl && \
+            aws s3 sync s3://agt-terraform-state-prod/config-dev/cfssl ./.cfssl && \
+            aws s3 sync s3://agt-terraform-state-prod/config-dev/k8s-structs ~/.kube && \
+           python deployer/deployer.py ${IMAGE_NAME}

@@ -5,9 +5,9 @@ from nose.tools import raises
 
 from deployer.configuration_generator import ConfigurationGenerator, TemplateCorruptedError
 
-CONFIGURATION = './resources/configuration.yml'
-TARGET = './resources/generated_deployment.yml'
-SOURCE = './resources/test_deployment.yml'
+CONFIGURATION = './configuration.yml'
+TARGET = './generated_deployment.yml'
+SOURCE = './test_deployment.yml'
 
 class TestConfigurationGenerator(object):
 
@@ -20,7 +20,7 @@ class TestConfigurationGenerator(object):
 
     def fetch_configuration(self):
         try:
-            return dict(map(str, x.split(':')) for x in open('./resources/configuration.yml').readlines())
+            return dict(map(str, x.split(':')) for x in open('./configuration.yml').readlines())
         except Exception:
             return dict()
 
