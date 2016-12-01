@@ -14,4 +14,5 @@ class k8sConfig(object):
 
     def fetch_service_configuration_from_docker(self, image_name):
         configuration = os.popen("docker run " + image_name + " cat /opt/conf/service.yml").read()
+        print configuration
         return yaml.load(configuration)

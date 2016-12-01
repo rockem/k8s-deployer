@@ -1,3 +1,4 @@
+import os
 import re
 
 
@@ -10,10 +11,12 @@ class ConfigurationGenerator(object):
 
     def __init__(self, serviceConfiguration):
         self.serviceConfiguration = serviceConfiguration
+        if not os.path.exists("deployer/produce/"):
+            os.makedirs("deployer/produce/")
 
     def generate(self, target):
         self.target = target
-        f = self.__open_file_for(self.target, "w")
+        f = self.__open_file_for(self.target, "w+")
         f.close()
         return self
 
@@ -21,7 +24,7 @@ class ConfigurationGenerator(object):
         lines = self.__read_lines_from_source(source)
         self.__validate_configuration_properties_against_template(lines)
         newLines = []
-        f = self.__open_file_for(self.target, "w")
+        f = self.__open_file_for(self.target, "w+")
         self.__validate_service_configuration(f, lines)
         self.__find_and_replace_service_configuration(lines, newLines)
         self.__write_to_target(f, newLines)
