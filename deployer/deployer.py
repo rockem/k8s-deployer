@@ -5,11 +5,10 @@ from k8sConfig import k8sConfig
 
 
 @click.argument('image_name', metavar='<image_name>')
-@click.option('--target', default="")
 @click.command(options_metavar='<options>')
-def main(image_name, target):
+def main(image_name):
 
-    deployRunner(target).deploy(k8sConfig().by(image_name))
+    deployRunner().deploy(k8sConfig().by(image_name))
 
 if __name__ == "__main__":
     main()

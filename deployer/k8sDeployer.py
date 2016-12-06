@@ -10,7 +10,7 @@ class k8sNotAvailableError(Exception):
 class K8sDeployer(object):
 
     def __ping_k8s(self):
-        output = os.popen("kubectl get svc").read()
+        output = os.popen("kubectl cluster-info").read()
         if "kubernetes" not in output:
             raise k8sNotAvailableError()
 
@@ -18,7 +18,12 @@ class K8sDeployer(object):
         self.sourceToDeploy = os.path.join('deployer/produce/' + toDeploy)
         return self
 
-    def to(self, target): #TODO -> use target. for now default
+    def to(self):
         self.__ping_k8s()
-        os.popen("kubectl delete -f " + self.sourceToDeploy)
-        os.popen("kubectl create -f " + self.sourceToDeploy)
+
+        try:
+            os.popen("kubectl delete -f " + self.sourceToDeploy)
+        except Exception:
+            print "first time service deployed"
+
+        os.popen("kubectl create -f " + self.sourceToDeploy + " --validate=false")

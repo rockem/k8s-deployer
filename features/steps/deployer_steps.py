@@ -11,7 +11,7 @@ def dockerize(context):
 
 @when("execute")
 def execute(context):
-    subprocess.call(["python", "deployer/deployer.py", "service_dummy_test_mode", "--target=target_env"])
+    subprocess.call(["python", "deployer/deployer.py", "service_dummy_test_mode"])
 
 @then("service should be deployed")
 def deploy(context):

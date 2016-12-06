@@ -29,8 +29,3 @@ spec:
        volumes:
        # consume the file-like keys of the configmap via volume plugin
        - name: config-volume
-         configMap:
-          name: my-config
-          items:
-          - key: application.properties
-            path: application.properties

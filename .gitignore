@@ -1,3 +1,7 @@
+.cfssl
+config
+*.pem
+*.sh
 drop
 *.egg-info
 *.pyc

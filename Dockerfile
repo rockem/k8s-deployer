@@ -21,21 +21,26 @@ RUN aws configure set aws_access_key_id AKIAJTCRJYJZ3MKMILYQ
 RUN aws configure set aws_secret_access_key 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
 
 #copy code
-COPY . /kubebase
+COPY . /opt/deployer
 
 #dependecies installations
-RUN pip install -r /kubebase/requirements.txt
+RUN pip install -r /opt/deployer/requirements.txt
 
-#change permissions files
-RUN chmod +x /kubebase/*
+#define temp workdir
+WORKDIR /opt/deployer
 
-RUN python 
+#run service unit tests
+RUN python -m nose test
 
+#define workspace
 WORKDIR /kubebase
+
+#create dirs for sync with k8s env @ amazon
+RUN mkdir .cfssl
+RUN mkdir ~/.kube
 
 # login to aws and run script
 CMD $(aws ecr get-login --region us-east-1) && \
-            mkdir .cfssl && \
-            aws s3 sync s3://agt-terraform-state-prod/config-dev/cfssl ./.cfssl && \
-            aws s3 sync s3://agt-terraform-state-prod/config-dev/k8s-structs ~/.kube && \
-           python deployer/deployer.py ${IMAGE_NAME}
+            aws s3 sync s3://agt-terraform-state-prod/config-amazia/cfssl ./.cfssl && \
+            aws s3 sync s3://agt-terraform-state-prod/config-amazia/k8s-structs ~/.kube && \
+           cd /opt/deployer && python deployer/deployer.py ${IMAGE_NAME}

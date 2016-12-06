@@ -1,2 +1,7 @@
 .idea
-test
+features
+cleanup.sh
+config
+connectKube.sh
+*.pem
+.cfssl
