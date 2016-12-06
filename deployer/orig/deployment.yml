@@ -15,7 +15,8 @@ spec:
          name: {serviceSelector}
      spec:
        containers:
-       - image: pregistry.dnsk.io:5000/agt/{serviceName}:latest #configured
+#       - image: pregistry.dnsk.io:5000/agt/{serviceName}:latest #configured
+       - image: {image}
          name: {serviceSelector}
          imagePullPolicy: Always
          volumeMounts:

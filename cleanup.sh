@@ -6,4 +6,4 @@ docker rm $(docker ps -a -q)
 echo "build docker image"
 docker build -t deploy .
 echo "start docker"
-docker run -v /var/run/docker.sock:/var/run/docker.sock -e IMAGE_NAME=911479539546.dkr.ecr.us-east-1.amazonaws.com/k8s.workshop.registry:latest -t deploy
+docker run -v /var/run/docker.sock:/var/run/docker.sock -e IMAGE_NAME=911479539546.dkr.ecr.us-east-1.amazonaws.com/k8s-platform:service_stub -t deploy
