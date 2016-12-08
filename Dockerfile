@@ -41,6 +41,6 @@ RUN mkdir ~/.kube
 
 # login to aws and run script
 CMD  docker version && $(aws ecr get-login --region us-east-1) && \
-            aws s3 sync s3://agt-terraform-state-prod/config-amazia/cfssl ./.cfssl && \
-            aws s3 sync s3://agt-terraform-state-prod/config-amazia/k8s-structs ~/.kube && \
+            aws s3 sync s3://agt-terraform-state-prod/config-prod/cfssl ./.cfssl && \
+            aws s3 sync s3://agt-terraform-state-prod/config-prod/k8s-structs ~/.kube && \
            cd /opt/deployer && python deployer/deployer.py ${IMAGE_NAME}
