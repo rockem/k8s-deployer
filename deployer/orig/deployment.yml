@@ -3,30 +3,25 @@ kind: Deployment
 metadata:
    name: java-props
    labels:
-     name: {serviceSelector} #configured
+       name: {name}
 spec:
    replicas: 1
    selector:
      matchLabels:
-       name: {serviceSelector}
+       name: {name}
    template:
      metadata:
        labels:
-         name: {serviceSelector}
+         name: {name}
      spec:
        containers:
-#       - image: pregistry.dnsk.io:5000/agt/{serviceName}:latest #configured
-       - image: {image}
-         name: {serviceSelector}
+       - image: 911479539546.dkr.ecr.us-east-1.amazonaws.com/{name}:0.1.0
+         name: {name}
          imagePullPolicy: Always
          volumeMounts:
          - mountPath: /opt/config
            name: config-volume
-#         env:
-#         - name: APP_HOME
-#           value: /opt/app
          ports:
-         - containerPort: {containerPort} #configured
+         - containerPort: 8080
        volumes:
-       # consume the file-like keys of the configmap via volume plugin
        - name: config-volume

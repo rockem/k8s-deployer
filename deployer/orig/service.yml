@@ -1,15 +1,15 @@
 kind: Service
 apiVersion: v1
 metadata:
-  name: {serviceName} #configured
+  name: {name} #configured
   labels:
     name: props
 spec:
   selector:
-    name: {serviceSelector} #configured
+    name: {name} #configured
   ports:
   - protocol: TCP
     targetPort: 8080
-    nodePort: 30010
+    nodePort: 30010 # should random
     port: 80
   type: LoadBalancer

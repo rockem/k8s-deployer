@@ -7,13 +7,13 @@ use_step_matcher("re")
 
 @given("service is dockerized")
 def dockerize(context):
-    os.system("docker build -t service_dummy_test_mode ./features/service_stub/.")
+    os.system("docker build -t hello-world-java ./features/service_stub/.")
 
 @when("execute")
 def execute(context):
-    subprocess.call(["python", "deployer/deployer.py", "service_dummy_test_mode"])
+    subprocess.call(["python", "deployer/deployer.py", "hello-world-java"])
 
 @then("service should be deployed")
 def deploy(context):
-    output = os.popen("kubectl get svc dummy-service").read()
-    assert "dummy-service" in output
+    output = os.popen("kubectl get svc hello-world-java").read()
+    assert "hello-world-java" in output

@@ -1,2 +1,2 @@
 FROM java:8-jdk
-COPY service.yml /opt/conf/service.yml
+COPY config.yml /opt/app/config.yml

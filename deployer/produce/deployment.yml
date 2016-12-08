@@ -3,29 +3,25 @@ kind: Deployment
 metadata:
    name: java-props
    labels:
-     name: dummy-service-selector #configured
+       name: hello-world-java
 spec:
    replicas: 1
    selector:
      matchLabels:
-       name: dummy-service-selector
+       name: hello-world-java
    template:
      metadata:
        labels:
-         name: dummy-service-selector
+         name: hello-world-java
      spec:
        containers:
-       - image: pregistry.dnsk.io:5000/agt/dummy-service:latest #configured
-         name: dummy-service-selector
+       - image: 911479539546.dkr.ecr.us-east-1.amazonaws.com/hello-world-java:0.1.0
+         name: hello-world-java
          imagePullPolicy: Always
          volumeMounts:
          - mountPath: /opt/config
            name: config-volume
-#         env:
-#         - name: APP_HOME
-#           value: /opt/app
          ports:
-         - containerPort: 8080 #configured
+         - containerPort: 8080
        volumes:
-       # consume the file-like keys of the configmap via volume plugin
        - name: config-volume

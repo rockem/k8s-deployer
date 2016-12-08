@@ -1,4 +1,0 @@
-serviceName: greeter-service
-serviceSelector: greeter-selector
-containerPort: 8080
-image : 911479539546.dkr.ecr.us-east-1.amazonaws.com/greeter:latest
