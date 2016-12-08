@@ -1,4 +1,4 @@
-FROM docker
+FROM docker:1.11.2
 
 # install kubectl
 ENV KUBECTL_VERSION 1.2.0
@@ -40,7 +40,7 @@ RUN mkdir .cfssl
 RUN mkdir ~/.kube
 
 # login to aws and run script
-CMD $(aws ecr get-login --region us-east-1) && \
+CMD  docker version && $(aws ecr get-login --region us-east-1) && \
             aws s3 sync s3://agt-terraform-state-prod/config-amazia/cfssl ./.cfssl && \
             aws s3 sync s3://agt-terraform-state-prod/config-amazia/k8s-structs ~/.kube && \
            cd /opt/deployer && python deployer/deployer.py ${IMAGE_NAME}
