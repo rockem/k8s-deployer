@@ -17,8 +17,8 @@ RUN apk add --no-cache python && \
 
 # install aws cli profile
 RUN pip install awscli --ignore-installed six
-RUN aws configure set aws_access_key_id AKIAJTCRJYJZ3MKMILYQ
-RUN aws configure set aws_secret_access_key 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
+RUN aws configure set aws_access_key_id AKIAJUHGHBF4SEHXKLZA
+RUN aws configure set aws_secret_access_key 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
 
 #copy code
 COPY . /opt/deployer
@@ -41,8 +41,6 @@ RUN mkdir ~/.kube
 
 # login to aws and run script
 CMD  docker version && $(aws ecr get-login --region us-east-1) && \
-#            aws s3 sync s3://agt-terraform-state-prod/config-prod/cfssl ./.cfssl && \
-#            aws s3 sync s3://agt-terraform-state-prod/config-prod/k8s-structs ~/.kube && \
            cd /opt/deployer && \
            python kubectlconf/app.py "config-prod" && \
             python deployer/deployer.py ${IMAGE_NAME}
