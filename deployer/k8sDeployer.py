@@ -15,6 +15,7 @@ class K8sDeployer(object):
             raise k8sNotAvailableError()
 
     def deploy(self, toDeploy):
+        print "%s is a deployment candidate" %(toDeploy)
         self.sourceToDeploy = os.path.join('deployer/produce/' + toDeploy)
         return self
 
@@ -26,4 +27,6 @@ class K8sDeployer(object):
         except Exception:
             print "first time service deployed"
 
+        print "deploying %s" %(self.sourceToDeploy)
         os.popen("kubectl create -f " + self.sourceToDeploy + " --validate=false")
+        print "%s deployment finished successfully" %(self.sourceToDeploy)

@@ -21,13 +21,18 @@ class ConfigurationGenerator(object):
         return self
 
     def by_template(self, source):
+        print "read template"
         lines = self.__read_lines_from_source(source)
+        print "validate properties should swapped in template match"
         self.__validate_configuration_properties_against_template(lines)
         newLines = []
         f = self.__open_file_for(self.target, "w+")
         self.__validate_service_configuration(f, lines)
+        print "match and replace service properties values @ %s" %(self.target)
         self.__find_and_replace_service_configuration(lines, newLines)
+        print "flush all to %s" %(self.target)
         self.__write_to_target(f, newLines)
+        print "%s generation succeeded" %(self.target)
 
     def __validate_configuration_properties_against_template(self, lines):
         params = re.findall(r"\{([A-Za-z0-9_]+)\}", str(lines))
