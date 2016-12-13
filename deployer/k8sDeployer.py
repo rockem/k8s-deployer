@@ -1,5 +1,9 @@
 import os
 
+from deployerLogger import DeployerLogger
+
+logger = DeployerLogger(__name__).getLogger()
+
 
 class k8sNotAvailableError(Exception):
     K8S_NOT_RESPONDING_MSG = "k8s is not responding to ping"
@@ -15,7 +19,7 @@ class K8sDeployer(object):
             raise k8sNotAvailableError()
 
     def deploy(self, toDeploy):
-        print "%s is a deployment candidate" %(toDeploy)
+        logger.debug("%s is a deployment candidate" %(toDeploy))
         self.sourceToDeploy = os.path.join('deployer/produce/' + toDeploy)
         return self
 
@@ -25,8 +29,8 @@ class K8sDeployer(object):
         try:
             os.popen("kubectl delete -f " + self.sourceToDeploy)
         except Exception:
-            print "first time service deployed"
+            logger.info("first time service deployed")
 
-        print "deploying %s" %(self.sourceToDeploy)
+        logger.debug("deploying %s" %(self.sourceToDeploy))
         os.popen("kubectl create -f " + self.sourceToDeploy + " --validate=false")
-        print "%s deployment finished successfully" %(self.sourceToDeploy)
+        logger.debug("%s deployment finished successfully" %(self.sourceToDeploy))
