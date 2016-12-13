@@ -35,7 +35,7 @@ class ConfigurationGenerator(object):
         logger.debug("%s generation succeeded" %(self.target))
 
     def __validate_configuration_properties_against_template(self, lines):
-        params = re.findall(r"\{([A-Za-z0-9_]+)\}", str(lines))
+        params = re.findall(r"\{([\.A-Za-z0-9_]+)\}", str(lines))
         if params:
             keys =  self.serviceConfiguration.keys()
             if set(params) - set(keys):
@@ -48,7 +48,7 @@ class ConfigurationGenerator(object):
 
     def __find_and_replace_service_configuration(self, lines, newLines):
         for line in lines:
-            key = re.search(r"\{([A-Za-z0-9_]+)\}", str(line))
+            key = re.search(r"\{([\.A-Za-z0-9_]+)\}", str(line))
             if key:
                 v = dict(self.serviceConfiguration).get(str(key.group(1)))
                 newLines.append(line.replace("{" + str(key.group(1))+ "}", str(v)))
