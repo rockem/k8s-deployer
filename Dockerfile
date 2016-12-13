@@ -32,6 +32,9 @@ WORKDIR /opt/deployer
 #run service unit tests
 RUN python -m nose test
 
+#Install kubectl configurator
+RUN pip install --trusted-host om-artifactory.mm.local -i http://om-artifactory.mm.local:8081/artifactory/api/pypi/pypi-platform/simple KubectlConf
+
 #define workspace
 WORKDIR /kubebase
 
@@ -42,5 +45,5 @@ RUN mkdir ~/.kube
 # login to aws and run script
 CMD  docker version && $(aws ecr get-login --region us-east-1) && \
            cd /opt/deployer && \
-           python kubectlconf/app.py "config-prod" && \
+           kubectl-conf "config-prod" && \
             python deployer/deployer.py ${IMAGE_NAME}
