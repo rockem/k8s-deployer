@@ -1,7 +1,7 @@
 .cfssl
 config
 *.pem
-*.sh
+cleanup.sh
 drop
 *.egg-info
 *.pyc
