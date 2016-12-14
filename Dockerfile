@@ -38,10 +38,6 @@ RUN pip install --trusted-host om-artifactory.mm.local -i http://om-artifactory.
 #define workspace
 WORKDIR /kubebase
 
-#create dirs for sync with k8s env @ amazon
-RUN mkdir .cfssl
-RUN mkdir ~/.kube
-
 # login to aws and run script
 CMD  docker version && $(aws ecr get-login --region us-east-1) && \
            cd /opt/deployer && \
