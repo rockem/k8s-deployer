@@ -32,5 +32,5 @@ class K8sDeployer(object):
             logger.info("first time service deployed")
 
         logger.debug("deploying %s" %(self.sourceToDeploy))
-        os.popen("kubectl create -f " + self.sourceToDeploy + " --validate=false")
+        os.popen("kubectl create -f " + self.sourceToDeploy + " --validate=false --record")
         logger.debug("%s deployment finished successfully" %(self.sourceToDeploy))
