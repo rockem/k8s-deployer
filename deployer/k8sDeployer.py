@@ -1,4 +1,5 @@
 import os
+import subprocess
 
 from deployerLogger import DeployerLogger
 
@@ -14,8 +15,9 @@ class k8sNotAvailableError(Exception):
 class K8sDeployer(object):
 
     def __ping_k8s(self):
-        output = os.popen("kubectl cluster-info").read()
-        if "kubernetes" not in output:
+        returned_code = subprocess.call("kubectl cluster-info", shell=True, stdout=subprocess.PIPE,
+                                 stderr=subprocess.PIPE)
+        if returned_code != 0:
             raise k8sNotAvailableError()
 
     def deploy(self, toDeploy):
@@ -27,10 +29,13 @@ class K8sDeployer(object):
         self.__ping_k8s()
 
         try:
-            os.popen("kubectl delete -f " + self.sourceToDeploy)
+            logger.info("Trying to upgrade %s" % self.sourceToDeploy)
+            subprocess.call("kubectl replace -f " + self.sourceToDeploy, shell=True, stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE)
+            logger.info("%s upgrade finished successfully" % self.sourceToDeploy)
+            return
         except Exception:
-            logger.info("first time service deployed")
-
-        logger.debug("deploying %s" %(self.sourceToDeploy))
-        os.popen("kubectl create -f " + self.sourceToDeploy + " --validate=false --record")
-        logger.debug("%s deployment finished successfully" %(self.sourceToDeploy))
+            logger.info("failed to upgrade, probably a new installation, deploying %s" % self.sourceToDeploy)
+            subprocess.call("kubectl create -f " + self.sourceToDeploy + " --validate=false --record", shell=True,
+                            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            logger.info("%s deployment finished successfully" % self.sourceToDeploy)
