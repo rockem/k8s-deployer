@@ -20,12 +20,6 @@ class K8sDeployer(object):
         if returned_code != 0:
             raise k8sNotAvailableError()
 
-    def __deploy_k8s(self):
-        logger.info("failed to upgrade, probably a new installation, deploying %s" % self.sourceToDeploy)
-        error_code = subprocess.call("kubectl create -f " + self.sourceToDeploy + " --validate=false --record",
-                                     shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        logger.info("deployment finished with error code:%s" % error_code)
-
     def deploy(self, toDeploy):
         logger.debug("%s is a deployment candidate" % toDeploy)
         self.sourceToDeploy = os.path.join('deployer/produce/' + toDeploy)
@@ -35,13 +29,12 @@ class K8sDeployer(object):
         self.__ping_k8s()
 
         try:
-            logger.info("Trying to upgrade %s" % self.sourceToDeploy)
-            error_code = subprocess.call("kubectl replace -f " + self.sourceToDeploy, shell=True, stdout=subprocess.PIPE,
-                            stderr=subprocess.PIPE)
+            logger.info("deploying/upgrading %s" % self.sourceToDeploy)
+            cmd = "kubectl apply --record -f " + self.sourceToDeploy
+            logger.info("running '%s'" % cmd)
+            error_code = subprocess.call(cmd, shell=True, stdout=subprocess.PIPE,
+                                         stderr=subprocess.PIPE)
             if error_code == 1:
-                self.__deploy_k8s()
-            else:
-                logger.info("%s upgrade finished successfully" % self.sourceToDeploy)
-            return
-        except Exception:
-            self.__deploy_k8s()
+                logger.info("deploying/upgrading of %s finished with error" % self.sourceToDeploy)
+        except Exception as e:
+            logger.exception(e)
