@@ -10,7 +10,7 @@ logger = DeployerLogger('deployer').getLogger()
 def main(image_name):
 
     deployRunner().deploy(k8sConfig().by(image_name))
-    logger.debug("%s deployed successfully" %(image_name))
+    logger.debug("finished deploying image:%s" %(image_name))
 
 if __name__ == "__main__":
     main()

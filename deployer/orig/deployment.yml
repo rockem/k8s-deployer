@@ -1,7 +1,7 @@
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-   name: java-props
+   name: {name}
    labels:
        name: {name}
 spec:
@@ -15,7 +15,7 @@ spec:
          name: {name}
      spec:
        containers:
-       - image: 911479539546.dkr.ecr.us-east-1.amazonaws.com/{name}:0.1.0
+       - image: 911479539546.dkr.ecr.us-east-1.amazonaws.com/{name}:{version}
          name: {name}
          imagePullPolicy: Always
          volumeMounts:

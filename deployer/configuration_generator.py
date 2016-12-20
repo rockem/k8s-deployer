@@ -26,18 +26,18 @@ class ConfigurationGenerator(object):
     def by_template(self, source):
         lines = self.__read_lines_from_source(source)
         self.__validate_configuration_properties_against_template(lines)
-        newLines = []
+        new_lines = []
         f = self.__open_file_for(self.target, "w+")
         self.__validate_service_configuration(f, lines)
-        logger.debug("match and replace service properties values @ %s" %(self.target))
-        self.__find_and_replace_service_configuration(lines, newLines)
-        self.__write_to_target(f, newLines)
-        logger.debug("%s generation succeeded" %(self.target))
+        logger.debug("match and replace service properties values @ %s" % self.target)
+        self.__find_and_replace_service_configuration(lines, new_lines)
+        self.__write_to_target(f, new_lines)
+        logger.debug("%s generation succeeded" % self.target)
 
     def __validate_configuration_properties_against_template(self, lines):
         params = re.findall(r"\{([\.A-Za-z0-9_]+)\}", str(lines))
         if params:
-            keys =  self.serviceConfiguration.keys()
+            keys = self.serviceConfiguration.keys()
             if set(params) - set(keys):
                 logger.warning(("template corrupted - we found properties in configuration that is missing in the template!:  " + str(set(keys) - set(params))))
                 raise TemplateCorruptedError("template corrupted - we found properties in configuration that is missing in the template!:  " + str(set(keys) - set(params)))
@@ -46,15 +46,13 @@ class ConfigurationGenerator(object):
         f = open(str(path), rw)
         return f
 
-    def __find_and_replace_service_configuration(self, lines, newLines):
+    def __find_and_replace_service_configuration(self, lines, new_lines):
         for line in lines:
-            key = re.search(r"\{([\.A-Za-z0-9_]+)\}", str(line))
-            if key:
-                v = dict(self.serviceConfiguration).get(str(key.group(1)))
-                newLines.append(line.replace("{" + str(key.group(1))+ "}", str(v)))
-            else:
-                if line not in newLines:
-                    newLines.append(line)
+            new_line = line
+            # maybe not the best performance but readable and working
+            for key in self.serviceConfiguration:
+                new_line = new_line.replace("{" + key + "}", self.serviceConfiguration[key])
+            new_lines.append(new_line)
 
     def __validate_service_configuration(self, f, lines):
         if not self.serviceConfiguration:
@@ -68,7 +66,7 @@ class ConfigurationGenerator(object):
         f.close()
         return lines
 
-    def __write_to_target(self, f, newLines):
-        for line in newLines:
+    def __write_to_target(self, f, new_lines):
+        for line in new_lines:
             f.write(line)
         f.close()
