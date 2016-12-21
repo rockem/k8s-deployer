@@ -1,9 +1,9 @@
 kind: Service
 apiVersion: v1
 metadata:
-  name: {name} #configured
+  name: {name}-service #configured
   labels:
-    name: props
+    name: {name}
 spec:
   selector:
     name: {name} #configured
