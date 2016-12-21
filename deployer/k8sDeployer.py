@@ -15,14 +15,12 @@ class k8sNotAvailableError(Exception):
 class K8sDeployer(object):
 
     def __ping_k8s(self):
-        returned_code = subprocess.call("kubectl cluster-info", shell=True, stdout=subprocess.PIPE,
-                                 stderr=subprocess.PIPE)
+        returned_code = self.__run("kubectl cluster-info")
         if returned_code != 0:
             raise k8sNotAvailableError()
 
     def deploy(self, toDeploy):
-        #TODO: add upgrade to log
-        logger.debug("%s is a deployment candidate" % toDeploy)
+        logger.debug("%s is a deployment/upgrade candidate" % toDeploy)
         self.sourceToDeploy = os.path.join('deployer/produce/' + toDeploy)
         return self
 
@@ -30,14 +28,15 @@ class K8sDeployer(object):
         self.__ping_k8s()
 
         try:
-            #TODO: remove log
-            logger.info("deploying/upgrading %s" % self.sourceToDeploy)
             cmd = "kubectl apply --record -f " + self.sourceToDeploy
             logger.info("running '%s'" % cmd)
-            #TODO: should be private function!
-            error_code = subprocess.call(cmd, shell=True, stdout=subprocess.PIPE,
-                                         stderr=subprocess.PIPE)
+            error_code = self.__run(cmd)
             if error_code == 1:
                 logger.info("deploying/upgrading of %s finished with error" % self.sourceToDeploy)
         except Exception as e:
             logger.exception(e)
+
+    def __run(self, cmd):
+        error_code = subprocess.call(cmd, shell=True, stdout=subprocess.PIPE,
+                                     stderr=subprocess.PIPE)
+        return error_code

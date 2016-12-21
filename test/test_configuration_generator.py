@@ -9,8 +9,8 @@ CONFIGURATION = './configuration.yml'
 TARGET = './generated_deployment.yml'
 SOURCE = './test_deployment.yml'
 
+
 class TestConfigurationGenerator(object):
-    #TODO test the regex issue!
     cg = None
 
     def setupTest(self, configurationDic, templateDic):
@@ -29,22 +29,23 @@ class TestConfigurationGenerator(object):
             yaml.dump(data, outfile, default_flow_style=False)
 
     def test_generate_configuration_with_one_param(self):
-        self.setupTest(dict(first ="firstProp"), dict(name = "{first}"))
+        self.setupTest(dict(first="firstProp"), dict(name="{first}"))
         self.cg.generate(TARGET).by_template(SOURCE)
-        assert self.assert_generated_configuration(open(TARGET).readlines(), dict(firstProp = "{first}"))
+        assert self.assert_generated_configuration(open(TARGET).readlines(), dict(firstProp="{first}"))
 
     def test_generate_configuration_with_more_than_one_param(self):
-        self.setupTest(dict(first ="firstProp", second = "secondProp"), dict(name = "{first}", lable="{second}"))
+        self.setupTest(dict(first="firstProp", second="secondProp"), dict(name="{first}", label="{second}"))
         self.cg.generate(TARGET).by_template(SOURCE)
-        assert self.assert_generated_configuration(open(TARGET).readlines(), dict(firstProp ="{first}",  secondProp = "{second}"))
+        assert self.assert_generated_configuration(open(TARGET).readlines(), dict(firstProp ="{first}",
+                                                                                  secondProp="{second}"))
 
     def test_generate_configuration_with_params_not_in_order(self):
-        self.setupTest(dict(first ="first-prop", second = "second-prop"), dict(name = "{second}", lable = "{first}"))
+        self.setupTest(dict(first="first-prop", second="second-prop"), dict(name="{second}", label="{first}"))
         self.cg.generate(TARGET).by_template(SOURCE)
 
     @raises(TemplateCorruptedError)
     def test_throw_exception_given_prop_not_match_in_template(self):
-        self.setupTest(dict(first ="first-prop", second = "second-prop"), dict(name = "{first}", lable = "{lable}"))
+        self.setupTest(dict(first="first-prop", second="second-prop"), dict(name="{first}", label="{label}"))
         self.cg.generate(TARGET).by_template(SOURCE)
 
     def assert_generated_configuration(self, content, toAssert):
