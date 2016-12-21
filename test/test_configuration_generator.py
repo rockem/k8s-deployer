@@ -10,7 +10,7 @@ TARGET = './generated_deployment.yml'
 SOURCE = './test_deployment.yml'
 
 class TestConfigurationGenerator(object):
-
+    #TODO test the regex issue!
     cg = None
 
     def setupTest(self, configurationDic, templateDic):

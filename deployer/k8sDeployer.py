@@ -21,6 +21,7 @@ class K8sDeployer(object):
             raise k8sNotAvailableError()
 
     def deploy(self, toDeploy):
+        #TODO: add upgrade to log
         logger.debug("%s is a deployment candidate" % toDeploy)
         self.sourceToDeploy = os.path.join('deployer/produce/' + toDeploy)
         return self
@@ -29,9 +30,11 @@ class K8sDeployer(object):
         self.__ping_k8s()
 
         try:
+            #TODO: remove log
             logger.info("deploying/upgrading %s" % self.sourceToDeploy)
             cmd = "kubectl apply --record -f " + self.sourceToDeploy
             logger.info("running '%s'" % cmd)
+            #TODO: should be private function!
             error_code = subprocess.call(cmd, shell=True, stdout=subprocess.PIPE,
                                          stderr=subprocess.PIPE)
             if error_code == 1:
