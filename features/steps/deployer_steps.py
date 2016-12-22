@@ -15,5 +15,6 @@ def execute(context):
 
 @then("service should be deployed")
 def deploy(context):
-    output = os.popen("kubectl get svc hello-world-java").read()
-    assert "hello-world-java" in output
+    service_name = "deployer-stub-service"
+    output = os.popen("kubectl get svc %s" % service_name).read()
+    assert service_name in output
