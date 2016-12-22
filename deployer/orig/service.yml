@@ -1,7 +1,7 @@
 kind: Service
 apiVersion: v1
 metadata:
-  name: {name}-service #configured
+  name: {name} #configured
   labels:
     name: {name}
 spec:
