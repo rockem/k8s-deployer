@@ -10,3 +10,4 @@ thrift
 *.egg
 .idea
 deployer/produce
+tmp/
