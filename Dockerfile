@@ -42,4 +42,5 @@ WORKDIR /kubebase
 CMD  docker version && $(aws ecr get-login --region us-east-1) && \
            cd /opt/deployer && \
            kubectl-conf "config-prod" && \
-            python deployer/deployer.py ${IMAGE_NAME}
+           python deployer/deployer.py --action ${ACTION} --image_name ${IMAGE_NAME} --target ${TARGET} \
+                  --git_repository ${GIT_REPO}
