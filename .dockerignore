@@ -5,3 +5,4 @@ config
 connectKube.sh
 *.pem
 .cfssl
+tmp/
