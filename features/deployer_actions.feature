@@ -9,3 +9,9 @@ Feature: deploy service on k8s
     Given service is dockerized
     When execute
     Then service name and version is written to git
+
+  Scenario: service is promoted from integration to production
+    Given service is in integration
+    When promoting to production
+    Then service should be deployed in production
+    And the promoted service should be logged in git

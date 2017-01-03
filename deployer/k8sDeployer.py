@@ -1,7 +1,7 @@
 import os
 import subprocess
 
-from deployerLogger import DeployerLogger
+from log import DeployerLogger
 
 logger = DeployerLogger(__name__).getLogger()
 

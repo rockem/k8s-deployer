@@ -1,7 +1,7 @@
 import os
 import yaml
 from configuration_generator import ConfigurationGenerator
-from deployerLogger import DeployerLogger
+from log import DeployerLogger
 
 logger = DeployerLogger(__name__).getLogger()
 
@@ -11,7 +11,7 @@ class k8sConfig(object):
     def by(self, configuration):
         ConfigurationGenerator(configuration).generate('deployer/produce/deployment.yml').by_template('deployer/orig/deployment.yml')
         ConfigurationGenerator(configuration).generate('deployer/produce/service.yml').by_template('deployer/orig/service.yml')
-        return ['deployment.yml','service.yml']
+        return ['deployment.yml', 'service.yml']
 
     def fetch_service_configuration_from_docker(self, image_name):
         logger.debug("fetch service configuration by running image %s" % image_name)
