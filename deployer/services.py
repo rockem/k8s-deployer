@@ -3,7 +3,7 @@ import os
 import yaml
 
 from log import DeployerLogger
-from gitclient.GitClient import GitClient
+from gitclient.git_client import GitClient
 
 logger = DeployerLogger(__name__).getLogger()
 

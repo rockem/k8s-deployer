@@ -1,6 +1,6 @@
 import os
 import shutil
-from deployer.gitclient.GitClient import GitClient
+from deployer.gitclient.git_client import GitClient
 from deployer.log import DeployerLogger
 from features.steps import deployer_steps
 from features.steps.deployer_steps import REPO_NAME

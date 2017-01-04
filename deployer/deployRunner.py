@@ -1,4 +1,4 @@
-from gitclient.GitClient import GitClient
+from gitclient.git_client import GitClient
 from k8sDeployer import K8sDeployer
 from log import DeployerLogger
 

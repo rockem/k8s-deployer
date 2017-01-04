@@ -15,6 +15,9 @@ RUN apk add --no-cache python && \
     pip install --upgrade pip setuptools && \
     rm -r /root/.cache
 
+# install git
+RUN apk add --no-cache git=2.8.3-r0
+
 # install aws cli profile
 RUN pip install awscli --ignore-installed six
 RUN aws configure set aws_access_key_id AKIAJUHGHBF4SEHXKLZA
@@ -37,8 +40,4 @@ RUN python -m nose test
 WORKDIR /kubebase
 
 # login to aws and run script
-CMD  docker version && $(aws ecr get-login --region us-east-1) && \
-           cd /opt/deployer && \
-           kubectl-conf "config-prod" && \
-           python deployer/deployer.py --action ${ACTION} --image_name ${IMAGE_NAME} --target ${TARGET} \
-                 --git_repository ${GIT_REPO}
+ENTRYPOINT ["/opt/deployer/deployer_complete.sh"]
