@@ -25,15 +25,13 @@ COPY . /opt/deployer
 
 #dependecies installations
 RUN pip install -r /opt/deployer/requirements.txt
+RUN pip install --trusted-host om-artifactory.mm.local -i http://om-artifactory.mm.local:8081/artifactory/api/pypi/pypi-platform/simple KubectlConf
 
 #define temp workdir
 WORKDIR /opt/deployer
 
 #run service unit tests
 RUN python -m nose test
-
-#Install kubectl configurator
-RUN pip install --trusted-host om-artifactory.mm.local -i http://om-artifactory.mm.local:8081/artifactory/api/pypi/pypi-platform/simple KubectlConf
 
 #define workspace
 WORKDIR /kubebase
