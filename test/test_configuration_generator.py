@@ -1,8 +1,6 @@
 import os
-
 import yaml
 from nose.tools import raises
-
 from deployer.configuration_generator import ConfigurationGenerator, TemplateCorruptedError
 
 CONFIGURATION = './configuration.yml'

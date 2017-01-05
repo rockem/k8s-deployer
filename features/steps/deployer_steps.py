@@ -1,20 +1,44 @@
 import os
-import subprocess
-
 from behave import *
+from deployer.services import ServiceVersionWriter, ServiceVersionReader
 
 use_step_matcher("re")
+TARGET_ENV = 'prod'
+REPO_NAME = 'behave_repo'
+GIT_REPO = "file://" + os.getcwd() + '/' + REPO_NAME
+SERVICE_NAME = "deployer-stub"
+IMAGE_NAME = SERVICE_NAME + ":latest"
+
 
 @given("service is dockerized")
 def dockerize(context):
-    os.system("docker build -t hello-world-java ./features/service_stub/.")
+    os.system("docker build -t %s ./features/service_stub/." % SERVICE_NAME)
 
-@when("execute")
-def execute(context):
-    subprocess.call(["python", "deployer/deployer.py", "hello-world-java"])
 
-@then("service should be deployed")
+@when('deploying')
 def deploy(context):
-    service_name = "deployer-stub-service"
-    output = os.popen("kubectl get svc %s" % service_name).read()
-    assert service_name in output
+    assert os.system(
+        "python deployer/deployer.py deploy --image_name %s --target %s "
+        "--git_repository %s" % (IMAGE_NAME, TARGET_ENV, GIT_REPO)) == 0
+
+
+@then("service should be deployed( .*)?")
+def should_be_deployed(context, env):
+    output = os.popen("kubectl get svc %s" % SERVICE_NAME).read()
+    assert SERVICE_NAME in output
+
+
+@given("service is defined in source environment")
+def write_service_to_int_git(context):
+    ServiceVersionWriter(GIT_REPO).write('kuku', SERVICE_NAME, IMAGE_NAME)
+
+
+@when("promoting to production")
+def promote(context):
+    assert os.system("python deployer/deployer.py promote --source kuku --target %s "
+                     "--git_repository %s" % (TARGET_ENV, GIT_REPO)) == 0
+
+
+@then("service should be logged in git")
+def check_promoted_service_in_git(context):
+    assert ServiceVersionReader(REPO_NAME).read(TARGET_ENV)[0] == IMAGE_NAME
