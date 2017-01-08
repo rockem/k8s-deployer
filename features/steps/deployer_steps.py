@@ -3,7 +3,7 @@ from behave import *
 from deployer.services import ServiceVersionWriter, ServiceVersionReader
 
 use_step_matcher("re")
-TARGET_ENV = 'prod'
+TARGET_ENV = 'int'
 REPO_NAME = 'behave_repo'
 GIT_REPO = "file://" + os.getcwd() + '/' + REPO_NAME
 SERVICE_NAME = "deployer-stub"

@@ -20,13 +20,14 @@ class Deployer(object):
     def deploy(self, image_name, target, git_repository):
         self.__validate_image_contains_tag(image_name)
         configuration = self.k8s_conf.fetch_service_configuration_from_docker(image_name)
-        self.appendExtraProps(configuration, target)
+        self.__append_extra_props(configuration, target)
         self.__update_kubectl(target)
         self.deploy_run.deploy(self.k8s_conf.by(configuration))
         ServiceVersionWriter(git_repository).write(target, configuration.get('name'), image_name)
         logger.debug("finished deploying image:%s" % image_name)
 
-    def appendExtraProps(self, configuration, target):
+    def __append_extra_props(self, configuration, target):
+        logger.debug('adding extra props %s' %'env : ' + target)
         configuration['env'] = target
 
     def __validate_image_contains_tag(self, image_name):
@@ -45,7 +46,6 @@ class Promoter(object):
         services_to_promote = ServiceVersionReader(git_repository).read(from_env)
         for service in services_to_promote:
             Deployer().deploy(service, to_env, git_repository)
-
 
 class ActionRunner:
     def __init__(self, image_name, source, target, git_repository):
