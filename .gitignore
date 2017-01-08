@@ -11,3 +11,4 @@ thrift
 .idea
 deployer/produce
 tmp/
+behave_repo/
