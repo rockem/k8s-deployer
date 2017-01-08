@@ -4,6 +4,9 @@ metadata:
   name: {name} #configured
   labels:
     name: {name}
+    dns: route53
+  annotations:
+      domainName: {env}-k8s-{name}.heedapps.io
 spec:
   selector:
     name: {name} #configured

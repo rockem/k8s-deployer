@@ -20,10 +20,14 @@ class Deployer(object):
     def deploy(self, image_name, target, git_repository):
         self.__validate_image_contains_tag(image_name)
         configuration = self.k8s_conf.fetch_service_configuration_from_docker(image_name)
+        self.appendExtraProps(configuration, target)
         self.__update_kubectl(target)
         self.deploy_run.deploy(self.k8s_conf.by(configuration))
         ServiceVersionWriter(git_repository).write(target, configuration.get('name'), image_name)
         logger.debug("finished deploying image:%s" % image_name)
+
+    def appendExtraProps(self, configuration, target):
+        configuration['env'] = target
 
     def __validate_image_contains_tag(self, image_name):
         if ':' not in image_name:
