@@ -12,40 +12,49 @@ from services import ServiceVersionReader, ServiceVersionWriter
 logger = DeployerLogger('deployer').getLogger()
 
 
-class Deployer(object):
-    def __init__(self):
+class DeployCommand(object):
+    def __init__(self, image_name, target, git_repository):
+        self.image_name = image_name
+        self.target = target
+        self.git_repository = git_repository
         self.deploy_run = DeployRunner()
         self.k8s_conf = k8sConfig()
 
-    def deploy(self, image_name, target, git_repository):
-        self.__validate_image_contains_tag(image_name)
-        configuration = self.k8s_conf.fetch_service_configuration_from_docker(image_name)
-        self.__append_extra_props(configuration, target)
-        self.__update_kubectl(target)
+    def run(self):
+        self.__validate_image_contains_tag()
+        configuration = self.k8s_conf.fetch_service_configuration_from_docker(self.image_name)
+        self.__append_extra_props(configuration)
+        self.__update_kubectl()
         self.deploy_run.deploy(self.k8s_conf.by(configuration))
-        ServiceVersionWriter(git_repository).write(target, configuration.get('name'), image_name)
-        logger.debug("finished deploying image:%s" % image_name)
+        ServiceVersionWriter(self.git_repository).write(self.target, configuration.get('name'), self.image_name)
+        logger.debug("finished deploying image:%s" % self.image_name)
 
-    def __append_extra_props(self, configuration, target):
-        logger.debug('adding extra props %s' %'env : ' + target)
-        configuration['env'] = target
+    def __append_extra_props(self, configuration):
+        logger.debug('adding extra props %s' % 'env : ' + self.target)
+        configuration['env'] = self.target
 
-    def __validate_image_contains_tag(self, image_name):
-        if ':' not in image_name:
+    def __validate_image_contains_tag(self):
+        if ':' not in self.image_name:
             logger.error('image_name should contain the tag')
             sys.exit(1)
 
-    def __update_kubectl(self, target_env):
-        S3ConfSync('config-' + target_env).sync()
+    def __update_kubectl(self):
+        S3ConfSync('config-' + self.target).sync()
 
 
-class Promoter(object):
+class PromoteCommand(object):
     git_client = GitClient()
 
-    def promote(self, from_env, to_env, git_repository):
-        services_to_promote = ServiceVersionReader(git_repository).read(from_env)
+    def __init__(self, from_env, to_env, git_repository):
+        self.from_env = from_env
+        self.to_env = to_env
+        self.git_repository = git_repository
+
+    def run(self):
+        services_to_promote = ServiceVersionReader(self.git_repository).read(self.from_env)
         for service in services_to_promote:
-            Deployer().deploy(service, to_env, git_repository)
+            DeployCommand(service, self.to_env, self.git_repository).run()
+
 
 class ActionRunner:
     def __init__(self, image_name, source, target, git_repository):
@@ -56,9 +65,9 @@ class ActionRunner:
 
     def run(self, action):
         if action == 'deploy':
-            Deployer().deploy(self.image_name, self.target, self.git_repository)
+            DeployCommand(self.image_name, self.target, self.git_repository).run()
         elif action == 'promote':
-            Promoter().promote(self.source, self.target, self.git_repository)
+            PromoteCommand(self.source, self.target, self.git_repository).run()
 
 
 @click.command()
