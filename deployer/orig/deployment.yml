@@ -15,7 +15,7 @@ spec:
          name: {name}
      spec:
        containers:
-       - image: 911479539546.dkr.ecr.us-east-1.amazonaws.com/{name}:{version}
+       - image: {image}
          name: {name}
          imagePullPolicy: Always
          volumeMounts:

@@ -22,17 +22,17 @@ class DeployCommand(object):
 
     def run(self):
         self.__validate_image_contains_tag()
-        configuration = self.k8s_conf.fetch_service_configuration_from_docker(self.image_name)
-        self.__append_extra_props(configuration)
+        configuration = self.__create_props()
         self.__update_kubectl()
         self.deploy_run.deploy(self.k8s_conf.by(configuration))
         ServiceVersionWriter(self.git_repository).write(self.target, configuration.get('name'), self.image_name)
         logger.debug("finished deploying image:%s" % self.image_name)
 
-    def __append_extra_props(self, configuration):
-        logger.debug('adding extra props %s' % 'env : ' + self.target)
+    def __create_props(self):
+        configuration = {}
         configuration['env'] = self.target
         configuration['name'] = ImageNameParser(self.image_name).name()
+        configuration['image'] = self.image_name
 
     def __validate_image_contains_tag(self):
         if ':' not in self.image_name:
