@@ -4,13 +4,13 @@ import click
 from kubectlconf.sync import S3ConfSync
 
 from deployRunner import DeployRunner
+from util import ImageNameParser
 from gitclient.git_client import GitClient
 from k8sConfig import k8sConfig
 from log import DeployerLogger
 from services import ServiceVersionReader, ServiceVersionWriter
 
 logger = DeployerLogger('deployer').getLogger()
-
 
 class DeployCommand(object):
     def __init__(self, image_name, target, git_repository):
@@ -32,6 +32,7 @@ class DeployCommand(object):
     def __append_extra_props(self, configuration):
         logger.debug('adding extra props %s' % 'env : ' + self.target)
         configuration['env'] = self.target
+        configuration['name'] = ImageNameParser(self.image_name).name()
 
     def __validate_image_contains_tag(self):
         if ':' not in self.image_name:
