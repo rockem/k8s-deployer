@@ -1,4 +1,7 @@
+import getpass
 import os
+
+import time
 from behave import *
 from deployer.services import ServiceVersionWriter, ServiceVersionReader
 
@@ -7,7 +10,8 @@ TARGET_ENV = 'int'
 REPO_NAME = 'behave_repo'
 GIT_REPO = "file://" + os.getcwd() + '/' + REPO_NAME
 #GIT_REPO = 'https://git.dnsk.io/media-platform/k8s-services-envs'
-SERVICE_NAME = "deployer-stub"
+SERVICE_NAME = "deployer-stub-" + getpass.getuser() + "-" + str(int(time.time()))
+
 IMAGE_NAME = SERVICE_NAME + ":latest"
 
 
