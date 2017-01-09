@@ -12,3 +12,9 @@ thrift
 deployer/produce
 tmp/
 behave_repo/
+*.class
+*.bin
+*.lock
+*.tar
+*.zip
+*.jar

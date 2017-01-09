@@ -1,0 +1,51 @@
+buildscript {
+    repositories {
+        mavenCentral()
+        maven { url "http://om-artifactory.mm.local:8081//artifactory/libs-develop-local" }
+        maven { url '../../repo'}
+    }
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:1.4.1.RELEASE")
+//        classpath 'om:plugin:0.1.5'
+        classpath 'om:k8s-dockerize:0.1.12'
+    }
+}
+
+apply plugin: 'idea'
+apply plugin: 'java'
+apply plugin: 'spring-boot'
+apply plugin: 'k8s-dockerize'
+apply plugin: 'application'
+
+jar {
+    baseName = 'greet-service'
+    version =  '0.1.0'
+}
+
+
+k8sDeploy {
+    dockerTestTask = 'test'
+    //name = 'test-service'
+}
+
+mainClassName = "com.agt.greeter.Application"
+
+repositories {
+    mavenCentral()
+    maven { url "http://om-artifactory.mm.local:8081//artifactory/libs-develop-local" }
+}
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+dependencies {
+    compile 'org.springframework.boot:spring-boot-starter-actuator:1.1.8.RELEASE'
+    compile 'org.springframework.boot:spring-boot-starter-web:1.4.2.RELEASE'
+    compile group: 'junit', name: 'junit', version: '4.12'
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '2.13'
+}
+
+

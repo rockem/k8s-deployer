@@ -12,6 +12,7 @@ from services import ServiceVersionReader, ServiceVersionWriter
 
 logger = DeployerLogger('deployer').getLogger()
 
+
 class DeployCommand(object):
     def __init__(self, image_name, target, git_repository):
         self.image_name = image_name
@@ -29,10 +30,11 @@ class DeployCommand(object):
         logger.debug("finished deploying image:%s" % self.image_name)
 
     def __create_props(self):
-        configuration = {}
-        configuration['env'] = self.target
-        configuration['name'] = ImageNameParser(self.image_name).name()
-        configuration['image'] = self.image_name
+        return {
+            'env': self.target,
+            'name': ImageNameParser(self.image_name).name(),
+            'image': self.image_name
+        }
 
     def __validate_image_contains_tag(self):
         if ':' not in self.image_name:

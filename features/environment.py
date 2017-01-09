@@ -18,6 +18,9 @@ def delete_k8s():
     logger.debug('deleting service and deployment from the current k8s env')
     os.popen("kubectl delete service %s" % deployer_steps.SERVICE_NAME)
     os.popen("kubectl delete deployment %s" % deployer_steps.SERVICE_NAME)
+    os.popen("kubectl delete service %s" % deployer_steps.JAVA_SERVICE_NAME)
+    os.popen("kubectl delete deployment %s" % deployer_steps.JAVA_SERVICE_NAME)
+    os.popen("kubectl delete configmap %s" % deployer_steps.CONFIG_MAP)
 
 
 def delete_repo():
@@ -27,4 +30,4 @@ def delete_repo():
 
 def after_scenario(context, scenario):
     delete_repo()
-    delete_k8s()
+    # delete_k8s()

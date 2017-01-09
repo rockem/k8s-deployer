@@ -1,0 +1,2 @@
+greeting: original greeting that should be overriden by the global config
+greeting2: service greeting that has no override
