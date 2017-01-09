@@ -6,6 +6,7 @@ use_step_matcher("re")
 TARGET_ENV = 'int'
 REPO_NAME = 'behave_repo'
 GIT_REPO = "file://" + os.getcwd() + '/' + REPO_NAME
+#GIT_REPO = 'https://git.dnsk.io/media-platform/k8s-services-envs'
 SERVICE_NAME = "deployer-stub"
 IMAGE_NAME = SERVICE_NAME + ":latest"
 
@@ -41,4 +42,4 @@ def promote(context):
 
 @then("service should be logged in git")
 def check_promoted_service_in_git(context):
-    assert ServiceVersionReader(REPO_NAME).read(TARGET_ENV)[0] == IMAGE_NAME
+    assert ServiceVersionReader(GIT_REPO).read(TARGET_ENV)[0] == IMAGE_NAME
