@@ -42,7 +42,7 @@ class DeployCommand(object):
             sys.exit(1)
 
     def __update_kubectl(self):
-        S3ConfSync('config-' + self.target).sync()
+        S3ConfSync(self.target).sync()
 
 
 class PromoteCommand(object):
