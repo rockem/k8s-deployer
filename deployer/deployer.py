@@ -33,6 +33,9 @@ class DeployCommand(object):
         configuration['env'] = self.target
         configuration['name'] = ImageNameParser(self.image_name).name()
         configuration['image'] = self.image_name
+        configuration['color'] = 'blue'
+        return configuration
+
 
     def __validate_image_contains_tag(self):
         if ':' not in self.image_name:
@@ -40,7 +43,7 @@ class DeployCommand(object):
             sys.exit(1)
 
     def __update_kubectl(self):
-        S3ConfSync('config-' + self.target).sync()
+        S3ConfSync(self.target).sync()
 
 
 class PromoteCommand(object):

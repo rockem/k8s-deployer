@@ -13,6 +13,8 @@ spec:
      metadata:
        labels:
          name: {name}
+         type: {name}
+         color: {color}
      spec:
        containers:
        - image: {image}
@@ -23,7 +25,7 @@ spec:
            name: config-volume
          ports:
          - name: liveness-port
-           containerPort: 8080
+           containerPort: 5000
          livenessProbe:
            httpGet:
              path: /health
