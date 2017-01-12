@@ -108,6 +108,8 @@ def deploy_and_get_configuration(context):
         "--git_repository %s" % (JAVA_SERVICE_IMAGE_NAME, TARGET_ENV, GIT_REPO), shell=True)
 
     svc_host = __wait_for_service_deploy()
+    if svc_host is None:
+        raise Exception('The service in k8s probably did not start')
     overriden_greeting = __get_greeting(svc_host, '/greeting')
     assert overriden_greeting == 'overriden global greeting'
     non_overriden_greeting = __get_greeting(svc_host, '/greeting2')
@@ -115,6 +117,7 @@ def deploy_and_get_configuration(context):
 
 
 def __wait_for_service_deploy():
+    svc_host = None
     for _ in range(120):
         try:
             service_describe_output = subprocess.check_output("kubectl describe service deployer-test-service",
