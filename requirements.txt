@@ -4,3 +4,4 @@ behave==1.2.4
 nose==1.3.4
 gitpython==2.1.1
 requests==2.12.4
+KubectlConf==0.2
