@@ -22,10 +22,10 @@ class K8sDeployer(object):
         self.sourceToDeploy = os.path.join('deployer/produce/' + toDeploy)
         return self
 
-    def to(self):
+    def to(self, namespace):
         self.__ping_k8s()
 
-        cmd = "kubectl apply --validate=false --record -f " + self.sourceToDeploy
+        cmd = "kubectl apply --validate=false --record --namespace %s -f %s" % (namespace, self.sourceToDeploy)
         logger.info("running '%s'" % cmd)
         self.__run(cmd)
 

@@ -7,44 +7,41 @@ from time import sleep
 import requests
 from behave import *
 from requests.exceptions import ConnectionError
+
 from deployer.log import DeployerLogger
 from deployer.services import ServiceVersionWriter, ServiceVersionReader
 
 use_step_matcher("re")
+RANDOM_IDENTIFIER = getpass.getuser() + "-" + str(int(time.time()))
+NAMESPACE = RANDOM_IDENTIFIER
 TARGET_ENV = 'int'
+TARGET_ENV_AND_NAMESPACE = TARGET_ENV + ':' + NAMESPACE
 REPO_NAME = 'behave_repo'
 GIT_REPO = "file://" + os.getcwd() + '/' + REPO_NAME
-# GIT_REPO = 'https://git.dnsk.io/media-platform/k8s-services-envs'
-# SERVICE_NAME = "deployer-stub-" + getpass.getuser() + "-" + str(int(time.time()))
-# IMAGE_NAME = SERVICE_NAME + ":latest"
 CONFIG_MAP = 'global-config'
 AWS_REGISTRY_URI = "911479539546.dkr.ecr.us-east-1.amazonaws.com"
 PUSHER_IMAGE_NAME = AWS_REGISTRY_URI + '/pusher:latest'
 AWS_ACCESS_KEY = 'AKIAJUHGHBF4SEHXKLZA'
 AWS_SECRET_KEY = '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'
-JAVA_SERVICE_NAME = 'deployer-test-java-service-' + getpass.getuser() + "-" + str(int(time.time()))
+JAVA_SERVICE_NAME = "deployer-test-java-service-%s" % RANDOM_IDENTIFIER
 JAVA_SERVICE_IMAGE_NAME = AWS_REGISTRY_URI + '/' + JAVA_SERVICE_NAME + ':0.1.0'
 
 logger = DeployerLogger(__name__).getLogger()
 
 
-# @given("service is dockerized")
-# def dockerize(context):
-#     os.system("docker build -t %s ./features/service_stub/." % SERVICE_NAME)
-
-
-@when('deploying')
-def deploy(context):
-    # assert os.system(
-    #     "python deployer/deployer.py deploy --image_name %s --target %s "
-    #     "--git_repository %s" % (IMAGE_NAME, TARGET_ENV, GIT_REPO)) == 0
+@when('deploying to namespace(?: \"(.+)\")?')
+def deploy(context, namespace):
     logger.debug('deploy java service to k8s')
+    target = TARGET_ENV_AND_NAMESPACE if namespace is None else "%s:%s" % (TARGET_ENV, namespace)
     subprocess.check_output("python deployer/deployer.py deploy --image_name %s --target %s --git_repository %s" %
-                            (JAVA_SERVICE_IMAGE_NAME, TARGET_ENV, GIT_REPO), shell=True)
+                            (JAVA_SERVICE_IMAGE_NAME, target, GIT_REPO), shell=True)
 
-@then("service should be deployed( .*)?")
-def should_be_deployed(context, env):
-    output = os.popen("kubectl get svc %s" % JAVA_SERVICE_NAME).read()
+
+@then("service should be deployed(?: in \"(.+)\")?")
+def should_be_deployed(context, namespace):
+    logger.info('service:%s, namespace:%s' % (JAVA_SERVICE_NAME, NAMESPACE))
+    namespace = NAMESPACE if namespace is None else namespace
+    output = os.popen("kubectl get svc %s --namespace=%s" % (JAVA_SERVICE_NAME, namespace)).read()
     assert JAVA_SERVICE_NAME in output
 
 
@@ -65,17 +62,19 @@ def check_promoted_service_in_git(context):
 
 
 def update_k8s_configuration():
-    os.popen("kubectl delete configmap global-config")
-    subprocess.check_output("kubectl create configmap global-config --from-file=%s" % os.getcwd() +
-                            '/features/config/global.yml', shell=True)
+    os.popen("kubectl delete configmap global-config --namespace=%s" % NAMESPACE)
+    subprocess.check_output("kubectl create configmap global-config --from-file=%s --namespace=%s" % (os.getcwd() +
+                                                                                                      '/features/config/global.yml',
+                                                                                                      NAMESPACE),
+                            shell=True)
 
 
-# @when("a new java service is deployed to k8s")
-# def deploy_java_service(context):
-#     logger.debug('deploy java service to k8s')
-#     subprocess.check_output(
-#         "python deployer/deployer.py deploy --image_name %s --target %s "
-#         "--git_repository %s" % (JAVA_SERVICE_IMAGE_NAME, TARGET_ENV, GIT_REPO), shell=True)
+def create_namespace():
+    os.popen("kubectl create namespace %s" % NAMESPACE)
+
+
+def delete_namespace():
+    os.popen("kubectl delete namespace %s" % NAMESPACE)
 
 
 def upload_java_image_to_registry():
@@ -126,8 +125,8 @@ def __wait_for_service_deploy():
     svc_host = None
     for _ in range(120):
         try:
-            service_describe_output = subprocess.check_output("kubectl describe service %s" % JAVA_SERVICE_NAME,
-                                                              shell=True)
+            service_describe_output = subprocess.check_output("kubectl describe --namespace %s service %s" %
+                                                              (NAMESPACE ,JAVA_SERVICE_NAME), shell=True)
             # e.g. LoadBalancer Ingress:	a31d2dc35d67311e6b4410e7feeb8c22-467957310.us-east-1.elb.amazonaws.com
             #      Port:			        <unset>	80/TCP
             lb_index = service_describe_output.find("LoadBalancer Ingress:")
@@ -154,3 +153,10 @@ def __get_greeting(svc_host, path):
     url = 'http://' + svc_host + path
     return requests.get(url).text
 
+
+@given('namespace "(.+)" doesn\'t exists')
+def step_impl(context, namespace):
+    """
+    :type context: behave.runner.Context
+    """
+    os.system("kubectl delete namespace %s" % namespace)
