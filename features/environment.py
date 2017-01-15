@@ -3,9 +3,19 @@ import shutil
 from deployer.gitclient.git_client import GitClient
 from deployer.log import DeployerLogger
 from features.steps import deployer_steps
-from features.steps.deployer_steps import REPO_NAME
+from features.steps.deployer_steps import REPO_NAME, upload_java_image_to_registry, delete_java_image_from_registry, \
+    update_k8s_configuration
 
 logger = DeployerLogger(__name__).getLogger()
+
+
+def before_all(context):
+    update_k8s_configuration()
+    upload_java_image_to_registry()
+
+
+def after_all(context):
+    delete_java_image_from_registry()
 
 
 def before_scenario(context, scenario):
@@ -16,11 +26,10 @@ def before_scenario(context, scenario):
 
 def delete_k8s():
     logger.debug('deleting service and deployment from the current k8s env')
-    os.popen("kubectl delete service %s" % deployer_steps.SERVICE_NAME)
-    os.popen("kubectl delete deployment %s" % deployer_steps.SERVICE_NAME)
+    # os.popen("kubectl delete service %s" % deployer_steps.JAVA_SERVICE_NAME)
+    # os.popen("kubectl delete deployment %s" % deployer_steps.JAVA_SERVICE_NAME)
     os.popen("kubectl delete service %s" % deployer_steps.JAVA_SERVICE_NAME)
     os.popen("kubectl delete deployment %s" % deployer_steps.JAVA_SERVICE_NAME)
-    os.popen("kubectl delete configmap %s" % deployer_steps.CONFIG_MAP)
 
 
 def delete_repo():

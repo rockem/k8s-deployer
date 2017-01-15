@@ -7,19 +7,13 @@ import org.springframework.beans.factory.annotation.Value;
 @RestController
 public class GreetingController {
 
-    @Value("${greeting}")
-    private String greeting;
-    @Value("${greeting2}")
-    private String greeting2;
+    @Value("${internalGreeting}")
+    private String internalGreeting;
+    @Value("${globalName}")
+    private String globalName;
 
     @RequestMapping("/greeting")
     public String greeting() {
-        return greeting;
+        return internalGreeting + ' ' + globalName;
     }
-
-    @RequestMapping("/greeting2")
-    public String greeting2() {
-        return greeting2;
-    }
-
 }

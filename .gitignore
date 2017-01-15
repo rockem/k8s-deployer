@@ -18,3 +18,5 @@ behave_repo/
 *.tar
 *.zip
 *.jar
+build
+.gradle

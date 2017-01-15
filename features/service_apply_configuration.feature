@@ -1,6 +1,8 @@
-Feature: Apply configuration to a service using k8s config map
+Feature: K8s global configuration
 
   Scenario: A service in k8s is using the k8s global configuration
-    Given k8s has global configuration
-    When a new java service is deployed to k8s
+#    Given k8s has global configuration
+    #deploying
+    When deploying
     Then the service should get the new configuration
+    # service configuration is overridden by global
