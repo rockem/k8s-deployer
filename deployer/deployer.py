@@ -25,8 +25,8 @@ class DeployCommand(object):
         self.__validate_image_contains_tag()
         configuration = self.__create_props()
         self.__update_kubectl()
-        self.deploy_run.deploy(self.k8s_conf.by(configuration), EnvironmentParser(self.target).get_env_namespace())
-        ServiceVersionWriter(self.git_repository).write(EnvironmentParser(self.target).get_env_name(),
+        self.deploy_run.deploy(self.k8s_conf.by(configuration), EnvironmentParser(self.target).namespace())
+        ServiceVersionWriter(self.git_repository).write(EnvironmentParser(self.target).env_name(),
                                                         configuration.get('name'), self.image_name)
         logger.debug("finished deploying image:%s" % self.image_name)
 
@@ -43,7 +43,7 @@ class DeployCommand(object):
             sys.exit(1)
 
     def __update_kubectl(self):
-        S3ConfSync(EnvironmentParser(self.target).get_env_name()).sync()
+        S3ConfSync(EnvironmentParser(self.target).env_name()).sync()
 
 
 class PromoteCommand(object):

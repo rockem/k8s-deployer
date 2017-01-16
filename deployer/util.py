@@ -2,7 +2,6 @@ import re
 
 
 class ImageNameParser(object):
-
     SERVICE_NAME_PATTERN = r'^(.*/)?(.+):'
 
     def __init__(self, image_name):
@@ -13,15 +12,18 @@ class ImageNameParser(object):
 
 
 class EnvironmentParser(object):
+    DEFAULT_NAMESPACE = 'default'
+
     def __init__(self, env):
-        self.env = env
+        self.env = env.split(':', 1)
+        if self.__no_namespace_in(self.env):
+            self.env.append(self.DEFAULT_NAMESPACE)
 
-    def get_env_namespace(self):
-        if ':' not in self.env:
-            return 'default'
-        return self.env.split(':', 1)[1]
+    def __no_namespace_in(self, env):
+        return len(env) < 2
 
-    def get_env_name(self):
-        if ':' not in self.env:
-            return self.env
-        return self.env.split(':', 1)[0]
+    def namespace(self):
+        return self.env[1]
+
+    def env_name(self):
+        return self.env[0]

@@ -18,5 +18,6 @@ behave_repo/
 *.tar
 *.zip
 *.jar
-build
+build/
 .gradle
+features/service/build/
