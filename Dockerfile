@@ -20,8 +20,6 @@ RUN apk add --no-cache git=2.8.3-r0
 
 # install aws cli profile
 RUN pip install awscli --ignore-installed six
-RUN aws configure set aws_access_key_id AKIAJUHGHBF4SEHXKLZA
- RUN aws configure set aws_secret_access_key pzHyzfkDiOLeFJVhwXjSxm4w0UNHjRQCGvencPzx
 
 #copy code
 COPY . /opt/deployer
@@ -40,4 +38,5 @@ RUN python -m nose test
 WORKDIR /kubebase
 
 # login to aws and run script
-ENTRYPOINT ["/opt/deployer/deployer_complete.sh"]
+ENTRYPOINT /opt/deployer/deployer_complete.sh
+
