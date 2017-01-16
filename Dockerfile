@@ -38,7 +38,5 @@ RUN python -m nose test
 WORKDIR /kubebase
 
 # login to aws and run script
-ENTRYPOINT [aws configure set aws_access_key_id ${KEY_ID},
-    aws configure set aws_secret_access_key ${ACCESS_KEY}
-    "/opt/deployer/deployer_complete.sh"]
-]
+ENTRYPOINT /opt/deployer/deployer_complete.sh
+
