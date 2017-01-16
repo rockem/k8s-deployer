@@ -21,3 +21,4 @@ behave_repo/
 build/
 .gradle
 features/service/build/
+features/service/.gradle/

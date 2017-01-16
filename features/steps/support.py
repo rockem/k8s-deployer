@@ -4,6 +4,8 @@ import time
 import subprocess
 import shutil
 
+from requests import ConnectionError
+
 from deployer.gitclient.git_client import GitClient
 from deployer.log import DeployerLogger
 
@@ -79,3 +81,16 @@ def __upload_to_docker_registry():
 def __login():
     logger.debug('login to aws')
     subprocess.check_output('$(aws ecr get-login --region us-east-1)', shell=True)
+
+
+def __busy_wait(run_func):
+    returned_value = None
+    for _ in range(120):
+        try:
+            returned_value = run_func()
+            break
+        except ConnectionError:
+            time.sleep(1)
+    if returned_value is None:
+        raise Exception('The function %s did not return value after 120 seconds' % run_func)
+    return returned_value
