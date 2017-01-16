@@ -1,6 +1,7 @@
 .cfssl
 config
 *.pem
+build
 cleanup.sh
 drop
 *.egg-info
