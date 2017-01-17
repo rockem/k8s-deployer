@@ -1,24 +1,24 @@
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-   name: {name}
+   name: {name}-{podColor}
    labels:
-       name: {name}
+       name: {name}-{podColor}
 spec:
    replicas: 1
    selector:
      matchLabels:
-       name: {name}
+       name: {name}-{podColor}
    template:
      metadata:
        labels:
-         name: {name}
-         type: {name}
-         color: {color}
+         name: {name}-{podColor}
+         type: {name}-{podColor}
+         color: {podColor}
      spec:
        containers:
        - image: {image}
-         name: {name}
+         name: {name}-{podColor}
          imagePullPolicy: Always
          volumeMounts:
          - mountPath: /opt/config

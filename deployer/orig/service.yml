@@ -9,9 +9,9 @@ metadata:
       domainName: {env}-k8s-{name}.heedapps.io
 spec:
   selector:
-    name: {name} #configured
-    color: {color}
-    type : {name}
+    name: {name}-{serviceColor}
+    color: {serviceColor}
+    type : {name}-{serviceColor}
   ports:
   - protocol: TCP
     targetPort: 5000

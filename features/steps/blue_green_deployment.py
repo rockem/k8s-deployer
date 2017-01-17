@@ -38,6 +38,7 @@ def healthy_service_is_serving(context):
 
 
 def __wait_for_service_to_be_available_k8s():
+    service_up = False
     counter = 0
     while counter < 120:
         counter =+1
@@ -49,7 +50,10 @@ def __wait_for_service_to_be_available_k8s():
             print 'found a match -> %s' % result
             try:
                 o = requests.get('http://' + result + "/health")
-                assert json.loads(o.text)['status']['code'] == 'Up', 'Healthy service not serving anymore'
+                print 'this is the service output %s' %o
+                assert json.loads(o.text)['status']['code'] == 'UP', 'Healthy service not serving anymore'
+                service_up = True
+                break
             except requests.exceptions.ConnectionError as e:
                 print '%s is not ready yet, going to sleep and run for another try' % result
                 time.sleep(1)
@@ -57,7 +61,8 @@ def __wait_for_service_to_be_available_k8s():
             print 'didnt found a match, going to sleep and run for another try'
             time.sleep(1)
 
-    raise Exception('The service in k8s probably did not start')
+    if not service_up:
+        raise Exception('The service in k8s probably did not start')
 
 def __wait_for_service_deploy():
     counter = 0

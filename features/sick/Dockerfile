@@ -1,4 +1,8 @@
-FROM python:2.7
+FROM python:2.7-slim
+
+RUN  apt-get update \
+  && apt-get install -y wget \
+  && rm -rf /var/lib/apt/lists/*
 
 #copy code
 COPY . /opt/sick
