@@ -7,7 +7,7 @@ logger = DeployerLogger(__name__).getLogger()
 
 
 def before_all(context):
-    create_namespace()
+    create_namespace(context)
     update_k8s_configuration()
     upload_java_image_to_registry()
 
@@ -20,3 +20,8 @@ def after_all(context):
 def before_scenario(context, scenario):
     create_repo()
     delete_java_service_from_k8s()
+
+
+def after_scenario(context, scenario):
+    if 'service is created in a namespace' == scenario.name:
+        delete_namespace(context, 'non-existing-namespace')

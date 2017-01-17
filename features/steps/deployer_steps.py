@@ -24,7 +24,6 @@ def deploy(context, namespace):
 def should_be_deployed(context, namespace):
     logger.info('service:%s, namespace:%s' % (JAVA_SERVICE_NAME, NAMESPACE))
     namespace = NAMESPACE if namespace is None else namespace
-    context.config.userdata["namespace"] = namespace
     output = os.popen("kubectl get svc %s --namespace=%s" % (JAVA_SERVICE_NAME, namespace)).read()
     assert JAVA_SERVICE_NAME in output
 

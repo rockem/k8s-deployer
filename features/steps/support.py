@@ -25,8 +25,9 @@ PUSHER_IMAGE_NAME = AWS_REGISTRY_URI + '/pusher:latest'
 logger = DeployerLogger(__name__).getLogger()
 
 
-def create_namespace():
+def create_namespace(context):
     os.popen("kubectl create namespace %s" % NAMESPACE)
+    context.config.userdata["namespace"] = NAMESPACE
 
 
 def update_k8s_configuration():
