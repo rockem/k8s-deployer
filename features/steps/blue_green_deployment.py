@@ -42,7 +42,7 @@ def __wait_for_service_to_be_available_k8s():
     counter = 0
     while counter < 120:
         counter =+1
-        output = subprocess.check_output("kubectl describe services %s" % HEALTHY_NAME, shell=True) # TODO -> replace we full name
+        output = subprocess.check_output("kubectl describe services %s" % HEALTHY_NAME, shell=True)
         print output
         match = re.search(r"LoadBalancer Ingress:\s(.*)", output)
         if match:
@@ -76,7 +76,7 @@ def __wait_for_service_deploy():
 
 
 def __is_running():
-    output = subprocess.check_output("kubectl describe pods %s" % HEALTHY_NAME, shell=True)  # TODO -> replace we full name - refactor to function
+    output = subprocess.check_output("kubectl describe pods %s" % HEALTHY_NAME, shell=True)
     match = re.search(r"Status:\s(.*)", output)
     if match:
         result = match.group(1)

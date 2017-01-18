@@ -6,7 +6,6 @@ logger = DeployerLogger(__name__).getLogger()
 
 
 class DeployRunner(object):
-    git_client = GitClient()
 
     def deploy(self, ymls):
         for yml in ymls:
