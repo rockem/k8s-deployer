@@ -1,4 +1,7 @@
+import re
 import subprocess
+
+from flask import json
 
 from log import DeployerLogger
 
@@ -22,3 +25,26 @@ class PodHealthChecker(object):
             subprocess.check_output("kubectl exec -p %s rm health" % self.pod_name, shell=True, stderr=subprocess.STDOUT)
         except subprocess.CalledProcessError as e:
             logger.debug('health was cleaned for %s, nothing to delete here' % self.pod_name)
+
+    def __extract_pod_name(self):
+        output = subprocess.check_output("kubectl describe pods %s" % self.pod_name, shell=True, stderr=subprocess.STDOUT)
+        match = re.search(r"Name:\s(.*)", output)
+        if match:
+            return match.group(1)
+        else:
+            raise Exception('service %s has no pod!' % self.pod_name)
+
+
+
+class ServiceExplorer(object):
+
+    def __init__(self, service_name):
+        self.service_name = service_name
+
+    def get_color(self, default_color='blue'):
+        try:
+            output = subprocess.check_output("kubectl get svc %s -o json" %  self.service_name, shell=True, stderr=subprocess.STDOUT)
+            return json.loads(output)['spec']['selector']['color']
+        except subprocess.CalledProcessError as e:
+            if e.returncode is not 0:
+                return default_color
