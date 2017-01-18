@@ -8,4 +8,4 @@ def api_health():
     return flask.jsonify(dict(status=dict(code='UP')))
 
 if __name__ == '__main__':
-    app.run(debug=True,host='0.0.0.0')
+    app.run(debug=True,host='0.0.0.0', port=8080)

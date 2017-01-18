@@ -24,12 +24,12 @@ HEALTHY_SERVICE_IMAGE_NAME = AWS_REGISTRY_URI + '/' + HEALTHY_NAME
 def login(context):
     subprocess.check_output('$(aws ecr get-login --region us-east-1)', shell=True)
 
-@when("deploy (.*)? service")
-def deploy_healthy_service(context, name):
+@when("deploy (.*)? service(?: should (.*))?")
+def deploy_healthy_service(context, name, status):
     image_name = __get_service_image_name(name)
     __docker_build(image_name, "./features/%s/." % name)
     __upload_to_registry(name)
-    __deploy(image_name)
+    assert __deploy(image_name) == (status != 'fail') , 'failed to deploy'
 
 @then("healthy service still serving")
 def healthy_service_is_serving(context):
@@ -94,7 +94,7 @@ def __upload_to_registry(version):
                                 HEALTHY_SERVICE_IMAGE_NAME + ":" + version + ' ' + PUSHER_IMAGE_NAME, shell=True)
 
 def __deploy(name):
-    os.system(
+    return os.system(
         "python deployer/deployer.py deploy --image_name %s --target %s "
         "--git_repository %s" % (name, TARGET_ENV, GIT_REPO)) == 0
 

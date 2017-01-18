@@ -25,7 +25,7 @@ spec:
            name: config-volume
          ports:
          - name: liveness-port
-           containerPort: 5000
+           containerPort: 8080
          livenessProbe:
            httpGet:
              path: /health

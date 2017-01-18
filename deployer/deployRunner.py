@@ -7,13 +7,10 @@ logger = DeployerLogger(__name__).getLogger()
 
 class DeployRunner(object):
 
-    def __init__(self, configuration):
-        self.configuration = configuration
-
-    def deploy(self, elements):
+    def deploy(self, configuration, elements):
         for element in elements:
-            K8sDeployer().deploy(self.__generate_element(str(element))).to()
+            K8sDeployer().deploy(self.__generate_element(configuration, str(element))).to()
 
-    def __generate_element(self, element):
-        ConfigurationGenerator(self.configuration).generate('deployer/produce/%s.yml'%element).by_template('deployer/orig/%s.yml'%element)
+    def __generate_element(self, configuration, element):
+        ConfigurationGenerator(configuration).generate('deployer/produce/%s.yml'%element).by_template('deployer/orig/%s.yml'%element)
         return '%s.yml' %element

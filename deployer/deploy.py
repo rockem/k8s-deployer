@@ -1,4 +1,3 @@
-import sys
 import time
 
 from color_desider import ColorDesider
@@ -9,11 +8,17 @@ from util import ImageNameParser
 
 logger = DeployerLogger('ImageDeployer').getLogger()
 
+
 class DeployError(Exception):
+
     def __init(self, message):
         super(DeployError, self).__init__(message)
 
+
 class ImageDeployer(object):
+
+    health_checker = PodHealthChecker()
+    deploy_runner = DeployRunner()
 
     def __init__(self, image, target):
         self.image = image
@@ -21,26 +26,27 @@ class ImageDeployer(object):
         self.configuration = {}
 
     def deploy(self):
-        self.__dark_deploy() # create config
+        self.__dark_deploy()  # create config
         if self.__is_healthy():
             print "Lets expose this MF %s" % self.image
             self.__expose()
-        # else:
-        #     raise DeployError('deploy %s failed!' %self.image)
+        else:
+            raise DeployError('deploy %s failed!' % self.image)
 
     def __dark_deploy(self):
         self.configuration = self.__create_props()
-        DeployRunner(self.configuration).deploy(['deployment', 'service'])
+        self.deploy_runner.deploy(self.configuration, ['deployment', 'service'])
 
     def __is_healthy(self):
-        return self.__busy_wait(PodHealthChecker("%s-%s" %(self.configuration["name"], self.configuration["podColor"])).health_check) #TODO - use name not concat
+        return self.__busy_wait(self.health_checker.health_check, "%s-%s" % (
+        self.configuration["name"], self.configuration["podColor"]))  # TODO - use name not concat
 
-    def __busy_wait(self,run_func):
+    def __busy_wait(self, run_func, *args):
         result = False
-        for _ in range(10): #TODO - should be 120
-            print 'try # %s' %_
+        for _ in range(10):  # TODO - should be 120
+            print 'try # %s' % _
             try:
-                if run_func():
+                if run_func(args):
                     result = True
                     break
             except Exception:
@@ -52,7 +58,7 @@ class ImageDeployer(object):
 
     def __expose(self):
         self.configuration['serviceColor'] = ColorDesider().invert_color(self.configuration.get("serviceColor"))
-        DeployRunner(self.configuration).deploy(['service'])
+        self.deploy_runner.deploy(self.configuration, ['service'])
 
     def __create_props(self):
         name = ImageNameParser(self.image).name()
@@ -61,6 +67,6 @@ class ImageDeployer(object):
             'env': self.target,
             'name': name,
             'image': self.image,
-            'podColor' : ColorDesider().invert_color(color),
-            'serviceColor' : color
+            'podColor': ColorDesider().invert_color(color),
+            'serviceColor': color
         }

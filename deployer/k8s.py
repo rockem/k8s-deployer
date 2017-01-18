@@ -9,22 +9,20 @@ logger = DeployerLogger('PodHealthChecker').getLogger()
 
 class PodHealthChecker(object):
 
-    def __init__(self, pod_name):
-        self.pod_name = self.__extract_pod_name(pod_name)
-
-    def health_check(self):
-        print 'working on %s' % self.pod_name
-        subprocess.check_output("kubectl exec -p %s wget http://localhost:5000/health" % self.pod_name, shell=True, stderr=subprocess.STDOUT)
-        output = subprocess.check_output("kubectl exec -p %s cat health" % self.pod_name, shell=True, stderr=subprocess.STDOUT)
+    def health_check(self, pod_name):
+        pod_name = self.__extract_pod_name(pod_name)
+        print 'working on %s' % pod_name
+        subprocess.check_output("kubectl exec -p %s wget http://localhost:8080/health" % pod_name, shell=True, stderr=subprocess.STDOUT)
+        output = subprocess.check_output("kubectl exec -p %s cat health" % pod_name, shell=True, stderr=subprocess.STDOUT)
         print 'pod health output %s' %output
-        self.__cleanup_pod()
+        self.__cleanup_pod(pod_name)
         return 'UP' in output #parse as json
 
-    def __cleanup_pod(self):
+    def __cleanup_pod(self, pod_name):
         try:
-            subprocess.check_output("kubectl exec -p %s rm health" % self.pod_name, shell=True, stderr=subprocess.STDOUT)
+            subprocess.check_output("kubectl exec -p %s rm health" % pod_name, shell=True, stderr=subprocess.STDOUT)
         except subprocess.CalledProcessError as e:
-            logger.debug('health was cleaned for %s, nothing to delete here' % self.pod_name)
+            logger.debug('health was cleaned for %s, nothing to delete here' % pod_name)
 
     def __extract_pod_name(self, pod_name):
         output = subprocess.check_output("kubectl describe pods %s" % pod_name, shell=True, stderr=subprocess.STDOUT)
