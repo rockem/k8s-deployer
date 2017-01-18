@@ -1,6 +1,7 @@
 .cfssl
 config
 *.pem
+build
 cleanup.sh
 drop
 *.egg-info
@@ -12,3 +13,13 @@ thrift
 deployer/produce
 tmp/
 behave_repo/
+*.class
+*.bin
+*.lock
+*.tar
+*.zip
+*.jar
+build/
+.gradle
+features/service/build/
+features/service/.gradle/

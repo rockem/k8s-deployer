@@ -1,49 +1,35 @@
-import getpass
 import os
 
-import time
+import subprocess
 from behave import *
-from deployer.services import ServiceVersionWriter, ServiceVersionReader
+from deployer.log import DeployerLogger
+from features.steps.support import NAMESPACE, JAVA_SERVICE_IMAGE_NAME, JAVA_SERVICE_NAME ,GIT_REPO, \
+     TARGET_ENV, TARGET_ENV_AND_NAMESPACE
 
 use_step_matcher("re")
-TARGET_ENV = 'int'
-REPO_NAME = 'behave_repo'
-GIT_REPO = "file://" + os.getcwd() + '/' + REPO_NAME
-#GIT_REPO = 'https://git.dnsk.io/media-platform/k8s-services-envs'
-SERVICE_NAME = "deployer-stub-" + getpass.getuser() + "-" + str(int(time.time()))
+CONFIG_MAP = 'global-config'
 
-IMAGE_NAME = SERVICE_NAME + ":latest"
+logger = DeployerLogger(__name__).getLogger()
 
 
-@given("service is dockerized")
-def dockerize(context):
-    os.system("docker build -t %s ./features/service_stub/." % SERVICE_NAME)
+@when('deploying to namespace(?: \"(.+)\")?')
+def deploy(context, namespace):
+    logger.debug('deploy java service to k8s')
+    target = TARGET_ENV_AND_NAMESPACE if namespace is None else "%s:%s" % (TARGET_ENV, namespace)
+    subprocess.check_output("python deployer/deployer.py deploy --image_name %s --target %s --git_repository %s" %
+                            (JAVA_SERVICE_IMAGE_NAME, target, GIT_REPO), shell=True)
 
 
-@when('deploying')
-def deploy(context):
-    assert os.system(
-        "python deployer/deployer.py deploy --image_name %s --target %s "
-        "--git_repository %s" % (IMAGE_NAME, TARGET_ENV, GIT_REPO)) == 0
+@then("service should be deployed(?: in \"(.+)\")?")
+def should_be_deployed(context, namespace):
+    logger.info('service:%s, namespace:%s' % (JAVA_SERVICE_NAME, NAMESPACE))
+    namespace = NAMESPACE if namespace is None else namespace
+    output = os.popen("kubectl get svc %s --namespace=%s" % (JAVA_SERVICE_NAME, namespace)).read()
+    assert JAVA_SERVICE_NAME in output
 
 
-@then("service should be deployed( .*)?")
-def should_be_deployed(context, env):
-    output = os.popen("kubectl get svc %s" % SERVICE_NAME).read()
-    assert SERVICE_NAME in output
+@given('namespace "(.+)" doesn\'t exists')
+def delete_namespace(context, namespace=None):
+    n = context.config.userdata["namespace"] if namespace is None else namespace
+    os.system("kubectl delete namespace %s" % n)
 
-
-@given("service is defined in source environment")
-def write_service_to_int_git(context):
-    ServiceVersionWriter(GIT_REPO).write('kuku', SERVICE_NAME, IMAGE_NAME)
-
-
-@when("promoting to production")
-def promote(context):
-    assert os.system("python deployer/deployer.py promote --source kuku --target %s "
-                     "--git_repository %s" % (TARGET_ENV, GIT_REPO)) == 0
-
-
-@then("service should be logged in git")
-def check_promoted_service_in_git(context):
-    assert ServiceVersionReader(GIT_REPO).read(TARGET_ENV)[0] == IMAGE_NAME

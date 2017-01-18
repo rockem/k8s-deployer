@@ -4,7 +4,7 @@ import click
 from kubectlconf.sync import S3ConfSync
 
 from deployRunner import DeployRunner
-from util import ImageNameParser
+from util import ImageNameParser, EnvironmentParser
 from gitclient.git_client import GitClient
 from k8sConfig import k8sConfig
 from log import DeployerLogger
@@ -25,8 +25,9 @@ class DeployCommand(object):
         self.__validate_image_contains_tag()
         configuration = self.__create_props()
         self.__update_kubectl()
-        self.deploy_run.deploy(self.k8s_conf.by(configuration))
-        ServiceVersionWriter(self.git_repository).write(self.target, configuration.get('name'), self.image_name)
+        self.deploy_run.deploy(self.k8s_conf.by(configuration), EnvironmentParser(self.target).namespace())
+        ServiceVersionWriter(self.git_repository).write(EnvironmentParser(self.target).env_name(),
+                                                        configuration.get('name'), self.image_name)
         logger.debug("finished deploying image:%s" % self.image_name)
 
     def __create_props(self):
@@ -42,7 +43,7 @@ class DeployCommand(object):
             sys.exit(1)
 
     def __update_kubectl(self):
-        S3ConfSync(self.target).sync()
+        S3ConfSync(EnvironmentParser(self.target).env_name()).sync()
 
 
 class PromoteCommand(object):

@@ -19,7 +19,9 @@ spec:
          name: {name}
          imagePullPolicy: Always
          volumeMounts:
-         - mountPath: /opt/config
+         # the config folder should be inside the folder where we run java
+         # (equals to APP_HOME in the Dockerfile of dockerize)
+         - mountPath: /opt/service/config
            name: config-volume
          ports:
          - name: liveness-port
@@ -31,4 +33,9 @@ spec:
            initialDelaySeconds: 30
            timeoutSeconds: 1
        volumes:
-       - name: config-volume
+         - name: config-volume
+           configMap:
+             name: global-config
+             items:
+             - key: global.yml
+               path: application.yml
