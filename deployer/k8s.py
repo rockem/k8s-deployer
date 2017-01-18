@@ -10,7 +10,7 @@ logger = DeployerLogger('PodHealthChecker').getLogger()
 class PodHealthChecker(object):
 
     def __init__(self, pod_name):
-        self.pod_name = pod_name
+        self.pod_name = self.__extract_pod_name(pod_name)
 
     def health_check(self):
         print 'working on %s' % self.pod_name
@@ -26,13 +26,13 @@ class PodHealthChecker(object):
         except subprocess.CalledProcessError as e:
             logger.debug('health was cleaned for %s, nothing to delete here' % self.pod_name)
 
-    def __extract_pod_name(self):
-        output = subprocess.check_output("kubectl describe pods %s" % self.pod_name, shell=True, stderr=subprocess.STDOUT)
+    def __extract_pod_name(self, pod_name):
+        output = subprocess.check_output("kubectl describe pods %s" % pod_name, shell=True, stderr=subprocess.STDOUT)
         match = re.search(r"Name:\s(.*)", output)
         if match:
             return match.group(1)
         else:
-            raise Exception('service %s has no pod!' % self.pod_name)
+            raise Exception('service %s has no pod!' % pod_name)
 
 
 
