@@ -7,7 +7,7 @@ logger = DeployerLogger(__name__).getLogger()
 
 
 def before_all(context):
-    create_namespace()
+    create_namespace(context)
     upload_java_image_to_registry()
 
 
@@ -25,4 +25,6 @@ def before_scenario(context, scenario):
     delete_java_service_from_k8s()
 
 
-#todo use case for 2 scenario one with file , and one without
+def after_scenario(context, scenario):
+    if 'service is created in a namespace' == scenario.name:
+        delete_namespace(context, 'non-existing-namespace')

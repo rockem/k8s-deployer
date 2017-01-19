@@ -38,5 +38,5 @@ RUN python -m nose test
 WORKDIR /kubebase
 
 # login to aws and run script
-ENTRYPOINT /opt/deployer/deployer_complete.sh
+ENTRYPOINT ["/opt/deployer/deployer_complete.sh"]
 
