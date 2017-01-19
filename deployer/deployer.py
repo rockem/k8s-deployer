@@ -74,12 +74,21 @@ class ActionRunner:
         self.git_repository = git_repository
 
     def run(self, action):
+        NamespaceCreator(EnvironmentParser(self.target).namespace()).create()
         if action == 'deploy':
             DeployCommand(self.image_name, self.target, self.git_repository).run()
         elif action == 'promote':
             PromoteCommand(self.source, self.target, self.git_repository).run()
         elif action == 'configure':
             ConfigureCommand(self.target, self.git_repository).run()
+
+
+class NamespaceCreator(object):
+    def __init__(self, namespace):
+        self.namespace = namespace
+
+    def create(self):
+        os.popen("kubectl create namespace %s" % self.namespace)
 
 
 @click.command()
