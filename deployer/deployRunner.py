@@ -8,7 +8,7 @@ logger = DeployerLogger(__name__).getLogger()
 
 
 class DeployRunner(object):
-    git_client = GitClient()
+    # git_client = GitClient()
 
     def deploy(self, ymls, namespace):
         NamespaceCreator(namespace).create()

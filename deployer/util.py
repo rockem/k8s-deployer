@@ -1,4 +1,8 @@
+import os
 import re
+import shutil
+
+from kubectlconf.sync import S3ConfSync
 
 
 class ImageNameParser(object):
@@ -27,3 +31,16 @@ class EnvironmentParser(object):
 
     def env_name(self):
         return self.env[0]
+
+
+def update_kubectl(env):
+    S3ConfSync(EnvironmentParser(env).env_name()).sync()
+
+
+# def delete_checkout_dir(checkout_dir):
+
+
+
+def create_directory(path):
+    if not os.path.exists(path):
+        os.makedirs(path)

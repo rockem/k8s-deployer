@@ -1,14 +1,14 @@
+import os
 import sys
 
 import click
 from kubectlconf.sync import S3ConfSync
 
 from deployRunner import DeployRunner
-from util import ImageNameParser, EnvironmentParser
-from gitclient.git_client import GitClient
+from services import ServiceVersionWriter, ServiceVersionReader, ConfigUploader, GlobalConfigFetcher
+from util import ImageNameParser, EnvironmentParser, update_kubectl
 from k8sConfig import k8sConfig
 from log import DeployerLogger
-from services import ServiceVersionReader, ServiceVersionWriter
 
 logger = DeployerLogger('deployer').getLogger()
 
@@ -24,7 +24,7 @@ class DeployCommand(object):
     def run(self):
         self.__validate_image_contains_tag()
         configuration = self.__create_props()
-        self.__update_kubectl()
+        update_kubectl(self.target)
         self.deploy_run.deploy(self.k8s_conf.by(configuration), EnvironmentParser(self.target).namespace())
         ServiceVersionWriter(self.git_repository).write(EnvironmentParser(self.target).env_name(),
                                                         configuration.get('name'), self.image_name)
@@ -42,13 +42,8 @@ class DeployCommand(object):
             logger.error('image_name should contain the tag')
             sys.exit(1)
 
-    def __update_kubectl(self):
-        S3ConfSync(EnvironmentParser(self.target).env_name()).sync()
-
 
 class PromoteCommand(object):
-    git_client = GitClient()
-
     def __init__(self, from_env, to_env, git_repository):
         self.from_env = from_env
         self.to_env = to_env
@@ -58,6 +53,17 @@ class PromoteCommand(object):
         services_to_promote = ServiceVersionReader(self.git_repository).read(self.from_env)
         for service in services_to_promote:
             DeployCommand(service, self.to_env, self.git_repository).run()
+
+
+class ConfigureCommand(object):
+    def __init__(self, target, git_repository):
+        self.git_repository = git_repository
+        self.target = target
+
+    def run(self):
+        env_name = EnvironmentParser(self.target).env_name()
+        S3ConfSync(env_name).sync()
+        ConfigUploader(self.target).upload(GlobalConfigFetcher(self.git_repository).fetch_for(self.target))
 
 
 class ActionRunner:
@@ -72,10 +78,12 @@ class ActionRunner:
             DeployCommand(self.image_name, self.target, self.git_repository).run()
         elif action == 'promote':
             PromoteCommand(self.source, self.target, self.git_repository).run()
+        elif action == 'configure':
+            ConfigureCommand(self.target, self.git_repository).run()
 
 
 @click.command()
-@click.argument('action', type=click.Choice(['deploy', 'promote']))
+@click.argument('action', type=click.Choice(['deploy', 'promote', 'configure']))
 @click.option('--image_name', default=False)
 @click.option('--source', default=False)
 @click.option('--target')

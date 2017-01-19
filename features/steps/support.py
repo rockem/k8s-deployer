@@ -3,6 +3,7 @@ import getpass
 import time
 import subprocess
 import shutil
+import git
 
 from requests import ConnectionError
 
@@ -14,7 +15,11 @@ RANDOM_IDENTIFIER = getpass.getuser() + "-" + str(int(time.time()))
 NAMESPACE = RANDOM_IDENTIFIER
 TARGET_ENV = 'int'
 TARGET_ENV_AND_NAMESPACE = TARGET_ENV + ':' + NAMESPACE
-GIT_REPO = "file://" + os.getcwd() + '/' + REPO_NAME
+GIT_REPO_URL = "file://" + os.getcwd() + '/' + REPO_NAME
+# GIT_REPO = "https://git.dnsk.io/media-platform/k8s-config"
+# GIT_REPO = "git@git.dnsk.io:media-platform/k8s-config.git"
+
+
 JAVA_SERVICE_NAME = "deployer-test-java-service-%s" % RANDOM_IDENTIFIER
 AWS_REGISTRY_URI = "911479539546.dkr.ecr.us-east-1.amazonaws.com"
 JAVA_SERVICE_IMAGE_NAME = AWS_REGISTRY_URI + '/' + JAVA_SERVICE_NAME + ':0.1.0'
@@ -31,8 +36,8 @@ def create_namespace():
 
 def update_k8s_configuration():
     os.popen("kubectl delete configmap global-config --namespace=%s" % NAMESPACE)
-    subprocess.check_output("kubectl create configmap global-config --from-file=%s --namespace=%s" % (os.getcwd() +
-                            '/features/config/global.yml', NAMESPACE), shell=True)
+    subprocess.check_output("kubectl create configmap global-config --from-file=global.yml=%s --namespace=%s" % (os.getcwd() +
+                            '/features/config/common.yml', NAMESPACE), shell=True)
 
 
 def delete_java_image_from_registry():
@@ -43,7 +48,8 @@ def delete_java_image_from_registry():
 def create_repo():
     if os.path.exists(REPO_NAME):
         shutil.rmtree(REPO_NAME)
-    GitClient().init(REPO_NAME)
+    repo = git.Repo()
+    repo.init(REPO_NAME, bare=True)
 
 
 def delete_java_service_from_k8s():
