@@ -12,7 +12,7 @@ class HealthCheckerStub(object):
 
 class DeployRunnerStub(object):
 
-    def deploy(self, config, elements):
+    def deploy(self, config, elements, namespace):
         pass
 
 class TestImageDeployer():

@@ -1,30 +1,27 @@
-import os
-import shutil
-from deployer.gitclient.git_client import GitClient
+from features.steps.deployer_steps import delete_namespace
+from steps.support import create_namespace, delete_java_service_from_k8s, delete_java_image_from_registry, create_repo,\
+    update_k8s_configuration, upload_java_image_to_registry
 from deployer.log import DeployerLogger
-from features.steps import deployer_steps
-from features.steps.deployer_steps import REPO_NAME
 
 logger = DeployerLogger(__name__).getLogger()
 
 
+def before_all(context):
+    create_namespace(context)
+    update_k8s_configuration()
+    upload_java_image_to_registry()
+
+
+def after_all(context):
+    delete_namespace(context)
+    delete_java_image_from_registry()
+
+
 def before_scenario(context, scenario):
-    delete_repo()
-    GitClient().init(REPO_NAME)
-    delete_k8s()
-
-
-def delete_k8s():
-    logger.debug('deleting service and deployment from the current k8s env')
-    os.popen("kubectl delete service %s" % deployer_steps.SERVICE_NAME)
-    os.popen("kubectl delete deployment %s" % deployer_steps.SERVICE_NAME)
-
-
-def delete_repo():
-    if os.path.exists(REPO_NAME):
-        shutil.rmtree(REPO_NAME)
+    create_repo()
+    delete_java_service_from_k8s()
 
 
 def after_scenario(context, scenario):
-    delete_repo()
-    delete_k8s()
+    if 'service is created in a namespace' == scenario.name:
+        delete_namespace(context, 'non-existing-namespace')

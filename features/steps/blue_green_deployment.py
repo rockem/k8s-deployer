@@ -26,8 +26,8 @@ def login(context):
 
 @when("deploy (.*?)(?:\\:(\d+))? service(?: should (.*))?")
 def deploy_healthy_service(context, name, version, status):
-    print 'name is %s' %name
-    print 'version is %s' %version
+    print("name is %s" % name)
+    print('version is %s' % version)
     image_name = __get_service_image_name(name)
     __docker_build(version, image_name, "./features/%s/." % name)
     __upload_to_registry(name)
@@ -41,7 +41,7 @@ def healthy_service_is_serving(context):
 
 def __validate_version_updated(domain, version):
     o = requests.get('http://' + domain + "/version")
-    print 'service version output %s' %o
+    print ('service version output %s' %o)
     assert json.loads(o.text)['version']== str(version), 'Healthy service not serving anymore'
 
 
@@ -59,22 +59,22 @@ def __wait_for_service_to_be_available_k8s():
     while counter < 120:
         counter =+1
         output = subprocess.check_output("kubectl describe services %s" % HEALTHY_NAME, shell=True)
-        print output
+        print (output)
         match = re.search(r"LoadBalancer Ingress:\s(.*)", output)
         if match:
             result = match.group(1)
-            print 'found a match -> %s' % result
+            print ('found a match -> %s' % result)
             try:
                 o = requests.get('http://' + result + "/health")
-                print 'this is the service output %s' %o
+                print ('this is the service output %s' %o)
                 assert json.loads(o.text)['status']['code'] == 'UP', 'Healthy service not serving anymore'
                 service_up = True
                 break
             except requests.exceptions.ConnectionError as e:
-                print '%s is not ready yet, going to sleep and run for another try' % result
+                print ('%s is not ready yet, going to sleep and run for another try' % result)
                 time.sleep(1)
         else:
-            print 'didnt found a match, going to sleep and run for another try'
+            print ('didnt found a match, going to sleep and run for another try')
             time.sleep(1)
 
     if not service_up:
@@ -117,5 +117,11 @@ def __deploy(name):
         "--git_repository %s" % (name, TARGET_ENV, GIT_REPO)) == 0
 
 def __docker_build(version, name, location):
-    comand = "docker build --build-arg VERSION=%s -t %s %s" % (version, name.strip(), location)
+    # comand = "docker build --build-arg VERSION=%s -t %s %s" % (version, name.strip(), location)
+    if not version:
+        build_arg = ""
+    else:
+        build_arg = '--build-arg VERSION=%s' % version
+
+    comand = "docker build %s -t %s %s" % (build_arg, name.strip(), location)
     os.system(comand)

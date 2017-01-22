@@ -7,9 +7,11 @@ from deploy import ImageDeployer
 from gitclient.git_client import GitClient
 from log import DeployerLogger
 from services import ServiceVersionReader, ServiceVersionWriter
+from util import EnvironmentParser
 from util import ImageNameParser
 
 logger = DeployerLogger('deployer').getLogger()
+
 
 class DeployCommand(object):
 
@@ -23,16 +25,17 @@ class DeployCommand(object):
         self.__validate_image_contains_tag()
         self.__update_kubectl()
         self.image_deployer.deploy()
-        ServiceVersionWriter(self.git_repository).write(self.target,  ImageNameParser(self.image_name).name(), self.image_name)
+        ServiceVersionWriter(self.git_repository).write(EnvironmentParser(self.target).env_name(),  ImageNameParser(self.image_name).name(), self.image_name)
         logger.debug("finished deploying image:%s" % self.image_name)
-
-    def __update_kubectl(self):
-        S3ConfSync(self.target).sync()
 
     def __validate_image_contains_tag(self):
         if ':' not in self.image_name:
             logger.error('image_name should contain the tag')
             sys.exit(1)
+
+    def __update_kubectl(self):
+        S3ConfSync(EnvironmentParser(self.target).env_name()).sync()
+
 
 class PromoteCommand(object):
     git_client = GitClient()
