@@ -10,27 +10,17 @@ logger = DeployerLogger('PodHealthChecker').getLogger()
 
 class PodHealthChecker(object):
 
+    def __init__(self, connector):
+        self.connector = connector
+
     def health_check(self, pod_name):
         pod_name = self.__extract_pod_name(pod_name)
         print ('working on %s' % pod_name)
-        subprocess.check_output("kubectl exec -p %s wget http://localhost:8080/health" % pod_name, shell=True, stderr=subprocess.STDOUT)
-        output = subprocess.check_output("kubectl exec -p %s cat health" % pod_name, shell=True, stderr=subprocess.STDOUT)
-        print ('pod health output %s' %output)
-        self.__cleanup_pod(pod_name)
-        return 'UP' in output #parse as json
-
-    def __cleanup_pod(self, pod_name):
-        try:
-            subprocess.check_output("kubectl exec -p %s rm health" % pod_name, shell=True, stderr=subprocess.STDOUT)
-        except subprocess.CalledProcessError as e:
-            logger.debug('health was cleaned for %s, nothing to delete here' % pod_name)
+        self.connector.check_pods_health(pod_name)
+        return 'UP' in self.connector.check_pods_health(pod_name)
 
     def __extract_pod_name(self, pod_name):
-        cmd = "kubectl describe pods %s" % pod_name
-        logger.debug(cmd)
-        output = subprocess.check_output(cmd, shell=True, stderr=subprocess.STDOUT)
-        print output
-        match = re.search(r"Name:\s(.*)", output)
+        match = re.search(r"Name:\s(.*)", self.connector.describe_pod(pod_name))
         if match:
             return match.group(1)
         else:
@@ -40,13 +30,12 @@ class PodHealthChecker(object):
 
 class ServiceExplorer(object):
 
-    def __init__(self, service_name):
-        self.service_name = service_name
+    def __init__(self, connector):
+        self.connector = connector
 
-    def get_color(self, default_color='blue'):
+    def get_color(self, service_name, default_color='blue'):
         try:
-            output = subprocess.check_output("kubectl get svc %s -o json" %  self.service_name, shell=True, stderr=subprocess.STDOUT)
-            return json.loads(output)['spec']['selector']['color']
+            return json.loads(self.connector.get_service_as_json(service_name))['spec']['selector']['color']
         except subprocess.CalledProcessError as e:
             if e.returncode is not 0:
                 return default_color
@@ -82,6 +71,10 @@ class Connector(object):
 
     def apply(self, sourceToDeploy):
         self.__run("kubectl apply --validate=false --record -f %s" % sourceToDeploy)
+
+    def upload_config_map(self, config_file_path):
+        os.system("kubectl delete configmap global-config")
+        subprocess.check_output("kubectl create configmap global-config --from-file=%s" % config_file_path, shell=True)
 
     def __run(self, command):
         # logger.debug('executing %s' %command)

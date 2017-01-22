@@ -8,8 +8,11 @@ logger = DeployerLogger(__name__).getLogger()
 
 def before_all(context):
     create_namespace(context)
-    update_k8s_configuration()
     upload_java_image_to_registry()
+
+
+def before_feature(context, feature):
+    update_k8s_configuration()
 
 
 def after_all(context):

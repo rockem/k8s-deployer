@@ -1,25 +1,23 @@
 import os
 import shutil
+
 import git
+
+CHECKOUT_DIR = 'tmp'
 
 
 class GitClient(object):
+    repo = None
 
-    def get_repo(self, url, to_path):
-        return git.Repo.clone_from(url, to_path)
+    def __init__(self, git_url):
+        self.git_url = git_url
 
-    def push(self, file_name, repo, service_name, image_name):
-        repo.index.add([file_name])
-        repo.index.commit("Updating service %s with version %s" % (service_name, image_name))
-        repo.remote().push()
+    def checkout(self):
+        if os.path.exists(CHECKOUT_DIR):
+            shutil.rmtree(CHECKOUT_DIR)
+        self.repo = git.Repo.clone_from(self.git_url, CHECKOUT_DIR)
 
-    def delete_checkout_dir(self, checkout_dir):
-        if os.path.isdir(checkout_dir):
-            shutil.rmtree(checkout_dir)
-
-    def create_directory(self, path):
-        if not os.path.isdir(path):
-            os.makedirs(path)
-
-    def init(self, path):
-        git.Repo.init(path=path, bare=True)
+    def check_in(self):
+        self.repo.git.add('--all')
+        self.repo.index.commit("Update by deployer")
+        self.repo.remote().push()

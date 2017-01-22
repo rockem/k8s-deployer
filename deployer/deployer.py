@@ -1,11 +1,13 @@
+import os
 import sys
 
 import click
 from kubectlconf.sync import S3ConfSync
 
 from deploy import ImageDeployer
-from gitclient.git_client import GitClient
+from k8s import Connector
 from log import DeployerLogger
+from services import ConfigUploader, GlobalConfigFetcher
 from services import ServiceVersionReader, ServiceVersionWriter
 from util import EnvironmentParser
 from util import ImageNameParser
@@ -15,15 +17,14 @@ logger = DeployerLogger('deployer').getLogger()
 
 class DeployCommand(object):
 
-    def __init__(self, image_name, target, git_repository):
+    def __init__(self, image_name, target, git_repository, kubectl_connector):
         self.image_name = image_name
         self.target = target
         self.git_repository = git_repository
-        self.image_deployer = ImageDeployer(self.image_name, self.target)
+        self.image_deployer = ImageDeployer(self.image_name, self.target, kubectl_connector)
 
     def run(self):
         self.__validate_image_contains_tag()
-        self.__update_kubectl()
         self.image_deployer.deploy()
         ServiceVersionWriter(self.git_repository).write(EnvironmentParser(self.target).env_name(),  ImageNameParser(self.image_name).name(), self.image_name)
         logger.debug("finished deploying image:%s" % self.image_name)
@@ -33,13 +34,8 @@ class DeployCommand(object):
             logger.error('image_name should contain the tag')
             sys.exit(1)
 
-    def __update_kubectl(self):
-        S3ConfSync(EnvironmentParser(self.target).env_name()).sync()
-
 
 class PromoteCommand(object):
-    git_client = GitClient()
-
     def __init__(self, from_env, to_env, git_repository):
         self.from_env = from_env
         self.to_env = to_env
@@ -50,6 +46,19 @@ class PromoteCommand(object):
         for service in services_to_promote:
             DeployCommand(service, self.to_env, self.git_repository).run()
 
+
+class ConfigureCommand(object):
+    def __init__(self, target, git_repository, connector):
+        self.git_repository = git_repository
+        self.target = target
+        self.connector = connector
+
+    def run(self):
+        env_name = EnvironmentParser(self.target).env_name()
+        S3ConfSync(env_name).sync()
+        ConfigUploader(self.target, self.connector).upload(GlobalConfigFetcher(self.git_repository).fetch_for(self.target))
+
+
 class ActionRunner:
     def __init__(self, image_name, source, target, git_repository):
         self.image_name = image_name
@@ -58,14 +67,20 @@ class ActionRunner:
         self.git_repository = git_repository
 
     def run(self, action):
+        self.__update_kubectl()
+        connector = Connector(EnvironmentParser(self.target).env_name())
         if action == 'deploy':
-            DeployCommand(self.image_name, self.target, self.git_repository).run()
+            DeployCommand(self.image_name, self.target, self.git_repository, connector).run()
         elif action == 'promote':
             PromoteCommand(self.source, self.target, self.git_repository).run()
+        elif action == 'configure':
+            ConfigureCommand(self.target, self.git_repository).run()
 
+    def __update_kubectl(self):
+        S3ConfSync(EnvironmentParser(self.target).env_name()).sync()
 
 @click.command()
-@click.argument('action', type=click.Choice(['deploy', 'promote']))
+@click.argument('action', type=click.Choice(['deploy', 'promote', 'configure']))
 @click.option('--image_name', default=False)
 @click.option('--source', default=False)
 @click.option('--target')
