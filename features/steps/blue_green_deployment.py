@@ -20,10 +20,6 @@ AWS_REGISTRY_URI = "911479539546.dkr.ecr.us-east-1.amazonaws.com"
 PUSHER_IMAGE_NAME = AWS_REGISTRY_URI + '/pusher:latest'
 HEALTHY_SERVICE_IMAGE_NAME = AWS_REGISTRY_URI + '/' + HEALTHY_NAME
 
-@given("login")
-def login(context):
-    subprocess.check_output('$(aws ecr get-login --region us-east-1)', shell=True)
-
 @when("deploy (.*?)(?:\\:(\d+))? service(?: should (.*))?")
 def deploy_healthy_service(context, name, version, status):
     print("name is %s" % name)

@@ -19,6 +19,7 @@ class ServiceVersionWriter:
 
     def write(self, target, service_name, image_name):
         self.git_client.checkout()
+        logger.debug("git url for push! %s" %self.git_client.git_url)
         file_name = os.path.join(target, SERVICES_FOLDER, "%s.yml" % service_name)
         self.__write_service_file(file_name, image_name)
         self.git_client.check_in()

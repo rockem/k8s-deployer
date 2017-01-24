@@ -11,6 +11,7 @@ class DeployRunner(object):
 
     def deploy(self, configuration, elements):
         for element in elements:
+            logger.debug("element : {}".format(element))
             K8sDeployer(self.connector).deploy(self.__generate_element(configuration, str(element))).to()
 
     def __generate_element(self, configuration, element):

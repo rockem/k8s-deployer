@@ -26,32 +26,34 @@ class ImageDeployer(object):
     def deploy(self):
         self.__dark_deploy()  # create config
         if self.__is_healthy():
-            print ("Lets expose this MF %s" % self.image)
+            logger.debug ("Lets expose this MF %s" % self.image)
             self.__expose()
         else:
             raise DeployError('deploy %s failed!' % self.image)
 
     def __dark_deploy(self):
         self.configuration = self.__create_props()
+        print "going to dark deploy with this config {}".format(self.configuration)
         self.deploy_runner.deploy(self.configuration, ['deployment', 'service'])
 
     def __is_healthy(self):
-        return self.__busy_wait(self.health_checker.health_check, "%s-%s" % (
-            self.configuration["name"], self.configuration["podColor"]))  # TODO - use name not concat
+        name = "%s-%s" % (self.configuration["name"], self.configuration["podColor"])
+        logger.debug("this is a name ->>>>>>>>> %s" % name)
+        return self.__busy_wait(self.health_checker.health_check, name)  # TODO - use name not concat
 
     def __busy_wait(self, run_func, *args):
         result = False
         for _ in range(10):  # TODO - should be 120
-            print ('try # %s' % _)
+            logger.debug ('try # %s' % _)
             try:
-                if run_func(args):
+                if run_func(args[0]):
                     result = True
                     break
             except Exception:
                 pass
             time.sleep(1)
 
-        print ("BW=> %s" % result)
+        logger.debug ("BW=> %s" % result)
         return result
 
     def __expose(self):

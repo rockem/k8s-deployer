@@ -14,6 +14,7 @@ class K8sNotAvailableError(Exception):
 class K8sDeployer(object):
     def __init__(self, connector):
         self.connector = connector
+        print "init K8sDeployer! "
 
     def deploy(self, toDeploy):
         logger.debug("%s is a deployment/upgrade candidate" % toDeploy)
@@ -22,4 +23,5 @@ class K8sDeployer(object):
 
     def to(self):
         self.connector.cluster_info()
+        print "going to deploy {}".format(self.sourceToDeploy)
         self.connector.apply(self.sourceToDeploy)

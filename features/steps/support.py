@@ -9,6 +9,7 @@ from requests import ConnectionError
 
 from deployer.gitclient.git_client import GitClient
 from deployer.log import DeployerLogger
+from features.steps.configurer_steps import ConfigFilePusher, get_local_config_file_path
 
 REPO_NAME = 'behave_repo'
 RANDOM_IDENTIFIER = getpass.getuser() + "-" + str(int(time.time()))
@@ -38,7 +39,7 @@ def create_namespace(context):
 def update_k8s_configuration():
     os.popen("kubectl delete configmap global-config --namespace=%s" % NAMESPACE)
     subprocess.check_output("kubectl create configmap global-config --from-file=global.yml=%s --namespace=%s" % (os.getcwd() +
-                            '/features/config/common.yml', NAMESPACE), shell=True)
+                            '/features/config/global.yml', NAMESPACE), shell=True)
 
 
 def delete_java_image_from_registry():
@@ -89,6 +90,8 @@ def __login():
     logger.debug('login to aws')
     subprocess.check_output('$(aws ecr get-login --region us-east-1)', shell=True)
 
+def push_to_git():
+    ConfigFilePusher(GIT_REPO_URL).write(TARGET_ENV, get_local_config_file_path())
 
 def __busy_wait(run_func):
     returned_value = None

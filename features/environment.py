@@ -1,7 +1,8 @@
-from features.steps.deployer_steps import delete_namespace
+from deployer.log import DeployerLogger
+from features.steps.configurer_steps import delete_namespace
+from features.steps.support import push_to_git
 from steps.support import create_namespace, delete_java_service_from_k8s, delete_java_image_from_registry, create_repo,\
     update_k8s_configuration, upload_java_image_to_registry
-from deployer.log import DeployerLogger
 
 logger = DeployerLogger(__name__).getLogger()
 
@@ -22,7 +23,9 @@ def after_all(context):
 
 def before_scenario(context, scenario):
     create_repo()
+    push_to_git()
     delete_java_service_from_k8s()
+
 
 
 def after_scenario(context, scenario):

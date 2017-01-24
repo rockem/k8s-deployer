@@ -5,7 +5,6 @@ import git
 
 CHECKOUT_DIR = 'tmp'
 
-
 class GitClient(object):
     repo = None
 

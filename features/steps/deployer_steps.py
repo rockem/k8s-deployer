@@ -26,9 +26,3 @@ def should_be_deployed(context, namespace):
     namespace = NAMESPACE if namespace is None else namespace
     output = os.popen("kubectl get svc %s --namespace=%s" % (JAVA_SERVICE_NAME, namespace)).read()
     assert JAVA_SERVICE_NAME in output
-
-
-@given('namespace "(.+)" doesn\'t exists')
-def delete_namespace(context, namespace=None):
-    n = context.config.userdata["namespace"] if namespace is None else namespace
-    os.system("kubectl delete namespace %s" % n)

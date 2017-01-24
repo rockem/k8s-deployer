@@ -22,18 +22,24 @@ def push_to_git(context):
 
 
 def get_local_config_file_path():
-    abs_file_path = os.getcwd() + "/features/config/global.yml"
+    abs_file_path = os.getcwd() + "/features/config/common.yml"
     return abs_file_path
 
+@given('namespace "(.+)" doesn\'t exists')
+def delete_namespace(context, namespace=None):
+    n = context.config.userdata["namespace"] if namespace is None else namespace
+    os.system("kubectl delete namespace %s" % n)
 
-@when("configuring")
-def executing(context):
+@when("configuring(?: \"(.+)\")?")
+def executing(context, namespace = None):
+    target = TARGET_ENV_AND_NAMESPACE if namespace is None else "%s:%s" % (TARGET_ENV, namespace)
     assert os.system("python deployer/deployer.py configure --target %s --git_repository %s" %
-                     (TARGET_ENV_AND_NAMESPACE, GIT_REPO_URL)) == 0
+                     (target, GIT_REPO_URL)) == 0
 
-@then("config uploaded to k8s")
-def deploy(context):
-    k8s_configmap_data = get_configmap_k8s()
+
+@then("config uploaded(?: to \"(.+)\" namespace)?")
+def deploy(context, namespace=None):
+    k8s_configmap_data = get_configmap_k8s(namespace)
     local_config_map = get_local_configmap_data()
     assert k8s_configmap_data == local_config_map
 
@@ -42,8 +48,9 @@ def get_local_configmap_data():
     return open(get_local_config_file_path(), 'rb').read()
 
 
-def get_configmap_k8s():
-    configmap_content = os.popen("kubectl get configmap %s --namespace=%s -o yaml" % (K8S_NAME, NAMESPACE)).read()
+def get_configmap_k8s(namespace):
+    namespace = NAMESPACE if namespace is None else namespace
+    configmap_content = os.popen("kubectl get configmap %s --namespace=%s -o yaml" % (K8S_NAME, namespace)).read()
     configmap_data = yaml.load(configmap_content)['data'][CONFIG_FILE_NAME]
     return configmap_data
 

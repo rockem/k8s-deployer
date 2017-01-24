@@ -49,14 +49,14 @@ class PromoteCommand(object):
 
 class ConfigureCommand(object):
     def __init__(self, target, git_repository, connector):
-        self.git_repository = git_repository
         self.target = target
+        self.git_repository = git_repository
         self.connector = connector
 
     def run(self):
         env_name = EnvironmentParser(self.target).env_name()
         S3ConfSync(env_name).sync()
-        ConfigUploader(self.target, self.connector).upload(GlobalConfigFetcher(self.git_repository).fetch_for(self.target))
+        ConfigUploader(self.target, self.connector).upload(GlobalConfigFetcher(self.git_repository).fetch_for(env_name))
 
 
 class ActionRunner:
@@ -68,13 +68,13 @@ class ActionRunner:
 
     def run(self, action):
         self.__update_kubectl()
-        connector = Connector(EnvironmentParser(self.target).env_name())
+        connector = Connector(EnvironmentParser(self.target).namespace())
         if action == 'deploy':
             DeployCommand(self.image_name, self.target, self.git_repository, connector).run()
         elif action == 'promote':
             PromoteCommand(self.source, self.target, self.git_repository).run()
         elif action == 'configure':
-            ConfigureCommand(self.target, self.git_repository).run()
+            ConfigureCommand(self.target, self.git_repository, connector).run()
 
     def __update_kubectl(self):
         S3ConfSync(EnvironmentParser(self.target).env_name()).sync()
