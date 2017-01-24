@@ -1,5 +1,4 @@
 .cfssl
-config
 *.pem
 build
 cleanup.sh
@@ -21,5 +20,3 @@ behave_repo/
 *.jar
 build/
 .gradle
-features/service/build/
-features/service/.gradle/
