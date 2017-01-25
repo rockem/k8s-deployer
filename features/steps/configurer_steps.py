@@ -16,8 +16,7 @@ K8S_NAME = 'global-config'
 
 @given('namespace "(.+)" doesn\'t exists')
 def delete_namespace(context, namespace=None):
-    n = context.config.userdata["namespace"] if namespace is None else namespace
-    os.system("kubectl delete namespace %s" % n)
+    delete_namespace(namespace)
 
 @when("configuring(?: \"(.+)\")?")
 def executing(context, namespace = None):
@@ -31,6 +30,7 @@ def validate_config_uploaded(context, namespace=None):
     k8s_configmap_data = get_configmap_k8s(namespace)
     local_config_map = get_local_configmap_data()
     assert k8s_configmap_data == local_config_map
+    delete_namespace(namespace)
 
 
 def get_local_configmap_data():

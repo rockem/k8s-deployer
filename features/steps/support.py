@@ -31,15 +31,18 @@ logger = DeployerLogger(__name__).getLogger()
 
 def create_namespace(context):
     os.popen("kubectl create namespace %s" % NAMESPACE)
-    context.config.userdata["namespace"] = NAMESPACE
+    context.config.userdata["namespace"] = NAMESPACE # why this trainwreck
 
 
 def update_k8s_configuration():
+    print("deleting configmap")
     os.popen("kubectl delete configmap global-config --namespace=%s" % NAMESPACE)
+    print("creating configmap")
     subprocess.check_output(
         "kubectl create configmap global-config --from-file=global.yml=%s --namespace=%s" % (os.getcwd() +
                                                                                              '/features/config/common.yml',
                                                                                              NAMESPACE), shell=True)
+    print("configmap created all is cool")
 
 
 def delete_java_image_from_registry():
@@ -102,3 +105,7 @@ def __busy_wait(run_func):
     if returned_value is None:
         raise Exception('The function %s did not return value after 120 seconds' % run_func)
     return returned_value
+
+
+def delete_namespace(namespace):
+    os.system("kubectl delete namespace %s" % namespace)

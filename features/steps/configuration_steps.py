@@ -19,8 +19,11 @@ def get_configuration(context):
 
 
 def __get_svc_host():
-    service_describe_output = subprocess.check_output("kubectl describe --namespace %s service %s" %
-                                                      (NAMESPACE, JAVA_SERVICE_NAME), shell=True)
+    service_describe_output = ''
+    try:
+        service_describe_output = subprocess.check_output("kubectl describe --namespace %s service %s" % (NAMESPACE, JAVA_SERVICE_NAME), shell=True)
+    except Exception as e:
+        sleep(1)
     # e.g. LoadBalancer Ingress:	a31d2dc35d67311e6b4410e7feeb8c22-467957310.us-east-1.elb.amazonaws.com
     #      Port:			        <unset>	80/TCP
     lb_index = service_describe_output.find("LoadBalancer Ingress:")
