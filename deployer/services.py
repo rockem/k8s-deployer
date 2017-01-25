@@ -1,11 +1,10 @@
 import os
 
-import subprocess
 import yaml
 
-from util import create_directory, EnvironmentParser
+from gitclient.git_client import GitClient
 from log import DeployerLogger
-from gitclient.git_client import GitClient, CHECKOUT_DIR
+from util import create_directory, EnvironmentParser
 
 logger = DeployerLogger(__name__).getLogger()
 
@@ -19,14 +18,14 @@ class ServiceVersionWriter:
 
     def write(self, target, service_name, image_name):
         self.git_client.checkout()
-        logger.debug("git url for push! %s" %self.git_client.git_url)
+        logger.debug("git url for push! %s")
         file_name = os.path.join(target, SERVICES_FOLDER, "%s.yml" % service_name)
         self.__write_service_file(file_name, image_name)
         self.git_client.check_in()
 
     def __write_service_file(self, file_name, image_name):
-        create_directory(os.path.join(CHECKOUT_DIR, os.path.dirname(file_name)))
-        service_file = open(os.path.join(CHECKOUT_DIR, file_name), 'w')
+        create_directory(os.path.join(GitClient.CHECKOUT_DIR, os.path.dirname(file_name)))
+        service_file = open(os.path.join(GitClient.CHECKOUT_DIR, file_name), 'w')
         service_file.write('%s: %s' % (IMAGE_LABEL, image_name))
         service_file.close()
 
@@ -37,7 +36,7 @@ class ServiceVersionReader:
 
     def read(self, from_env):
         self.git_client.checkout()
-        return self.__get_images_to_deploy(os.path.join(CHECKOUT_DIR, from_env, SERVICES_FOLDER))
+        return self.__get_images_to_deploy(os.path.join(GitClient.CHECKOUT_DIR, from_env, SERVICES_FOLDER))
 
     def __get_images_to_deploy(self, services_path):
         images_to_deploy = []
@@ -68,4 +67,4 @@ class GlobalConfigFetcher:
         self.git_client.checkout()
         env_name = EnvironmentParser(target).env_name()
 
-        return os.path.join(CHECKOUT_DIR, env_name, 'global.yml')
+        return os.path.join(GitClient.CHECKOUT_DIR, env_name, 'global.yml')

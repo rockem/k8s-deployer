@@ -54,9 +54,7 @@ class ConfigureCommand(object):
         self.connector = connector
 
     def run(self):
-        env_name = EnvironmentParser(self.target).env_name()
-        S3ConfSync(env_name).sync()
-        ConfigUploader(self.target, self.connector).upload(GlobalConfigFetcher(self.git_repository).fetch_for(env_name))
+        ConfigUploader(self.target, self.connector).upload(GlobalConfigFetcher(self.git_repository).fetch_for(self.target))
 
 
 class ActionRunner:

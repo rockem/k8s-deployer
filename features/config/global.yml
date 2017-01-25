@@ -1,1 +1,4 @@
-globalName: this is a global world
+globalProperty: kuku
+actions:
+  - one
+  - two
