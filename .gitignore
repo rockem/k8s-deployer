@@ -10,6 +10,7 @@ thrift
 *.egg
 .idea
 deployer/produce
+feature_tmp/
 tmp/
 behave_repo/
 *.class
