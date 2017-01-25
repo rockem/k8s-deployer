@@ -17,11 +17,11 @@ logger = DeployerLogger('deployer').getLogger()
 
 class DeployCommand(object):
 
-    def __init__(self, image_name, target, git_repository, kubectl_connector):
+    def __init__(self, image_name, target, git_repository, connector):
         self.image_name = image_name
         self.target = target
         self.git_repository = git_repository
-        self.image_deployer = ImageDeployer(self.image_name, self.target, kubectl_connector)
+        self.image_deployer = ImageDeployer(self.image_name, self.target, connector)
 
     def run(self):
         self.__validate_image_contains_tag()
@@ -36,15 +36,16 @@ class DeployCommand(object):
 
 
 class PromoteCommand(object):
-    def __init__(self, from_env, to_env, git_repository):
+    def __init__(self, from_env, to_env, git_repository, connector):
         self.from_env = from_env
         self.to_env = to_env
         self.git_repository = git_repository
+        self.connector = connector
 
     def run(self):
         services_to_promote = ServiceVersionReader(self.git_repository).read(self.from_env)
         for service in services_to_promote:
-            DeployCommand(service, self.to_env, self.git_repository).run()
+            DeployCommand(service, self.to_env, self.git_repository, self.connector).run()
 
 
 class ConfigureCommand(object):
@@ -70,7 +71,7 @@ class ActionRunner:
         if action == 'deploy':
             DeployCommand(self.image_name, self.target, self.git_repository, connector).run()
         elif action == 'promote':
-            PromoteCommand(self.source, self.target, self.git_repository).run()
+            PromoteCommand(self.source, self.target, self.git_repository, connector).run()
         elif action == 'configure':
             ConfigureCommand(self.target, self.git_repository, connector).run()
 
