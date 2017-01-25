@@ -75,8 +75,4 @@ class Connector(object):
         return self.__run("kubectl --namespace %s create configmap global-config --from-file=%s" % (self.namespace, config_file_path))
 
     def __run(self, command):
-        logger.debug('command is %s' % command)
-        output = subprocess.check_output(command, shell=True)
-        logger.debug('output of this command is %s' % output)
-        logger.debug('%s executed' % command)
-        return output
+        return subprocess.check_output(command, shell=True)
