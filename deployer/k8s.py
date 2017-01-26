@@ -36,6 +36,8 @@ class ServiceExplorer(object):
         except subprocess.CalledProcessError as e:
             if e.returncode is not 0:
                 return default_color
+        except KeyError as e:
+            return default_color
 
 class Connector(object):
 
