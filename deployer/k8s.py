@@ -50,6 +50,10 @@ class Connector(object):
         os.popen("kubectl create namespace %s" % namespace)
 
     def check_pods_health(self, pod_name):
+        output = self.__run("kubectl --namespace %s exec -p %s ls /opt/app/ignore_blue_green" % (self.namespace,pod_name))
+        if output != null:
+            return True
+
         self.__run("kubectl --namespace %s exec -p %s wget http://localhost:8080/health" % (self.namespace,pod_name))
         output =  self.__run("kubectl --namespace %s exec -p %s cat health" % (self.namespace, pod_name))
         logger.debug(output)
