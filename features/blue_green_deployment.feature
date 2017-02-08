@@ -12,4 +12,4 @@ Feature: dark deploy service to k8s
 
   Scenario: skip health check if service marked as "ignored"
     When deploy ignored_health service
-    Then service is deployed
+    Then service health is deployed

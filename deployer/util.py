@@ -3,7 +3,6 @@ import re
 
 from kubectlconf.sync import S3ConfSync
 
-
 class ImageNameParser(object):
     SERVICE_NAME_PATTERN = r'^(.*/)?(.+):'
 
@@ -34,11 +33,6 @@ class EnvironmentParser(object):
 
 def update_kubectl(env):
     S3ConfSync(EnvironmentParser(env).env_name()).sync()
-
-
-# def delete_checkout_dir(checkout_dir):
-
-
 
 def create_directory(path):
     if not os.path.exists(path):

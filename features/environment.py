@@ -33,3 +33,4 @@ def before_scenario(context, scenario):
 def get_local_config_file_path():
     abs_file_path = os.getcwd() + "/features/config/global.yml"
     return abs_file_path
+

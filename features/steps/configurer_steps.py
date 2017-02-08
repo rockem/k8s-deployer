@@ -5,7 +5,7 @@ import yaml
 
 from behave import *
 from deployer.gitclient.git_client import GitClient
-from features.steps.support import GIT_REPO_URL, TARGET_ENV, TARGET_ENV_AND_NAMESPACE, NAMESPACE
+from features.steps.support import GIT_REPO_URL, TARGET_ENV, TARGET_ENV_AND_NAMESPACE, NAMESPACE, delete_namespace
 
 use_step_matcher("re")
 SERVICES_FOLDER = '/services/'
@@ -15,7 +15,7 @@ CONFIG_FILE_NAME = 'global.yml'
 K8S_NAME = 'global-config'
 
 @given('namespace "(.+)" doesn\'t exists')
-def delete_namespace(context, namespace=None):
+def clear_namespace(context, namespace=None):
     delete_namespace(namespace)
 
 @when("configuring(?: \"(.+)\")?")
