@@ -49,20 +49,30 @@ class Connector(object):
     def __create_namespace_if_needed(self, namespace):
         os.popen("kubectl create namespace %s" % namespace)
 
-    def check_pods_health(self, pod_name):
-        # output = self.__run("kubectl --namespace %s exec -p %s ls /opt/app/ignore_blue_green" % (self.namespace,pod_name))
-        # if output != null:
-        #     return Truef
-
-        self.__run("kubectl --namespace %s exec -p %s wget http://localhost:8080/health" % (self.namespace,pod_name))
-        output =  self.__run("kubectl --namespace %s exec -p %s cat health" % (self.namespace, pod_name))
-        logger.debug(output)
+    def __ignore_blue_green(self, pod_name):
         try:
-            self.__run("kubectl --namespace %s exec -p %s rm health" % (self.namespace, pod_name))
+            self.__run("kubectl --namespace %s exec -p %s ls /opt/app/ignore_blue_green" % (self.namespace,pod_name))
         except subprocess.CalledProcessError as e:
-            print e
+            logger.debug('we didnt find any ignore file so we will check health')
+            return True
 
-        return output
+        return False
+
+
+    def check_pods_health(self, pod_name):
+        if self.__ignore_blue_green(pod_name):
+            self.__run("kubectl --namespace %s exec -p %s wget http://localhost:8080/health" % (self.namespace,pod_name))
+            output =  self.__run("kubectl --namespace %s exec -p %s cat health" % (self.namespace, pod_name))
+            logger.debug(output)
+            try:
+                self.__run("kubectl --namespace %s exec -p %s rm health" % (self.namespace, pod_name))
+            except subprocess.CalledProcessError as e:
+                print e
+
+            return output
+
+        logger.debug('we dont check health')
+        return 'UP'
 
     def describe_pod(self, pod_name):
         return self.__run("kubectl --namespace %s describe pods %s" % (self.namespace, pod_name))

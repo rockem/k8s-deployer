@@ -9,3 +9,7 @@ Feature: dark deploy service to k8s
     When deploy hello:1 service
     And deploy hello:2 service
     Then service updated to version 2
+
+  Scenario: skip health check if service marked as "ignored"
+    When deploy ignored_health service
+    Then service is deployed

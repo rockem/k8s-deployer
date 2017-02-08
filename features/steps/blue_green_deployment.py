@@ -8,6 +8,8 @@ import requests
 from behave import *
 from flask import json
 
+from features.steps.support import TARGET_ENV_AND_NAMESPACE, NAMESPACE
+
 use_step_matcher("re")
 
 TARGET_ENV = 'int' # param from feature file?
@@ -27,6 +29,7 @@ def deploy_healthy_service(context, name, version, status):
     image_name = __get_service_image_name(name)
     __docker_build(version, image_name, "./features/%s/." % name)
     __upload_to_registry(name)
+
     assert __deploy(image_name) == (status != 'fail') , 'failed to deploy'
 
 @then("healthy service still serving")
@@ -54,7 +57,7 @@ def __wait_for_service_to_be_available_k8s():
     result = None
     while counter < 120:
         counter =+1
-        output = subprocess.check_output("kubectl describe services %s" % HEALTHY_NAME, shell=True)
+        output = subprocess.check_output("kubectl describe --namespace %s services %s" % (NAMESPACE, HEALTHY_NAME), shell=True)
         print (output)
         match = re.search(r"LoadBalancer Ingress:\s(.*)", output)
         if match:
@@ -90,7 +93,7 @@ def __wait_for_service_deploy():
 
 
 def __is_running():
-    output = subprocess.check_output("kubectl describe pods %s" % HEALTHY_NAME, shell=True)
+    output = subprocess.check_output("kubectl describe --namespace %s pods %s" % (NAMESPACE, HEALTHY_NAME), shell=True)
     match = re.search(r"Status:\s(.*)", output)
     if match:
         result = match.group(1)
@@ -110,7 +113,7 @@ def __upload_to_registry(version):
 def __deploy(name):
     return os.system(
         "python deployer/deployer.py deploy --image_name %s --target %s "
-        "--git_repository %s" % (name, TARGET_ENV, GIT_REPO)) == 0
+        "--git_repository %s" % (name, TARGET_ENV_AND_NAMESPACE, GIT_REPO)) == 0
 
 def __docker_build(version, name, location):
     # comand = "docker build --build-arg VERSION=%s -t %s %s" % (version, name.strip(), location)
