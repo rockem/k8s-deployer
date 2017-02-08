@@ -14,7 +14,7 @@ class PodHealthChecker(object):
         self.connector = connector
 
     def health_check(self, pod_name):
-        pod_name = self.__extract_pod_name(pod_name)
+        pod_name = self.__extract_pod_name(pod_name).strip()
         logger.debug('pod name after extraction! %s' %pod_name)
         return 'UP' in self.connector.check_pods_health(pod_name)
 
@@ -51,7 +51,7 @@ class Connector(object):
 
     def __ignore_blue_green(self, pod_name):
         try:
-            cmd = "kubectl --namespace %s exec -p %s ls /opt/app/ignore_blue_green" % (self.namespace,pod_name)
+            cmd = "kubectl --namespace %s exec -p %s ls /opt/app/ignore_blue_green" % (self.namespace, pod_name)
             logger.debug("ignore blue green command is %s" %cmd)
             self.__run(cmd)
         except subprocess.CalledProcessError as e:
