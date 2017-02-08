@@ -51,8 +51,11 @@ class Connector(object):
 
     def __ignore_blue_green(self, pod_name):
         try:
-            self.__run("kubectl --namespace %s exec -p %s ls /opt/app/ignore_blue_green" % (self.namespace,pod_name))
+            cmd = "kubectl --namespace %s exec -p %s ls /opt/app/ignore_blue_green" % (self.namespace,pod_name)
+            logger.debug("ignore blue green command is %s" %cmd)
+            self.__run(cmd)
         except subprocess.CalledProcessError as e:
+            logger.debug("this is the exception - %s" %e)
             logger.debug('we didnt find any ignore file so we will check health')
             return True
 
