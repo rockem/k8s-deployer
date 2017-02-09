@@ -63,19 +63,15 @@ class Connector(object):
 
 
     def check_pods_health(self, pod_name):
-        if self.__ignore_blue_green(pod_name):
-            self.__run("kubectl --namespace %s exec -p %s wget http://localhost:8080/health" % (self.namespace,pod_name))
-            output =  self.__run("kubectl --namespace %s exec -p %s cat health" % (self.namespace, pod_name))
-            logger.debug(output)
-            try:
-                self.__run("kubectl --namespace %s exec -p %s rm health" % (self.namespace, pod_name))
-            except subprocess.CalledProcessError as e:
-                print e
+        self.__run("kubectl --namespace %s exec -p %s wget http://localhost:8080/health" % (self.namespace,pod_name))
+        output =  self.__run("kubectl --namespace %s exec -p %s cat health" % (self.namespace, pod_name))
+        logger.debug(output)
+        try:
+            self.__run("kubectl --namespace %s exec -p %s rm health" % (self.namespace, pod_name))
+        except subprocess.CalledProcessError as e:
+            print e
 
-            return output
-
-        logger.debug('we dont check health')
-        return 'UP'
+        return output
 
     def describe_pod(self, pod_name):
         return self.__run("kubectl --namespace %s describe pods %s" % (self.namespace, pod_name))
