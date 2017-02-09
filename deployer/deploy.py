@@ -37,7 +37,7 @@ class ImageDeployer(object):
         self.deploy_runner.deploy(self.configuration, ['deployment', 'service'])
 
     def __is_healthy(self):
-        name = "%s-%s" % (self.configuration["name"], self.configuration["podColor"])
+        name = "%s" % self.configuration["name"]
         logger.debug("this is a name ->>>>>>>>> %s" % name)
         return self.__busy_wait(self.health_checker.health_check, name)  # TODO - use name not concat
 
@@ -63,9 +63,12 @@ class ImageDeployer(object):
     def __create_props(self):
         name = ImageNameParser(self.image).name()
         color = ServiceExplorer(self.connector).get_color(name)
+        # pod_color = ColorDesider().invert_color(color)
+        # logger.debug('this is the pod color %s' % pod_color)
         return {
             'env': self.target,
-            'name': name,
+            'name': name + "-" + ColorDesider().invert_color(color),
+            'serviceName' : name,
             'image': self.image,
             'podColor': ColorDesider().invert_color(color),
             'serviceColor': color

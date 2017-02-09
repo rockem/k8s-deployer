@@ -8,8 +8,7 @@ from k8s import Connector
 from log import DeployerLogger
 from services import ConfigUploader, GlobalConfigFetcher
 from services import ServiceVersionReader, ServiceVersionWriter
-from util import EnvironmentParser
-from util import ImageNameParser
+from util import EnvironmentParser , ImageNameParser
 
 logger = DeployerLogger('deployer').getLogger()
 

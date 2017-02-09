@@ -1,17 +1,17 @@
 kind: Service
 apiVersion: v1
 metadata:
-  name: {name} #configured
+  name: {serviceName} #configured
   labels:
-    name: {name}
+    name: {serviceName}
     dns: route53
   annotations:
-      domainName: {env}-k8s-{name}.heedapps.io
+      domainName: {env}-k8s-{serviceName}.heedapps.io
 spec:
   selector:
-    name: {name}-{serviceColor}
+    name: {serviceName}-{serviceColor}
     color: {serviceColor}
-    type : {name}-{serviceColor}
+    type : {serviceName}-{serviceColor}
   ports:
   - protocol: TCP
     targetPort: 8080

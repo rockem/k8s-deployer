@@ -1,24 +1,24 @@
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-   name: {name}-{podColor}
+   name: {name}
    labels:
-       name: {name}-{podColor}
+       name: {name}
 spec:
    replicas: 1
    selector:
      matchLabels:
-       name: {name}-{podColor}
+       name: {name}
    template:
      metadata:
        labels:
-         name: {name}-{podColor}
-         type: {name}-{podColor}
+         name: {name}
+         type: {name}
          color: {podColor}
      spec:
        containers:
        - image: {image}
-         name: {name}-{podColor}
+         name: {name}
          imagePullPolicy: Always
          volumeMounts:
          # the config folder should be inside the folder where we run java
