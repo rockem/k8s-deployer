@@ -24,15 +24,24 @@ class ImageDeployer(object):
         self.health_checker = PodHealthChecker(connector)
 
     def deploy(self):
-        self.__dark_deploy()  # create config
-        if self.__is_healthy():
-            logger.debug ("Lets expose this MF %s" % self.image)
-            self.__expose()
+        if ImageNameParser(self.image).name() == "route53-kubernetes":
+            self.__force_deploy()
         else:
-            raise DeployError('deploy %s failed!' % self.image)
+            self.__dark_deploy()  # create config
+            if self.__is_healthy():
+                logger.debug ("Lets expose this MF %s" % self.image)
+                self.__expose()
+            else:
+                raise DeployError('deploy %s failed!' % self.image)
+
+    def __force_deploy(self):
+        self.configuration = self.__create_props_force()
+        print "going to force deploy with this config {}".format(self.configuration)
+        self.deploy_runner.deploy(self.configuration, ['deployment', 'service'])
+
 
     def __dark_deploy(self):
-        self.configuration = self.__create_props()
+        self.configuration = self.__create_props_blue_green()
         print "going to dark deploy with this config {}".format(self.configuration)
         self.deploy_runner.deploy(self.configuration, ['deployment', 'service'])
 
@@ -60,14 +69,24 @@ class ImageDeployer(object):
         self.configuration['serviceColor'] = ColorDesider().invert_color(self.configuration.get("serviceColor"))
         self.deploy_runner.deploy(self.configuration, ['service'])
 
-    def __create_props(self):
+    def __create_props_blue_green(self):
         name = ImageNameParser(self.image).name()
         color = ServiceExplorer(self.connector).get_color(name)
-        # pod_color = ColorDesider().invert_color(color)
-        # logger.debug('this is the pod color %s' % pod_color)
         return {
             'env': self.target,
             'name': name + "-" + ColorDesider().invert_color(color),
+            'serviceName' : name,
+            'image': self.image,
+            'podColor': ColorDesider().invert_color(color),
+            'serviceColor': color
+        }
+
+    def __create_props_force(self):
+        name = ImageNameParser(self.image).name()
+        color = ServiceExplorer(self.connector).get_color(name)
+        return {
+            'env': self.target,
+            'name': name,
             'serviceName' : name,
             'image': self.image,
             'podColor': ColorDesider().invert_color(color),

@@ -14,8 +14,6 @@ logger = DeployerLogger('deployer').getLogger()
 
 #TODO: add test that bypass deployer flow by service name
 #TODO: implement feature
-#TODO: fix deployment & service ymls ???
-
 
 class DeployCommand(object):
 
