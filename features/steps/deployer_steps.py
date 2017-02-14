@@ -1,9 +1,11 @@
 import os
 import subprocess
 
+import re
 from behave import *
 
 from deployer.log import DeployerLogger
+from features.steps.blue_green_deployment import HEALTHY_NAME
 from features.steps.support import NAMESPACE, JAVA_SERVICE_IMAGE_NAME, JAVA_SERVICE_NAME ,GIT_REPO_URL, \
      TARGET_ENV, TARGET_ENV_AND_NAMESPACE
 
@@ -27,3 +29,21 @@ def is_deployed(context, namespace):
     namespace = NAMESPACE if namespace is None else namespace
     output = os.popen("kubectl get svc %s --namespace=%s" % (JAVA_SERVICE_NAME, namespace)).read()
     assert JAVA_SERVICE_NAME in output
+
+
+@then("pod is up and running")
+def pod_running(context):
+    assert __pod_status(HEALTHY_NAME).strip() == 'Running'
+
+def __describe_pod(pod_name):
+    return __run("kubectl --namespace %s describe pods %s" % (NAMESPACE, pod_name))
+
+def __run(command):
+    return subprocess.check_output(command, shell=True)
+
+def __pod_status( pod_name):
+    match = re.search(r"Status:\s(.*)", __describe_pod(pod_name))
+    if match:
+        return match.group(1)
+    else:
+        raise Exception('service %s has no pod!' % pod_name)

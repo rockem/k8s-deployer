@@ -24,13 +24,19 @@ HEALTHY_SERVICE_IMAGE_NAME = AWS_REGISTRY_URI + '/' + HEALTHY_NAME
 
 @when("deploy (.*?)(?:\\:(\d+))? service(?: should (.*))?")
 def deploy_healthy_service(context, name, version, status):
-    print("name is %s" % name)
-    print('version is %s' % version)
     image_name = __get_service_image_name(name)
     __docker_build(version, image_name, "./features/%s/." % name)
     __upload_to_registry(name)
 
-    assert __deploy(image_name) == (status != 'fail') , 'failed to deploy'
+    assert __deploy(image_name, __get_recipe_path(name)) == (status != 'fail') , 'failed to deploy'
+
+
+def __get_recipe_path(name):
+    path = "./features/%s/recipe.yml" % name
+    if(os.path.isfile(path)):
+        return os.path.realpath(path)
+
+
 
 @then("healthy service still serving")
 def healthy_service_is_serving(context):
@@ -110,10 +116,17 @@ def __upload_to_registry(version):
                                 AWS_ACCESS_KEY + ' -e ACCESS_KEY=' + AWS_SECRET_KEY + ' -e IMAGE_NAME=' +
                                 HEALTHY_SERVICE_IMAGE_NAME + ":" + version + ' ' + PUSHER_IMAGE_NAME, shell=True)
 
-def __deploy(name):
+def __deploy(name, recipe_path=None):
+    recipe_path = calc_recipe_path(recipe_path)
     return os.system(
         "python deployer/deployer.py deploy --image_name %s --target %s "
-        "--git_repository %s" % (name, TARGET_ENV_AND_NAMESPACE, GIT_REPO)) == 0
+        "--git_repository %s %s" % (name, TARGET_ENV_AND_NAMESPACE, GIT_REPO,  recipe_path)) == 0
+
+
+def calc_recipe_path(recipe_path):
+    recipe_path = '' if recipe_path is None else '--recipe %s' % recipe_path
+    return recipe_path
+
 
 def __docker_build(version, name, location):
     # comand = "docker build --build-arg VERSION=%s -t %s %s" % (version, name.strip(), location)

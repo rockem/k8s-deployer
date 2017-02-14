@@ -3,6 +3,17 @@ from nose.tools import raises
 from deployer.deploy import DeployError, ImageDeployer
 
 
+class RecipeStub(object):
+
+    def __init__(self, path):
+        self.path = path
+
+    def expose(self):
+        if self.path == 'exposed':
+            return True
+        else:
+            return False
+
 class HealthCheckerStub(object):
     def __init__(self, healthy):
         self.healthy = healthy
@@ -31,19 +42,19 @@ class TestImageDeployer():
 
     @raises(DeployError)
     def test_should_fail_given_sick_service(self):
-        self.deploy_image('sick_image:0.1', False)
+        self.deploy_image('sick_image:0.1', False, 'exposed')
 
-    def deploy_image(self, image_name, isCheckHealth):
-        deployer = ImageDeployer(image_name, 'test_target', ConnectorStub('test_namespace'))
-        deployer.health_checker = HealthCheckerStub(isCheckHealth)
+    def deploy_image(self, image_name, is_check_health, recipe):
+        deployer = ImageDeployer(image_name, 'test_target', ConnectorStub('test_namespace'), RecipeStub(recipe))
+        deployer.health_checker = HealthCheckerStub(is_check_health)
         deployer.deploy_runner = DeployRunnerStub()
         deployer.deploy()
         return deployer
 
     def test_should_update_service_color_given_colorless_service(self):
-        assert self.deploy_image('no_color:0.1', True).configuration.get('serviceColor') == 'green'
+        assert self.deploy_image('no_color:0.1', True, 'exposed').configuration.get('serviceColor') == 'green'
 
     def test_skip_validation_and_deploy_given_route53_kubernetes(self):
-        deployer = self.deploy_image('route53-kubernetes:0.1', True)
+        deployer = self.deploy_image('not_exposed:0.1', False, 'not_exposed')
         assert deployer.health_checker.health_called is False
-        assert deployer.configuration.get('name') == 'route53-kubernetes'
+        assert deployer.configuration.get('name') == 'not_exposed'

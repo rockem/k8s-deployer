@@ -4,6 +4,7 @@ import click
 from kubectlconf.sync import S3ConfSync
 
 from deploy import ImageDeployer
+from recipe import Recipe
 from k8s import Connector
 from log import DeployerLogger
 from services import ConfigUploader, GlobalConfigFetcher
@@ -12,16 +13,13 @@ from util import EnvironmentParser , ImageNameParser
 
 logger = DeployerLogger('deployer').getLogger()
 
-#TODO: add test that bypass deployer flow by service name
-#TODO: implement feature
-
 class DeployCommand(object):
 
-    def __init__(self, image_name, target, git_repository, connector):
+    def __init__(self, image_name, target, git_repository, connector, recipe):
         self.image_name = image_name
         self.target = target
         self.git_repository = git_repository
-        self.image_deployer = ImageDeployer(self.image_name, self.target, connector)
+        self.image_deployer = ImageDeployer(self.image_name, self.target, connector, Recipe(recipe))
 
     def run(self):
         self.__validate_image_contains_tag()
@@ -59,17 +57,18 @@ class ConfigureCommand(object):
 
 
 class ActionRunner:
-    def __init__(self, image_name, source, target, git_repository):
+    def __init__(self, image_name, source, target, git_repository, recipe):
         self.image_name = image_name
         self.source = source
         self.target = target
         self.git_repository = git_repository
+        self.recipe = recipe
 
     def run(self, action):
         self.__update_kubectl()
         connector = Connector(EnvironmentParser(self.target).namespace())
         if action == 'deploy':
-            DeployCommand(self.image_name, self.target, self.git_repository, connector).run()
+            DeployCommand(self.image_name, self.target, self.git_repository, connector, self.recipe).run()
         elif action == 'promote':
             PromoteCommand(self.source, self.target, self.git_repository, connector).run()
         elif action == 'configure':
@@ -84,8 +83,9 @@ class ActionRunner:
 @click.option('--source', default=False)
 @click.option('--target')
 @click.option('--git_repository')
-def main(action, image_name, source, target, git_repository):
-    ActionRunner(image_name, source, target, git_repository).run(action)
+@click.option('--recipe')
+def main(action, image_name, source, target, git_repository, recipe):
+    ActionRunner(image_name, source, target, git_repository, recipe).run(action)
 
 
 if __name__ == "__main__":

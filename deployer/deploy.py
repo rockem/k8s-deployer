@@ -1,5 +1,7 @@
 import time
 
+import yaml
+
 from color_desider import ColorDesider
 from deployRunner import DeployRunner
 from k8s import PodHealthChecker, ServiceExplorer
@@ -15,16 +17,17 @@ class DeployError(Exception):
 
 
 class ImageDeployer(object):
-    def __init__(self, image, target, connector):
+    def __init__(self, image, target, connector, recipe):
         self.image = image
         self.target = target
         self.configuration = {}
         self.connector = connector
         self.deploy_runner = DeployRunner(connector)
         self.health_checker = PodHealthChecker(connector)
+        self.recipe = recipe
 
     def deploy(self):
-        if ImageNameParser(self.image).name() == "route53-kubernetes":
+        if not self.__exposed():
             self.__force_deploy()
         else:
             self.__dark_deploy()  # create config
@@ -33,6 +36,10 @@ class ImageDeployer(object):
                 self.__expose()
             else:
                 raise DeployError('deploy %s failed!' % self.image)
+
+    def __exposed(self):
+        logger.debug("recipe path is %s" % self.recipe)
+        return self.recipe.expose()
 
     def __force_deploy(self):
         self.configuration = self.__create_props_force()
