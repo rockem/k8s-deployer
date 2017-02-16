@@ -24,13 +24,12 @@ class DeployCommand(object):
         self.recipe = Recipe.builder().ingredients(recipe).image(self.image_name).build()
         self.image_deployer = ImageDeployer(self.image_name, self.target, connector, self.recipe)
 
-
     def read_file(self, path):
         try:
             content = open(str(path), "r+")
-            logger.debug("this is the file content %s" %content)
-        except IOError:
-            logger.error("we could not open the file!")
+            logger.debug("this is the file content %s" % content)
+        except IOError as e:
+            logger.exception("We could not open the file!")
             return {}
 
     def run(self):
