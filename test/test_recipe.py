@@ -3,7 +3,6 @@ import os
 import yaml
 from nose.tools.nontrivial import raises
 
-from deployer.deploy import DeployError
 from deployer.recipe import Recipe
 
 
@@ -50,5 +49,5 @@ class RecipeFileCreator():
     def delete(self):
         try:
             os.remove(self.RECIPE)
-        except OSError as e:
+        except OSError:
             print 'recipe path not found'

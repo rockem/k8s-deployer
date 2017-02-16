@@ -5,7 +5,7 @@ from behave import given, then, when
 from deployer.log import DeployerLogger
 from deployer.recipe import Recipe
 from deployer.services import ServiceVersionWriter, ServiceVersionReader
-from features.steps.support import JAVA_SERVICE_IMAGE_NAME, JAVA_SERVICE_NAME, GIT_REPO_URL, TARGET_ENV, \
+from features.steps.support import JAVA_SERVICE_IMAGE_NAME, GIT_REPO_URL, TARGET_ENV, \
     TARGET_ENV_AND_NAMESPACE
 from test.test_recipe import RecipeFileCreator
 

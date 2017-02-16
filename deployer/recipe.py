@@ -2,8 +2,10 @@ import copy
 
 import yaml
 
-from deploy import DeployError
 from log import DeployerLogger
+
+EXPOSE_LABEL = 'expose'
+IMAGE_LABEL = 'image_name'
 
 logger = DeployerLogger(__name__).getLogger()
 
@@ -19,7 +21,7 @@ class RecipeBuilder(object):
         return copy.copy(self)
 
     def build(self):
-        ingredients = {'image_name' : self.image}
+        ingredients = {IMAGE_LABEL : self.image}
         try:
             content = self.__open_file_for(self.path)
             ingredients.update(yaml.load(content))
@@ -42,11 +44,11 @@ class Recipe(object):
         return RecipeBuilder()
 
     def image(self):
-        return self.indgredients['image_name']
+        return self.indgredients[IMAGE_LABEL]
 
     def expose(self):
         try:
-            expose = self.indgredients['expose']
+            expose = self.indgredients[EXPOSE_LABEL]
         except KeyError:
             return True
 

@@ -10,7 +10,6 @@ from util import create_directory, EnvironmentParser, ImageNameParser
 logger = DeployerLogger(__name__).getLogger()
 
 SERVICES_FOLDER = 'services'
-IMAGE_LABEL = 'image_name'
 
 
 class ServiceVersionWriter:
