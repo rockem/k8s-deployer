@@ -4,12 +4,12 @@ import click
 from kubectlconf.sync import S3ConfSync
 
 from deploy import ImageDeployer
-from recipe import Recipe
 from k8s import Connector
 from log import DeployerLogger
+from recipe import Recipe
 from services import ConfigUploader, GlobalConfigFetcher
 from services import ServiceVersionReader, ServiceVersionWriter
-from util import EnvironmentParser , ImageNameParser
+from util import EnvironmentParser
 
 logger = DeployerLogger('deployer').getLogger()
 
@@ -19,12 +19,13 @@ class DeployCommand(object):
         self.image_name = image_name
         self.target = target
         self.git_repository = git_repository
-        self.image_deployer = ImageDeployer(self.image_name, self.target, connector, Recipe(recipe))
+        self.recipe = Recipe.builder().indgredients(recipe).image(self.image_name).build()
+        self.image_deployer = ImageDeployer(self.image_name, self.target, connector, self.recipe)
 
     def run(self):
         self.__validate_image_contains_tag()
         self.image_deployer.deploy()
-        ServiceVersionWriter(self.git_repository).write(EnvironmentParser(self.target).env_name(),  ImageNameParser(self.image_name).name(), self.image_name)
+        ServiceVersionWriter(self.git_repository).write(EnvironmentParser(self.target).env_name(),  self.recipe)
         logger.debug("finished deploying image:%s" % self.image_name)
 
     def __validate_image_contains_tag(self):
@@ -41,9 +42,10 @@ class PromoteCommand(object):
         self.connector = connector
 
     def run(self):
-        services_to_promote = ServiceVersionReader(self.git_repository).read(self.from_env)
-        for service in services_to_promote:
-            DeployCommand(service, self.to_env, self.git_repository, self.connector).run()
+        recipes = ServiceVersionReader(self.git_repository).read(self.from_env)
+        for recipe in recipes:
+            logger.debug('recipe %s' % recipe.indgredients)
+            DeployCommand(recipe.image(), self.to_env, self.git_repository, self.connector, recipe).run()
 
 
 class ConfigureCommand(object):

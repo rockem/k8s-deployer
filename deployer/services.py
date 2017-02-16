@@ -2,9 +2,10 @@ import os
 
 import yaml
 
+from recipe import Recipe
 from gitclient.git_client import GitClient
 from log import DeployerLogger
-from util import create_directory, EnvironmentParser
+from util import create_directory, EnvironmentParser, ImageNameParser
 
 logger = DeployerLogger(__name__).getLogger()
 
@@ -16,17 +17,17 @@ class ServiceVersionWriter:
     def __init__(self, git_repository):
         self.git_client = GitClient(git_repository)
 
-    def write(self, target, service_name, image_name):
+    def write(self, target, recipe):
         self.git_client.checkout()
         logger.debug("git url for push! %s")
-        file_name = os.path.join(target, SERVICES_FOLDER, "%s.yml" % service_name)
-        self.__write_service_file(file_name, image_name)
+        file_name = os.path.join(target, SERVICES_FOLDER, "%s.yml" % ImageNameParser(recipe.image()).name())
+        self.__write_service_file(file_name, recipe)
         self.git_client.check_in()
 
-    def __write_service_file(self, file_name, image_name):
+    def __write_service_file(self, file_name, recipe):
         create_directory(os.path.join(GitClient.CHECKOUT_DIR, os.path.dirname(file_name)))
         service_file = open(os.path.join(GitClient.CHECKOUT_DIR, file_name), 'w')
-        service_file.write('%s: %s' % (IMAGE_LABEL, image_name))
+        yaml.dump(recipe.indgredients, service_file, default_flow_style=False)
         service_file.close()
 
 
@@ -36,20 +37,15 @@ class ServiceVersionReader:
 
     def read(self, from_env):
         self.git_client.checkout()
-        return self.__get_images_to_deploy(os.path.join(GitClient.CHECKOUT_DIR, from_env, SERVICES_FOLDER))
+        return self.__get_recipes(os.path.join(GitClient.CHECKOUT_DIR, from_env, SERVICES_FOLDER))
 
-    def __get_images_to_deploy(self, services_path):
-        images_to_deploy = []
+    def __get_recipes(self, services_path):
+        recipes = []
         for filename in os.listdir(services_path):
             srv_yml_file = open(os.path.join(services_path, filename), 'r')
-            images_to_deploy.append(self.__get_image_name(srv_yml_file))
-        return images_to_deploy
-
-    def __get_image_name(self, srv_yml_file):
-        image_dict = yaml.load(srv_yml_file)
-        image_name = image_dict.get(IMAGE_LABEL)
-        return image_name
-
+            yml = yaml.load(srv_yml_file)
+            recipes.append(Recipe(yml))
+        return recipes
 
 class ConfigUploader:
     def __init__(self, target, connector):
