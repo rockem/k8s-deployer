@@ -1,6 +1,7 @@
 import sys
 
 import click
+import subprocess
 from kubectlconf.sync import S3ConfSync
 
 from deploy import ImageDeployer
@@ -26,7 +27,9 @@ class DeployCommand(object):
 
     def read_file(self, path):
         try:
-            content = open(str(path), "r+")
+            subprocess.check_output('ls -ltr', shell=True)
+            logger.info('str(path): %s' % str(path))
+            content = open(str(path), "r")
             logger.debug("this is the file content %s" % content)
         except IOError as e:
             logger.exception("We could not open the file!")
