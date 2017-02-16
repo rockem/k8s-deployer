@@ -27,7 +27,8 @@ class DeployCommand(object):
 
     def read_file(self, path):
         try:
-            subprocess.check_output('ls -ltr', shell=True)
+            output = subprocess.check_output('ls -ltr', shell=True)
+            logger.info('ls -ltr: %s' % output)
             logger.info('str(path): %s' % str(path))
             content = open(str(path), "r")
             logger.debug("this is the file content %s" % content)
