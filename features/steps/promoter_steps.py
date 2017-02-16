@@ -18,12 +18,11 @@ def write_service_to_int_git(context):
     ServiceVersionWriter(GIT_REPO_URL).write('kuku', Recipe.builder().ingredients(os.path.realpath(RecipeFileCreator.RECIPE)).build())
     delete_recipe()
 
-
 def delete_recipe():
     try:
         os.remove(RecipeFileCreator.RECIPE)
-    except OSError as e:
-        print 'recipe path not found'
+    except OSError:
+        pass
 
 
 def prepare_recipe():
