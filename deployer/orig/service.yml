@@ -5,6 +5,7 @@ metadata:
   labels:
     name: {serviceName}
     dns: route53
+    auto-ingress: yes
   annotations:
       domainName: {env}-k8s-{serviceName}.heedapps.io
 spec:
