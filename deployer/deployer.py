@@ -16,13 +16,25 @@ logger = DeployerLogger('deployer').getLogger()
 
 class DeployCommand(object):
     def __init__(self, image_name, target, git_repository, connector, recipe):
+        logger.debug('recipe path %s ' % recipe)
+        self.read_file(recipe)
         self.image_name = image_name
         self.target = target
         self.git_repository = git_repository
         self.recipe = Recipe.builder().ingredients(recipe).image(self.image_name).build()
         self.image_deployer = ImageDeployer(self.image_name, self.target, connector, self.recipe)
 
+
+    def read_file(self, path):
+        try:
+            content = open(str(path), "r+")
+            logger.debug("this is the file content %s" %content)
+        except IOError:
+            logger.error("we could not open the file!")
+            return {}
+
     def run(self):
+        logger.debug('is exoised %s ' % self.recipe.expose())
         self.__validate_image_contains_tag()
         self.image_deployer.deploy()
         ServiceVersionWriter(self.git_repository).write(EnvironmentParser(self.target).env_name(), self.recipe)
