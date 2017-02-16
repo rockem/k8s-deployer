@@ -5,9 +5,9 @@ import re
 from behave import *
 
 from deployer.log import DeployerLogger
-from features.steps.blue_green_deployment import HEALTHY_NAME
-from features.steps.support import NAMESPACE, JAVA_SERVICE_IMAGE_NAME, JAVA_SERVICE_NAME ,GIT_REPO_URL, \
-     TARGET_ENV, TARGET_ENV_AND_NAMESPACE
+from features.steps.blue_green_deployment import AUTOGEN_SERVICE_NAME
+from features.steps.support import NAMESPACE, JAVA_SERVICE_IMAGE_NAME, JAVA_SERVICE_NAME, GIT_REPO_URL, \
+    TARGET_ENV, TARGET_ENV_AND_NAMESPACE
 
 use_step_matcher("re")
 CONFIG_MAP = 'global-config'
@@ -33,17 +33,20 @@ def is_deployed(context, namespace):
 
 @then("pod is up and running")
 def pod_running(context):
-    assert __pod_status(HEALTHY_NAME).strip() == 'Running'
+    assert __pod_status(AUTOGEN_SERVICE_NAME) == 'Running'
+
+
+def __pod_status(pod_name):
+    match = re.search(r"Status:\s(.*)", __describe_pod(pod_name))
+    if match:
+        return match.group(1).strip()
+    else:
+        raise Exception('service %s has no pod!' % pod_name)
+
 
 def __describe_pod(pod_name):
     return __run("kubectl --namespace %s describe pods %s" % (NAMESPACE, pod_name))
 
+
 def __run(command):
     return subprocess.check_output(command, shell=True)
-
-def __pod_status( pod_name):
-    match = re.search(r"Status:\s(.*)", __describe_pod(pod_name))
-    if match:
-        return match.group(1)
-    else:
-        raise Exception('service %s has no pod!' % pod_name)

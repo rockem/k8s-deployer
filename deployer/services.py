@@ -25,9 +25,8 @@ class ServiceVersionWriter:
 
     def __write_service_file(self, file_name, recipe):
         create_directory(os.path.join(GitClient.CHECKOUT_DIR, os.path.dirname(file_name)))
-        service_file = open(os.path.join(GitClient.CHECKOUT_DIR, file_name), 'w')
-        yaml.dump(recipe.indgredients, service_file, default_flow_style=False)
-        service_file.close()
+        with(open(os.path.join(GitClient.CHECKOUT_DIR, file_name), 'w')) as service_file:
+            yaml.dump(recipe.ingredients, service_file, default_flow_style=False)
 
 
 class ServiceVersionReader:
@@ -41,10 +40,14 @@ class ServiceVersionReader:
     def __get_recipes(self, services_path):
         recipes = []
         for filename in os.listdir(services_path):
-            srv_yml_file = open(os.path.join(services_path, filename), 'r')
-            yml = yaml.load(srv_yml_file)
-            recipes.append(Recipe(yml))
+            recipes.append(Recipe(self.read_yaml(filename, services_path)))
         return recipes
+
+    def read_yaml(self, filename, services_path):
+        srv_yml_file = open(os.path.join(services_path, filename), 'r')
+        yml = yaml.load(srv_yml_file)
+        return yml
+
 
 class ConfigUploader:
     def __init__(self, target, connector):
@@ -53,6 +56,7 @@ class ConfigUploader:
 
     def upload(self, config_file_path):
         self.connector.upload_config_map(config_file_path)
+
 
 class GlobalConfigFetcher:
     def __init__(self, git_repository):

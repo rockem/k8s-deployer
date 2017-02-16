@@ -13,19 +13,19 @@ from util import EnvironmentParser
 
 logger = DeployerLogger('deployer').getLogger()
 
-class DeployCommand(object):
 
+class DeployCommand(object):
     def __init__(self, image_name, target, git_repository, connector, recipe):
         self.image_name = image_name
         self.target = target
         self.git_repository = git_repository
-        self.recipe = Recipe.builder().indgredients(recipe).image(self.image_name).build()
+        self.recipe = Recipe.builder().ingredients(recipe).image(self.image_name).build()
         self.image_deployer = ImageDeployer(self.image_name, self.target, connector, self.recipe)
 
     def run(self):
         self.__validate_image_contains_tag()
         self.image_deployer.deploy()
-        ServiceVersionWriter(self.git_repository).write(EnvironmentParser(self.target).env_name(),  self.recipe)
+        ServiceVersionWriter(self.git_repository).write(EnvironmentParser(self.target).env_name(), self.recipe)
         logger.debug("finished deploying image:%s" % self.image_name)
 
     def __validate_image_contains_tag(self):
@@ -44,7 +44,7 @@ class PromoteCommand(object):
     def run(self):
         recipes = ServiceVersionReader(self.git_repository).read(self.from_env)
         for recipe in recipes:
-            logger.debug('recipe %s' % recipe.indgredients)
+            logger.debug('recipe %s' % recipe.ingredients)
             DeployCommand(recipe.image(), self.to_env, self.git_repository, self.connector, recipe).run()
 
 
@@ -55,7 +55,8 @@ class ConfigureCommand(object):
         self.connector = connector
 
     def run(self):
-        ConfigUploader(self.target, self.connector).upload(GlobalConfigFetcher(self.git_repository).fetch_for(self.target))
+        ConfigUploader(self.target, self.connector).upload(
+            GlobalConfigFetcher(self.git_repository).fetch_for(self.target))
 
 
 class ActionRunner:
@@ -78,6 +79,7 @@ class ActionRunner:
 
     def __update_kubectl(self):
         S3ConfSync(EnvironmentParser(self.target).env_name()).sync()
+
 
 @click.command()
 @click.argument('action', type=click.Choice(['deploy', 'promote', 'configure']))

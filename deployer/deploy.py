@@ -28,23 +28,26 @@ class ImageDeployer(object):
 
     def deploy(self):
         if not self.__exposed():
-            self.__force_deploy()
+            self.__deploy()
         else:
-            self.__dark_deploy()  # create config
-            if self.__is_healthy():
-                logger.debug ("Lets expose this MF %s" % self.image)
-                self.__expose()
-            else:
-                raise DeployError('deploy %s failed!' % self.image)
+            self.__blue_green_deploy()
+
+    def __blue_green_deploy(self):
+        self.__dark_deploy()  # create config
+        if self.__is_healthy():
+            logger.debug("Lets expose this MF %s" % self.image)
+            self.__expose()
+        else:
+            raise DeployError('deploy %s failed!' % self.image)
 
     def __exposed(self):
         logger.debug("recipe path is %s" % self.recipe)
         return self.recipe.expose()
 
-    def __force_deploy(self):
+    def __deploy(self):
         self.configuration = self.__create_props_force()
         print "going to force deploy with this config {}".format(self.configuration)
-        self.deploy_runner.deploy(self.configuration, ['deployment', 'service'])
+        self.deploy_runner.deploy(self.configuration, ['deployment'])
 
 
     def __dark_deploy(self):

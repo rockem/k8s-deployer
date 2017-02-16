@@ -15,7 +15,7 @@ logger = DeployerLogger(__name__).getLogger()
 @given("service is defined in source environment")
 def write_service_to_int_git(context):
     prepare_recipe()
-    ServiceVersionWriter(GIT_REPO_URL).write('kuku', Recipe.builder().indgredients(os.path.realpath(RecipeFileCreator.RECIPE)).build())
+    ServiceVersionWriter(GIT_REPO_URL).write('kuku', Recipe.builder().ingredients(os.path.realpath(RecipeFileCreator.RECIPE)).build())
     delete_recipe()
 
 
