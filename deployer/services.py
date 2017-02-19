@@ -26,7 +26,7 @@ class ServiceVersionWriter:
     def __write_service_file(self, file_name, recipe):
         create_directory(os.path.join(GitClient.CHECKOUT_DIR, os.path.dirname(file_name)))
         with(open(os.path.join(GitClient.CHECKOUT_DIR, file_name), 'w')) as service_file:
-            yaml.dump(recipe.ingredients, service_file, default_flow_style=False)
+            yaml.dump(recipe.ingredients, service_file, default_flow_style=False, allow_unicode=True)
 
 
 class ServiceVersionReader:
