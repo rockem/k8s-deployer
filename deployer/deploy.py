@@ -62,7 +62,7 @@ class ImageDeployer(object):
 
     def __busy_wait(self, run_func, *args):
         result = False
-        for _ in range(10):  # TODO - should be 120
+        for _ in range(20):  # TODO - should be 120
             logger.debug ('try # %s' % _)
             try:
                 if run_func(args[0]):
