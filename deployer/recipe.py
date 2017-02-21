@@ -1,7 +1,5 @@
 import copy
 
-import yaml
-
 from log import DeployerLogger
 
 EXPOSE_LABEL = 'expose'
@@ -14,29 +12,21 @@ class RecipeError(Exception):
         super(RecipeError, self).__init__(message)
 
 class RecipeBuilder(object):
-    _path = None
+    _ingredients = None
     _image = None
 
-    def ingredients(self, path):
-        self._path = path
-        return self
+    def ingredients(self, ingredients):
+        self._ingredients = ingredients
+        return copy.copy(self)
 
     def image(self, image):
         self._image = image
         return copy.copy(self)
 
     def build(self):
-        ingredients = {IMAGE_LABEL: self._image}
-        ingredients.update(self.fetch_content_from())
-        return Recipe(ingredients)
-
-    def fetch_content_from(self):
-        try:
-            content = open(str(self._path), "r+")
-            return yaml.load(content)
-        except IOError:
-            return {}
-
+        if self._image is not None:
+            self._ingredients[IMAGE_LABEL] = self._image
+        return Recipe(self._ingredients)
 
 class Recipe(object):
     def __init__(self, ingredients):

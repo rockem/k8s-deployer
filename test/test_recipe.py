@@ -3,6 +3,7 @@ import os
 import yaml
 from nose.tools.nontrivial import raises
 
+from deployer.file import YamlReader
 from deployer.recipe import Recipe, RecipeError
 
 
@@ -11,11 +12,14 @@ class TestRecipe():
         self.TestRecipeUtil = RecipeFileCreator()
 
     def test_expose_should_be_true(self):
-        assert Recipe.builder().build().expose() is True
+        assert Recipe.builder().ingredients({}).build().expose() is True
 
     def test_expose_should_be_delegated_from_file(self):
         self.generate_file_for({'expose': False})
-        assert Recipe.builder().ingredients(RecipeFileCreator.RECIPE).build().expose() is False
+        assert Recipe.builder().ingredients(self.read_recipe()).build().expose() is False
+
+    def read_recipe(self):
+        return YamlReader().read(RecipeFileCreator.RECIPE)
 
     def generate_file_for(self, dic):
         self.TestRecipeUtil.create_for(RecipeFileCreator.RECIPE, dic)
@@ -23,15 +27,15 @@ class TestRecipe():
     @raises(RecipeError)
     def test_raise_value_error_when_non_bool_value(self):
         self.generate_file_for({'expose': 11})
-        Recipe.builder().ingredients(RecipeFileCreator.RECIPE).build().expose()
+        Recipe.builder().ingredients(self.read_recipe()).build().expose()
 
     def test_image_should_be_delegated_from_file(self):
         self.generate_file_for({'image_name': 'image_name'})
-        assert Recipe.builder().ingredients(RecipeFileCreator.RECIPE).build().image() == 'image_name'
+        assert Recipe.builder().ingredients(self.read_recipe()).build().image() == 'image_name'
 
     def test_props_should_delegated_from_file_and_builder(self):
         self.generate_file_for({'expose': False})
-        recipe = Recipe.builder().ingredients(RecipeFileCreator.RECIPE).image('image_name').build()
+        recipe = Recipe.builder().ingredients(self.read_recipe()).image('image_name').build()
         assert recipe.image() == 'image_name'
         assert recipe.expose() is False
 

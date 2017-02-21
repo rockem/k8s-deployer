@@ -2,6 +2,7 @@ import os
 
 import yaml
 
+from file import YamlReader
 from recipe import Recipe
 from gitclient.git_client import GitClient
 from log import DeployerLogger
@@ -29,25 +30,20 @@ class ServiceVersionWriter:
             yaml.dump(recipe.ingredients, service_file, default_flow_style=False, allow_unicode=False)
 
 
-class ServiceVersionReader:
+class RecipeReader:
     def __init__(self, git_repository):
         self.git_client = GitClient(git_repository)
 
     def read(self, from_env):
         self.git_client.checkout()
-        return self.__get_recipes(os.path.join(GitClient.CHECKOUT_DIR, from_env, SERVICES_FOLDER))
+        return self.__gather_recipes(os.path.join(GitClient.CHECKOUT_DIR, from_env, SERVICES_FOLDER))
 
-    def __get_recipes(self, services_path):
+    def __gather_recipes(self, services_path):
         recipes = []
         for filename in os.listdir(services_path):
-            recipes.append(Recipe(self.read_yaml(filename, services_path)))
+            logger.debug('recipe is %s' % os.path.join(services_path, filename))
+            recipes.append(Recipe.builder().ingredients(YamlReader().read(os.path.join(services_path, filename))).build())
         return recipes
-
-    def read_yaml(self, filename, services_path):
-        srv_yml_file = open(os.path.join(services_path, filename), 'r')
-        yml = yaml.load(srv_yml_file)
-        return yml
-
 
 class ConfigUploader:
     def __init__(self, target, connector):

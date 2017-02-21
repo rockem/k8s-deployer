@@ -37,15 +37,15 @@ def pod_running(context):
 
 
 def __pod_status(pod_name):
-    match = re.search(r"Status:\s(.*)", __describe_pod(pod_name))
+    match = re.search(r"Status:\s(.*)", __describe_pod())
     if match:
         return match.group(1).strip()
     else:
         raise Exception('service %s has no pod!' % pod_name)
 
 
-def __describe_pod(pod_name):
-    return __run("kubectl --namespace %s describe pods %s" % (NAMESPACE, pod_name))
+def __describe_pod():
+    return __run("kubectl --namespace %s get pods" % (NAMESPACE))
 
 
 def __run(command):
