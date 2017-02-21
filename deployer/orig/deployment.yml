@@ -34,6 +34,15 @@ spec:
              port: liveness-port
            initialDelaySeconds: 30
            timeoutSeconds: 1
+         env:
+           - name: MY_POD_NAME
+             valueFrom:
+               fieldRef:
+                 fieldPath: metadata.name
+           - name: MY_POD_NAMESPACE
+             valueFrom:
+               fieldRef:
+                 fieldPath: metadata.namespace
        volumes:
          - name: config-volume
            configMap:
