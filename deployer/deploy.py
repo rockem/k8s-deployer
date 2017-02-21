@@ -1,12 +1,10 @@
 import time
 
-import yaml
-
 from color_desider import ColorDesider
 from deployRunner import DeployRunner
 from k8s import PodHealthChecker, ServiceExplorer
 from log import DeployerLogger
-from util import ImageNameParser
+from util import ImageNameParser, EnvironmentParser
 
 logger = DeployerLogger('ImageDeployer').getLogger()
 
@@ -88,7 +86,8 @@ class ImageDeployer(object):
             'serviceName' : name,
             'image': self.image,
             'podColor': ColorDesider().invert_color(color),
-            'serviceColor': color
+            'serviceColor': color,
+            'myenv' : EnvironmentParser(self.target).env_name()
         }
 
     def __create_props_force(self):
@@ -100,5 +99,6 @@ class ImageDeployer(object):
             'serviceName' : name,
             'image': self.image,
             'podColor': ColorDesider().invert_color(color),
-            'serviceColor': color
+            'serviceColor': color,
+            'myenv' : EnvironmentParser(self.target).env_name()
         }
