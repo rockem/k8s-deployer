@@ -33,10 +33,11 @@ def is_deployed(context, namespace):
 
 @then("pod is up and running")
 def pod_running(context):
-    assert __pod_status(AUTOGEN_SERVICE_NAME) == 'Running'
+    assert __pod_status() == 'Running'
 
 
-def __pod_status(pod_name):
+def __pod_status():
+    pod_name = __grab_pod_name(AUTOGEN_SERVICE_NAME)
     match = re.search(r"Status:\s(.*)", __describe_pod(pod_name))
     if match:
         return match.group(1).strip()
@@ -47,6 +48,12 @@ def __pod_status(pod_name):
 def __describe_pod(pod_name):
     return __run("kubectl --namespace %s describe pods %s" % (NAMESPACE, pod_name))
 
+def __grab_pod_name(pod_name):
+    output = __run("kubectl --namespace %s get pods" % (NAMESPACE))
+    list = output.split()
+    for item in list:
+        if item.startswith(pod_name):
+            return item
 
 def __run(command):
     return subprocess.check_output(command, shell=True)
