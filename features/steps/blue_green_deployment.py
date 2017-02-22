@@ -116,8 +116,7 @@ def __get_service_image_name(version):
 
 
 def __upload_to_registry(version):
-    subprocess.check_output('docker pull ' + PUSHER_IMAGE_NAME +
-                            ' && docker run -v' + ' /var/run/docker.sock:/var/run/docker.sock -e KEY_ID=' +
+    subprocess.check_output('docker run -v' + ' /var/run/docker.sock:/var/run/docker.sock -e KEY_ID=' +
                             AWS_ACCESS_KEY + ' -e ACCESS_KEY=' + AWS_SECRET_KEY + ' -e IMAGE_NAME=' +
                             AUTOGEN_SERVICE_IMAGE_NAME + ":" + version + ' ' + PUSHER_IMAGE_NAME, shell=True)
 
