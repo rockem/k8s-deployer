@@ -2,6 +2,8 @@ import os
 import subprocess
 
 import re
+
+import time
 from behave import *
 
 from deployer.log import DeployerLogger
@@ -33,14 +35,27 @@ def is_deployed(context, namespace):
 
 @then("pod is up and running")
 def pod_running(context):
-    assert __pod_status() == 'Running'
+    assert __busy_wait(__pod_running)
 
 
-def __pod_status():
+def __busy_wait(run_func):
+    result = False
+    for _ in range(20):  # TODO - should be 120
+        try:
+            if run_func():
+                result = True
+                break
+        except Exception:
+            pass
+        time.sleep(1)
+
+    return result
+
+def __pod_running():
     pod_name = __grab_pod_name(AUTOGEN_SERVICE_NAME)
     match = re.search(r"Status:\s(.*)", __describe_pod(pod_name))
     if match:
-        return match.group(1).strip()
+        return match.group(1).strip() == 'Running'
     else:
         raise Exception('service %s has no pod!' % pod_name)
 
