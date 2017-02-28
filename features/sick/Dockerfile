@@ -1,8 +1,8 @@
-FROM python:2.7-slim
+FROM alpine:3.3
 
-RUN  apt-get update \
-  && apt-get install -y wget \
-  && rm -rf /var/lib/apt/lists/*
+RUN apk --no-cache add py-pip wget \
+    && rm -rf /var/lib/apt/lists/* \
+    && pip install -U pip
 
 #copy code
 COPY . /opt/sick
