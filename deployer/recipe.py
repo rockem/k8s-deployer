@@ -7,9 +7,11 @@ IMAGE_LABEL = 'image_name'
 
 logger = DeployerLogger(__name__).getLogger()
 
+
 class RecipeError(Exception):
     def __init(self, message):
         super(RecipeError, self).__init__(message)
+
 
 class RecipeBuilder(object):
     _ingredients = None
@@ -27,6 +29,7 @@ class RecipeBuilder(object):
         if self._image is not None:
             self._ingredients[IMAGE_LABEL] = self._image
         return Recipe(self._ingredients)
+
 
 class Recipe(object):
     def __init__(self, ingredients):
@@ -46,6 +49,6 @@ class Recipe(object):
             return True
 
         if not isinstance(expose, bool):
-            raise RecipeError('%s is not a valid value' %expose)
+            raise RecipeError('%s is not a valid value' % expose)
 
         return expose

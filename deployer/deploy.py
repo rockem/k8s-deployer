@@ -15,14 +15,14 @@ class DeployError(Exception):
 
 
 class ImageDeployer(object):
-    def __init__(self, image, target, connector, recipe):
-        self.image = image
+    def __init__(self, target, connector, recipe, timeout):
         self.target = target
         self.configuration = {}
         self.connector = connector
         self.deploy_runner = DeployRunner(connector)
         self.health_checker = PodHealthChecker(connector)
         self.recipe = recipe
+        self.timeout = timeout
 
     def deploy(self):
         if not self.__exposed():
@@ -33,10 +33,10 @@ class ImageDeployer(object):
     def __blue_green_deploy(self):
         self.__dark_deploy()  # create config
         if self.__is_healthy():
-            logger.debug("Lets expose this MF %s" % self.image)
+            logger.debug("Lets expose this MF %s" % self.recipe.image())
             self.__expose()
         else:
-            raise DeployError('deploy %s failed!' % self.image)
+            raise DeployError('deploy %s failed!' % self.recipe.image)
 
     def __exposed(self):
         logger.debug("recipe path is %s" % self.recipe)
@@ -46,7 +46,6 @@ class ImageDeployer(object):
         self.configuration = self.__create_props_force()
         print "going to force deploy with this config {}".format(self.configuration)
         self.deploy_runner.deploy(self.configuration, ['deployment'])
-
 
     def __dark_deploy(self):
         self.configuration = self.__create_props_blue_green()
@@ -60,8 +59,8 @@ class ImageDeployer(object):
 
     def __busy_wait(self, run_func, *args):
         result = False
-        for _ in range(20):  # TODO - should be 120
-            logger.debug ('try # %s' % _)
+        for _ in range(self.timeout):
+            logger.debug('try # %s' % _)
             try:
                 if run_func(args[0]):
                     result = True
@@ -70,7 +69,7 @@ class ImageDeployer(object):
                 pass
             time.sleep(1)
 
-        logger.debug ("BW=> %s" % result)
+        logger.debug("BW=> %s" % result)
         return result
 
     def __expose(self):
@@ -78,27 +77,28 @@ class ImageDeployer(object):
         self.deploy_runner.deploy(self.configuration, ['service'])
 
     def __create_props_blue_green(self):
-        name = ImageNameParser(self.image).name()
+        name = ImageNameParser(self.recipe.image()).name()
+        print "Name is: %s" % name
         color = ServiceExplorer(self.connector).get_color(name)
         return {
             'env': self.target,
             'name': name + "-" + ColorDesider().invert_color(color),
-            'serviceName' : name,
-            'image': self.image,
+            'serviceName': name,
+            'image': self.recipe.image(),
             'podColor': ColorDesider().invert_color(color),
             'serviceColor': color,
-            'myenv' : EnvironmentParser(self.target).env_name()
+            'myEnv': EnvironmentParser(self.target).env_name()
         }
 
     def __create_props_force(self):
-        name = ImageNameParser(self.image).name()
+        name = ImageNameParser(self.recipe.image()).name()
         color = ServiceExplorer(self.connector).get_color(name)
         return {
             'env': self.target,
             'name': name,
-            'serviceName' : name,
-            'image': self.image,
+            'serviceName': name,
+            'image': self.recipe.image(),
             'podColor': ColorDesider().invert_color(color),
             'serviceColor': color,
-            'myenv' : EnvironmentParser(self.target).env_name()
+            'myEnv': EnvironmentParser(self.target).env_name()
         }

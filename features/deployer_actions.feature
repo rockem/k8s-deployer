@@ -9,9 +9,9 @@ Feature: deploy service on k8s
     Then service should be logged in git
 
   Scenario: deploy restless service
-    When deploy "restless" service
+    When deploy "restless:1.0" service
     Then pod is up and running
 
   Scenario: recipe written to git after deploy
-    When deploy "restless" service
+    When deploy "restless:1.0" service
     Then expose property should be logged in git

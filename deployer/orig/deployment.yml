@@ -19,7 +19,7 @@ spec:
        containers:
        - image: {image}
          name: {name}
-         imagePullPolicy: Always
+         # imagePullPolicy: Always
          volumeMounts:
          # the config folder should be inside the folder where we run java
          # (equals to APP_HOME in the Dockerfile of dockerize)
@@ -44,7 +44,7 @@ spec:
                fieldRef:
                  fieldPath: metadata.namespace
            - name: MY_ENV
-             value: {myenv}
+             value: {myEnv}
        volumes:
          - name: config-volume
            configMap:
