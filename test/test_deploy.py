@@ -4,7 +4,6 @@ from deployer.deploy import DeployError, ImageDeployer
 
 
 class RecipeStub(object):
-
     def __init__(self, path):
         self.path = path
 
@@ -13,6 +12,7 @@ class RecipeStub(object):
             return True
         else:
             return False
+
 
 class HealthCheckerStub(object):
     def __init__(self, healthy):
@@ -23,10 +23,11 @@ class HealthCheckerStub(object):
         self.health_called = True
         return self.healthy
 
-class DeployRunnerStub(object):
 
+class DeployRunnerStub(object):
     def deploy(self, config, elements):
         pass
+
 
 class ConnectorStub(object):
     def __init__(self, namespace):
@@ -38,8 +39,8 @@ class ConnectorStub(object):
         else:
             return str('{"spec": {"selector": {"color": "green"}}}')
 
-class TestImageDeployer():
 
+class TestImageDeployer:
     @raises(DeployError)
     def test_should_fail_given_sick_service(self):
         self.deploy_image('sick_image:0.1', False, 'exposed')

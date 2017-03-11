@@ -33,7 +33,8 @@ class EnvironmentParser(object):
 
 
 def update_kubectl(env):
-    S3ConfSync(EnvironmentParser(env).env_name()).sync()
+    pass
+    # S3ConfSync(EnvironmentParser(env).env_name()).sync()
 
 
 def create_directory(path):

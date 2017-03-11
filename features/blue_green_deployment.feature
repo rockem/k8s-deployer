@@ -1,11 +1,11 @@
 Feature: dark deploy service to k8s
 
   Scenario: healthy service still serving when sick service deployed
-    When deploy "healthy" service
-    And deploy "sick" service should fail
-    Then healthy service still serving
+    When deploy "healthy:1.0" service
+    And deploy "sick:1.0" service should fail
+    Then "healthy" service is serving
 
   Scenario: updated service
-    When deploy "hello:1" service
-    And deploy "hello:2" service
-    Then service updated to version 2
+    When deploy "version:1.0" service
+    And deploy "version:2.0" service
+    Then service updated to version 2.0

@@ -19,9 +19,9 @@ GIT_REPO_URL = "file://" + os.getcwd() + '/' + REPO_NAME
 # GIT_REPO = "git@git.dnsk.io:media-platform/k8s-config.git"
 
 
-JAVA_SERVICE_NAME = "deployer-test-java-service-%s" % RANDOM_IDENTIFIER
-AWS_REGISTRY_URI = "911479539546.dkr.ecr.us-east-1.amazonaws.com"
-JAVA_SERVICE_IMAGE_NAME = AWS_REGISTRY_URI + '/' + JAVA_SERVICE_NAME + ':0.1.0'
+JAVA_SERVICE_NAME = "deployer-test-java"
+AWS_REGISTRY_URI = ""  # "911479539546.dkr.ecr.us-east-1.amazonaws.com/"
+JAVA_SERVICE_IMAGE_NAME = AWS_REGISTRY_URI + JAVA_SERVICE_NAME + ':1.0'
 AWS_ACCESS_KEY = 'AKIAJUHGHBF4SEHXKLZA'
 AWS_SECRET_KEY = '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'
 PUSHER_IMAGE_NAME = AWS_REGISTRY_URI + '/pusher:latest'
@@ -31,7 +31,7 @@ logger = DeployerLogger(__name__).getLogger()
 
 def create_namespace(context):
     os.popen("kubectl create namespace %s" % NAMESPACE)
-    context.config.userdata["namespace"] = NAMESPACE # why this trainwreck
+    context.config.userdata["namespace"] = NAMESPACE  # why this trainwreck
 
 
 def update_k8s_configuration():
@@ -94,11 +94,11 @@ def __login():
     subprocess.check_output('$(aws ecr get-login --region us-east-1)', shell=True)
 
 
-def __busy_wait(run_func):
+def __busy_wait(run_func, *args):
     returned_value = None
     for _ in range(120):
         try:
-            returned_value = run_func()
+            returned_value = run_func(*args)
             break
         except ConnectionError:
             time.sleep(1)

@@ -35,14 +35,14 @@ def is_deployed(context, namespace):
 
 @then("pod is up and running")
 def pod_running(context):
-    assert __busy_wait(__pod_running)
+    assert __busy_wait(__pod_running, context.currentImageName)
 
 
-def __busy_wait(run_func):
+def __busy_wait(run_func, *args):
     result = False
     for _ in range(20):  # TODO - should be 120
         try:
-            if run_func():
+            if run_func(*args):
                 result = True
                 break
         except Exception:
@@ -51,8 +51,9 @@ def __busy_wait(run_func):
 
     return result
 
-def __pod_running():
-    pod_name = __grab_pod_name(AUTOGEN_SERVICE_NAME)
+
+def __pod_running(image_name):
+    pod_name = __grab_pod_name(image_name)
     match = re.search(r"Status:\s(.*)", __describe_pod(pod_name))
     if match:
         return match.group(1).strip() == 'Running'
@@ -63,12 +64,14 @@ def __pod_running():
 def __describe_pod(pod_name):
     return __run("kubectl --namespace %s describe pods %s" % (NAMESPACE, pod_name))
 
+
 def __grab_pod_name(pod_name):
     output = __run("kubectl --namespace %s get pods" % (NAMESPACE))
     list = output.split()
     for item in list:
         if item.startswith(pod_name):
             return item
+
 
 def __run(command):
     return subprocess.check_output(command, shell=True)
