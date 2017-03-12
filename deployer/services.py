@@ -2,10 +2,10 @@ import os
 
 import yaml
 
+from git_util import GitClient
 from file import YamlReader
-from recipe import Recipe
-from gitclient.git_client import GitClient
 from log import DeployerLogger
+from recipe import Recipe
 from util import create_directory, EnvironmentParser, ImageNameParser
 
 logger = DeployerLogger(__name__).getLogger()
