@@ -1,43 +1,41 @@
 import os
-import subprocess
 
 
-class AppPusher:
+class AppImageBuilder:
 
-    def __init__(self, app, version):
-        self.app = app
-        self.version = version
+    def __init__(self, spec):
+        self.spec = spec
 
-    def push(self, *build_args):
+    def build(self, aws_mode):
         print 'Building %s' % self.__image_name()
-        self.run_command(self.__create_build_command(build_args))
-        # print 'Pushing %s' % self.__image_name()
-        # self.run_command(['docker', 'push', self.__image_name()])
+        self.run_command(self.__create_build_command(aws_mode))
 
     def run_command(self, command):
-        # subprocess.call(
-        #     command,
-        #     cwd=('features/apps/%s' % self.app))
-        os.system('cd features/apps/%s; eval $(minikube docker-env); %s' % (self.app, ' '.join(command)))
+        os.system('cd features/apps/%s; %s' % (self.spec['name'], ' '.join(command)))
 
     def __image_name(self):
-        return 'deployer-test-%s:%s' % (self.app, self.version)
+        return 'deployer-test-%s:%s' % (self.spec['name'], self.spec['version'])
 
-    def __create_build_command(self, *build_args):
-        command = ['docker', 'build']
-        if all(build_args):
-            for b in build_args:
+    def __create_build_command(self, aws_mode):
+        command = []
+        if not aws_mode:
+            command += ['eval $(minikube docker-env);']
+        command += ['docker', 'build']
+        try:
+            for b in self.spec['args']:
                 command += ['--build-arg', b[0]]
+        except KeyError:
+            pass
         return command + ['-t', self.__image_name(), '.']
 
 
-class JavaAppPusher:
+class JavaAppBuilder:
 
     def __init__(self, app_pusher):
         self.app_pusher = app_pusher
 
-    def push(self, *build_args):
+    def build(self, *build_args):
         self.app_pusher.run_command(['./gradlew', 'clean', 'build'])
-        self.app_pusher.push(*build_args)
+        self.app_pusher.build(*build_args)
 
 

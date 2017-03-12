@@ -2,9 +2,9 @@ import os
 import shutil
 
 import yaml
-
 from behave import *
-from deployer.gitclient.git_client import GitClient
+
+from deployer.git_util import GitClient
 from features.steps.support import GIT_REPO_URL, TARGET_ENV, TARGET_ENV_AND_NAMESPACE, NAMESPACE, delete_namespace
 
 use_step_matcher("re")
