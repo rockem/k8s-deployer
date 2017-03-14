@@ -30,7 +30,7 @@ class ConnectorStub(object):
             return str('{"spec": {"selector": {"color": "green"}}}')
 
 
-class TestImageDeployer:
+class TestImageDeployer(object):
     @raises(DeployError)
     def test_should_fail_given_sick_service(self):
         self.__deploy_image('sick_image:0.1', False, 'exposed')

@@ -6,9 +6,9 @@ from kubectlconf.sync import S3ConfSync
 from deployer.log import DeployerLogger
 from features.steps.configurer_steps import ConfigFilePusher
 from features.steps.support import delete_namespace
-from features.support.docker import AppImageBuilder, JavaAppBuilder
-from steps.support import create_namespace, delete_java_service_from_k8s, delete_java_image_from_registry, create_repo, \
-    update_k8s_configuration, upload_java_image_to_registry, GIT_REPO_URL, TARGET_ENV
+from features.support.docker import AppImageBuilder, JavaAppBuilder, AWSImagePusher
+from steps.support import create_namespace, delete_java_service_from_k8s, create_repo, \
+    update_k8s_configuration, GIT_REPO_URL, TARGET_ENV
 
 logger = DeployerLogger(__name__).getLogger()
 
@@ -25,27 +25,29 @@ APP_BUILDERS = [
 def before_all(context):
     if __is_aws_mode(context):
         S3ConfSync(TARGET_ENV).sync()
+        context.aws_uri = "911479539546.dkr.ecr.us-east-1.amazonaws.com/"
+        context.minikube = None
+    else:
+        context.minikube = subprocess.check_output('minikube ip', shell=True)[:-1]
+        context.aws_uri = ''
     create_namespace(context)
     __push_apps(__is_aws_mode(context))
-    context.minikube = subprocess.check_output('minikube ip', shell=True)[:-1]
-    # upload_java_image_to_registry()
 
 
 def __is_aws_mode(context):
     try:
-        return context.config.userdata['mode'] is 'aws'
+        return context.config.userdata['mode'] == 'aws'
     except KeyError:
         return False
 
 
 def __push_apps(aws_mode):
     for b in APP_BUILDERS:
-        b.build(aws_mode)
+        AWSImagePusher(b).push(aws_mode)
 
 
 def after_all(context):
     delete_namespace(context.config.userdata["namespace"])
-    # delete_java_image_from_registry()
 
 
 def before_scenario(context, scenario):
