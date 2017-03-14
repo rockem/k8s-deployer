@@ -7,7 +7,7 @@ from deployer.file import YamlReader
 from deployer.log import DeployerLogger
 from deployer.recipe import Recipe
 from deployer.services import ServiceVersionWriter, RecipeReader
-from features.steps.support import JAVA_SERVICE_IMAGE_NAME, GIT_REPO_URL, TARGET_ENV, \
+from features.steps.support import GIT_REPO_URL, TARGET_ENV, \
     TARGET_ENV_AND_NAMESPACE
 from test.test_recipe import RecipeFileCreator
 
@@ -16,7 +16,7 @@ logger = DeployerLogger(__name__).getLogger()
 
 @given("service is defined in source environment")
 def write_service_to_int_git(context):
-    prepare_recipe()
+    prepare_recipe(context)
     ServiceVersionWriter(GIT_REPO_URL).write('kuku', Recipe.builder().ingredients(YamlReader().read(os.path.realpath(RecipeFileCreator.RECIPE))).build())
     delete_recipe()
 
@@ -27,9 +27,9 @@ def delete_recipe():
         pass
 
 
-def prepare_recipe():
+def prepare_recipe(context):
     with open(RecipeFileCreator.RECIPE, 'w') as outfile:
-        yaml.dump({'image_name': JAVA_SERVICE_IMAGE_NAME}, outfile, default_flow_style=False)
+        yaml.dump({'image_name': '%sdeployer-test-java:1.0' % context.aws_uri}, outfile, default_flow_style=False)
 
 
 @when("promoting to production")
@@ -40,7 +40,7 @@ def promote(context):
 
 @then("service should be logged in git")
 def check_promoted_service_in_git(context):
-    assert RecipeReader(GIT_REPO_URL).read(TARGET_ENV)[0].image() == JAVA_SERVICE_IMAGE_NAME
+    assert RecipeReader(GIT_REPO_URL).read(TARGET_ENV)[0].image() == '%sdeployer-test-java:1.0' % context.aws_uri
 
 @then("expose property should be logged in git")
 def check_expose_in_git(context):

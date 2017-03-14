@@ -28,10 +28,14 @@ def __get_svc_host(minikube):
     # e.g. LoadBalancer Ingress:	a31d2dc35d67311e6b4410e7feeb8c22-467957310.us-east-1.elb.amazonaws.com
     #      Port:			        <unset>	80/TCP
     # lb_index = service_describe_output.find("LoadBalancer Ingress:")
-    match = re.search(r"NodePort:\s*<unset>\s*(\d+)/TCP", service_describe_output)
+    if minikube is None:
+        match = re.search(r"LoadBalancer Ingress:\s(.*)", service_describe_output)
+    else:
+        match = re.search(r"NodePort:\s*<unset>\s*(\d+)/TCP", service_describe_output)
     if match:
         result = match.group(1)
-        result = '%s:%s' % (minikube, result)
+        if minikube is not None:
+            result = '%s:%s' % (minikube, result)
     else:
         sleep(1)
         raise ConnectionError

@@ -18,15 +18,12 @@ AWS_ACCESS_KEY = 'AKIAJUHGHBF4SEHXKLZA'
 AWS_SECRET_KEY = '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'
 REPO_NAME = 'behave_repo'
 GIT_REPO = "file://" + os.getcwd() + '/' + REPO_NAME
-AWS_REGISTRY_URI = ""  # "911479539546.dkr.ecr.us-east-1.amazonaws.com/"
-PUSHER_IMAGE_NAME = AWS_REGISTRY_URI + '/pusher:latest'
-AUTOGEN_SERVICE_IMAGE_NAME = AWS_REGISTRY_URI + AUTOGEN_SERVICE_NAME
 
 
 @when("deploy \"(.*):(.*)\" service(?: should (.*))?")
 def deploy_healthy_service(context, name, version, status):
     context.currentImageName = __get_app_name_for(name)
-    image_name = '%s%s:%s' % (AWS_REGISTRY_URI, __get_app_name_for(name), version)  # __get_service_image_name(name)
+    image_name = '%s%s:%s' % (context.aws_uri, __get_app_name_for(name), version)  # __get_service_image_name(name)
     # __docker_build(version, image_name, "./features/%s/." % name)
     # __upload_to_registry(name)
 
@@ -71,12 +68,15 @@ def __wait_for_service_to_be_available_k8s(image_name, minikube):
         output = subprocess.check_output(
             "kubectl describe --namespace %s services %s" % (NAMESPACE, image_name), shell=True)
         print (output)
-        # match = re.search(r"LoadBalancer Ingress:\s(.*)", output)
-        match = re.search(r"NodePort:\s*<unset>\s*(\d+)/TCP", output)
+        if minikube is None:
+            match = re.search(r"LoadBalancer Ingress:\s(.*)", output)
+        else:
+            match = re.search(r"NodePort:\s*<unset>\s*(\d+)/TCP", output)
         if match:
             result = match.group(1)
             print ('found a match -> %s' % result)
-            result = '%s:%s' % (minikube, result)
+            if minikube is not None:
+                result = '%s:%s' % (minikube, result)
             try:
                 o = requests.get('http://' + result + "/health")
                 print ('this is the service output %s' % o)
@@ -119,7 +119,8 @@ def __is_running(image_name):
 
 
 def __get_service_image_name(version):
-    return AUTOGEN_SERVICE_IMAGE_NAME + ':' + version
+    pass
+    # return AUTOGEN_SERVICE_IMAGE_NAME + ':' + version
 
 
 # def __upload_to_registry(version):

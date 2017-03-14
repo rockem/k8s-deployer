@@ -7,8 +7,7 @@ import time
 from behave import *
 
 from deployer.log import DeployerLogger
-from features.steps.blue_green_deployment import AUTOGEN_SERVICE_NAME
-from features.steps.support import NAMESPACE, JAVA_SERVICE_IMAGE_NAME, JAVA_SERVICE_NAME, GIT_REPO_URL, \
+from features.steps.support import NAMESPACE, JAVA_SERVICE_NAME, GIT_REPO_URL, \
     TARGET_ENV, TARGET_ENV_AND_NAMESPACE
 
 use_step_matcher("re")
@@ -22,7 +21,7 @@ def deploy(context, namespace):
     logger.debug('deploy java service to k8s')
     target = TARGET_ENV_AND_NAMESPACE if namespace is None else "%s:%s" % (TARGET_ENV, namespace)
     subprocess.check_output("python deployer/deployer.py deploy --image_name %s --target %s --git_repository %s" %
-                            (JAVA_SERVICE_IMAGE_NAME, target, GIT_REPO_URL), shell=True)
+                            ('%sdeployer-test-java:1.0' % context.aws_uri, target, GIT_REPO_URL), shell=True)
 
 
 @then("service is deployed(?: in \"(.+)\")?")
