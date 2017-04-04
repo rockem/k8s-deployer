@@ -4,20 +4,35 @@ import os
 import subprocess
 
 
-class AppImageBuilder:
+class AppImage:
+    AWS_REGISTRY_URI = "911479539546.dkr.ecr.us-east-1.amazonaws.com"
 
-    def __init__(self, spec):
-        self.spec = spec
+    def __init__(self, name, version):
+        self.name = name
+        self.version = version
+
+    def image_name(self, aws_mode):
+        app_name = self.__app_name()
+        return '%s' % app_name if aws_mode else '%s/%s' % (self.AWS_REGISTRY_URI, app_name)
+
+    def __app_name(self):
+        return 'deployer-test-%s:%s' % (self.name, self.version)
+
+
+class AppImageBuilder:
+    def __init__(self, app_image, *args):
+        self.app_image = app_image
+        self.args = args
 
     def build(self, aws_mode):
-        print 'Building %s' % self.image_name()
+        print 'Building %s' % self.app_image.image_name(aws_mode)
         self.run_command(self.__create_build_command(aws_mode))
 
     def run_command(self, command):
-        os.system('cd features/apps/%s; %s' % (self.spec['name'], ' '.join(command)))
+        os.system('cd features/apps/%s; %s' % (self.app_image.name, ' '.join(command)))
 
     def image_name(self):
-        return 'deployer-test-%s:%s' % (self.spec['name'], self.spec['version'])
+        return self.app_image.image_name()
 
     def __create_build_command(self, aws_mode):
         command = []
@@ -25,15 +40,14 @@ class AppImageBuilder:
             command += ['eval $(minikube docker-env);']
         command += ['docker', 'build']
         try:
-            for b in self.spec['args']:
+            for b in self.args:
                 command += ['--build-arg', b[0]]
         except KeyError:
             pass
-        return command + ['-t', self.image_name(), '.']
+        return command + ['-t', self.app_image.image_name(aws_mode), '.']
 
 
 class JavaAppBuilder:
-
     def __init__(self, app_builder):
         self.app_builder = app_builder
 
@@ -46,7 +60,6 @@ class JavaAppBuilder:
 
 
 class AWSImagePusher:
-    AWS_REGISTRY_URI = "911479539546.dkr.ecr.us-east-1.amazonaws.com"
 
     def __init__(self, builder):
         self.builder = builder
@@ -57,16 +70,14 @@ class AWSImagePusher:
             self.__push_to_aws()
 
     def __push_to_aws(self):
-        self.__tag_for_aws(self.builder.image_name())
+        # self.__tag_for_aws(self.builder.image_name())
         if not self.__is_image_exists_in_aws(self.builder.image_name()):
-            subprocess.check_output('docker push %s' % (self.__get_aws_image_for(self.builder.image_name())), shell=True)
+            subprocess.check_output('docker push %s' % (self.builder.image_name()),
+                                    shell=True)
 
     def __tag_for_aws(self, image_name):
         subprocess.call('docker tag %s %s' %
                         (image_name, self.__get_aws_image_for(image_name)), shell=True)
-
-    def __get_aws_image_for(self, image_name):
-        return '%s/%s' % (self.AWS_REGISTRY_URI, image_name)
 
     def __is_image_exists_in_aws(self, image_name):
         name = image_name.split(':')[0]
@@ -76,4 +87,3 @@ class AWSImagePusher:
             shell=True)
 
         return len(json.loads(output)['images']) > 0
-
