@@ -6,19 +6,19 @@ from kubectlconf.sync import S3ConfSync
 from deployer.log import DeployerLogger
 from features.steps.configurer_steps import ConfigFilePusher
 from features.steps.support import delete_namespace
-from features.support.docker import AppImageBuilder, JavaAppBuilder, AWSImagePusher
+from features.support.docker import AppImageBuilder, JavaAppBuilder, AWSImagePusher, AppImage
 from steps.support import create_namespace, delete_java_service_from_k8s, create_repo, \
     update_k8s_configuration, GIT_REPO_URL, TARGET_ENV
 
 logger = DeployerLogger(__name__).getLogger()
 
 APP_BUILDERS = [
-    AppImageBuilder({'name': 'healthy', 'version': '1.0'}),
-    AppImageBuilder({'name': 'sick', 'version': '1.0'}),
-    AppImageBuilder({'name': 'restless', 'version': '1.0'}),
-    JavaAppBuilder(AppImageBuilder({'name': 'java', 'version': '1.0'})),
-    AppImageBuilder({'name': 'version', 'version': '1.0', 'args': ['VERSION=1.0']}),
-    AppImageBuilder({'name': 'version', 'version': '2.0', 'args': ['VERSION=2.0']})
+    AppImageBuilder(AppImage('healthy', '1.0')),
+    AppImageBuilder(AppImage('sick', '1.0')),
+    AppImageBuilder(AppImage('restless', '1.0')),
+    JavaAppBuilder(AppImageBuilder(AppImage('java', '1.0'))),
+    AppImageBuilder(AppImage('version', '1.0'), ['VERSION=1.0']),
+    AppImageBuilder(AppImage('version', '2.0'), ['VERSION=2.0'])
 ]
 
 
