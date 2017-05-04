@@ -36,7 +36,7 @@ class ImageDeployer(object):
             logger.debug("Lets expose this MF %s" % self.recipe.image())
             self.__expose()
         else:
-            raise DeployError('deploy %s failed!' % self.recipe.image)
+            raise DeployError('deploy %s failed!' % self.recipe.image())
 
     def __exposed(self):
         logger.debug("recipe path is %s" % self.recipe)

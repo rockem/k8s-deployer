@@ -8,23 +8,30 @@ class DeployerDriver:
         self.git_repo = git_repo
         self.target = target
 
-    def deploy(self, name, should_fail=False):
+    def deploy(self, app_image, should_fail=False):
         try:
-            self.run_deploy_command(name)
+            self.run_deploy_command(app_image)
         except subprocess.CalledProcessError as e:
             if not should_fail:
+                print(e.output)
                 raise e
 
-    def run_deploy_command(self, name):
-        recipe_option = '--recipe %s' % self.__get_recipe_path(name)
+    def run_deploy_command(self, app_image):
         subprocess.check_output(
             "python deployer/deployer.py deploy --image_name %s --target %s "
-            "--git_repository %s --deploy-timeout=5 %s" % (name, self.target, self.git_repo, recipe_option),
+            "--git_repository %s --deploy-timeout=10 %s" %
+            (app_image.image_name(), self.target, self.git_repo, self.__get_recipe_option_for(app_image.recipe_path())),
             shell=True,
             stderr=subprocess.STDOUT)
 
-    def __get_recipe_path(self, name):
-        path = "./features/apps/%s/recipe.yml" % name
+    def __get_recipe_option_for(self, path):
+        recipe_option = ''
         if os.path.isfile(path):
-            return os.path.realpath(path)
-        return ''
+            recipe_option = '--recipe %s' % os.path.realpath(path)
+        return recipe_option
+
+    def configure(self):
+        subprocess.check_output(
+            "python deployer/deployer.py configure --target %s --git_repository %s" %
+            (self.target, self.git_repo),
+            shell=True, stderr=subprocess.STDOUT)
