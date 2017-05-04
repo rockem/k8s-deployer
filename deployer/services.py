@@ -40,10 +40,12 @@ class RecipeReader:
 
     def __gather_recipes(self, services_path):
         recipes = []
-        for filename in os.listdir(services_path):
-            logger.debug('recipe is %s' % os.path.join(services_path, filename))
-            recipes.append(Recipe.builder().ingredients(YamlReader().read(os.path.join(services_path, filename))).build())
+        for dir in os.listdir(services_path):
+            logger.debug('recipe is %s' % os.path.join(services_path, dir))
+            recipes.append(
+                Recipe.builder().ingredients(YamlReader().read(os.path.join(services_path, dir))).build())
         return recipes
+
 
 class ConfigUploader:
     def __init__(self, target, connector):

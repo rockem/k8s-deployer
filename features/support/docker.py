@@ -7,34 +7,53 @@ import subprocess
 class AppImage:
     AWS_REGISTRY_URI = "911479539546.dkr.ecr.us-east-1.amazonaws.com"
 
-    def __init__(self, name, version):
-        self.name = name
-        self.version = version
+    def __init__(self, name, version, aws_mode):
+        self._name = name
+        self._version = version
+        self._aws_mode = aws_mode
+        self._service_name = 'deployer-test-%s' % self._name
 
-    def image_name(self, aws_mode):
-        app_name = self.__app_name()
-        return '%s' % app_name if aws_mode else '%s/%s' % (self.AWS_REGISTRY_URI, app_name)
+    def service_name(self):
+        return self._service_name
 
-    def __app_name(self):
-        return 'deployer-test-%s:%s' % (self.name, self.version)
+    def name(self):
+        return self._name
+
+    def image_name(self):
+        if self._aws_mode:
+            return '%s/%s' % (self.AWS_REGISTRY_URI, self.__service_name_version())
+        return '%s' % self.__service_name_version()
+
+    def __service_name_version(self):
+        return "%s:%s" % (self._service_name, self._version)
+
+    def app_key(self):
+        return self.app_key_for(self._name, self._version)
+
+    @staticmethod
+    def app_key_for(name, version):
+        return "%s:%s" % (name, version)
+
+    def recipe_path(self):
+        return "./features/apps/%s/recipe.yml" % self._name
 
 
 class AppImageBuilder:
-    def __init__(self, app_image, *args):
-        self.app_image = app_image
+    def __init__(self, name, version, *args):
+        self.name = name
+        self.version = version
         self.args = args
 
     def build(self, aws_mode):
-        print 'Building %s' % self.app_image.image_name(aws_mode)
-        self.run_command(self.__create_build_command(aws_mode))
+        app_image = AppImage(self.name, self.version, aws_mode)
+        print 'Building %s' % app_image.image_name()
+        self.run_command(self.__create_build_command(app_image, aws_mode))
+        return app_image
 
     def run_command(self, command):
-        os.system('cd features/apps/%s; %s' % (self.app_image.name, ' '.join(command)))
+        os.system('cd features/apps/%s; %s' % (self.name, ' '.join(command)))
 
-    def image_name(self):
-        return self.app_image.image_name()
-
-    def __create_build_command(self, aws_mode):
+    def __create_build_command(self, app_image, aws_mode):
         command = []
         if not aws_mode:
             command += ['eval $(minikube docker-env);']
@@ -44,7 +63,7 @@ class AppImageBuilder:
                 command += ['--build-arg', b[0]]
         except KeyError:
             pass
-        return command + ['-t', self.app_image.image_name(aws_mode), '.']
+        return command + ['-t', app_image.image_name(), '.']
 
 
 class JavaAppBuilder:
@@ -53,31 +72,20 @@ class JavaAppBuilder:
 
     def build(self, *build_args):
         self.app_builder.run_command(['./gradlew', 'clean', 'build'])
-        self.app_builder.build(*build_args)
+        return self.app_builder.build(*build_args)
 
     def image_name(self):
         return self.app_builder.image_name()
 
 
 class AWSImagePusher:
+    def __init__(self, app):
+        self.app = app
 
-    def __init__(self, builder):
-        self.builder = builder
-
-    def push(self, aws_mode):
-        self.builder.build(aws_mode)
-        if aws_mode:
-            self.__push_to_aws()
-
-    def __push_to_aws(self):
-        # self.__tag_for_aws(self.builder.image_name())
-        if not self.__is_image_exists_in_aws(self.builder.image_name()):
-            subprocess.check_output('docker push %s' % (self.builder.image_name()),
+    def push(self):
+        if not self.__is_image_exists_in_aws(self.app.image_name()):
+            subprocess.check_output('docker push %s' % (self.app.image_name()),
                                     shell=True)
-
-    def __tag_for_aws(self, image_name):
-        subprocess.call('docker tag %s %s' %
-                        (image_name, self.__get_aws_image_for(image_name)), shell=True)
 
     def __is_image_exists_in_aws(self, image_name):
         name = image_name.split(':')[0]

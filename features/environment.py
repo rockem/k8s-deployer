@@ -6,6 +6,7 @@ from kubectlconf.sync import S3ConfSync
 from deployer.log import DeployerLogger
 from features.steps.configurer_steps import ConfigFilePusher
 from features.steps.support import delete_namespace
+from features.support.context import Context
 from features.support.docker import AppImageBuilder, JavaAppBuilder, AWSImagePusher, AppImage
 from steps.support import create_namespace, delete_java_service_from_k8s, create_repo, \
     update_k8s_configuration, GIT_REPO_URL, TARGET_ENV
@@ -13,25 +14,32 @@ from steps.support import create_namespace, delete_java_service_from_k8s, create
 logger = DeployerLogger(__name__).getLogger()
 
 APP_BUILDERS = [
-    AppImageBuilder(AppImage('healthy', '1.0')),
-    AppImageBuilder(AppImage('sick', '1.0')),
-    AppImageBuilder(AppImage('restless', '1.0')),
-    JavaAppBuilder(AppImageBuilder(AppImage('java', '1.0'))),
-    AppImageBuilder(AppImage('version', '1.0'), ['VERSION=1.0']),
-    AppImageBuilder(AppImage('version', '2.0'), ['VERSION=2.0'])
+    AppImageBuilder('healthy', '1.0'),
+    AppImageBuilder('sick', '1.0'),
+    AppImageBuilder('restless', '1.0'),
+    JavaAppBuilder(AppImageBuilder('java', '1.0')),
+    AppImageBuilder('version', '1.0', ['VERSION=1.0']),
+    AppImageBuilder('version', '2.0', ['VERSION=2.0'])
 ]
 
 
 def before_all(context):
+    create_namespace(context)
+    __build_apps(context)
     if __is_aws_mode(context):
         S3ConfSync(TARGET_ENV).sync()
         context.aws_uri = "911479539546.dkr.ecr.us-east-1.amazonaws.com/"
         context.minikube = None
+        __push_apps_aws(Context(context).all_apps())
     else:
         context.minikube = subprocess.check_output('minikube ip', shell=True)[:-1]
         context.aws_uri = ''
-    create_namespace(context)
-    __push_apps(__is_aws_mode(context))
+
+
+def __build_apps(context):
+    for b in APP_BUILDERS:
+        app = b.build(__is_aws_mode(context))
+        Context(context).add_app(app)
 
 
 def __is_aws_mode(context):
@@ -41,9 +49,9 @@ def __is_aws_mode(context):
         return False
 
 
-def __push_apps(aws_mode):
-    for b in APP_BUILDERS:
-        AWSImagePusher(b).push(aws_mode)
+def __push_apps_aws(apps):
+    for app in apps:
+        AWSImagePusher(app).push()
 
 
 def after_all(context):

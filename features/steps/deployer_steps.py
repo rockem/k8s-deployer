@@ -9,6 +9,9 @@ from behave import *
 from deployer.log import DeployerLogger
 from features.steps.support import NAMESPACE, JAVA_SERVICE_NAME, GIT_REPO_URL, \
     TARGET_ENV, TARGET_ENV_AND_NAMESPACE
+from features.support.app import AppDriver
+from features.support.context import Context
+from features.support.k8s import K8sDriver
 
 use_step_matcher("re")
 CONFIG_MAP = 'global-config'
@@ -32,9 +35,10 @@ def is_deployed(context, namespace):
     assert JAVA_SERVICE_NAME in output
 
 
-@then("pod is up and running")
+@then("it should be running")
 def pod_running(context):
-    assert __busy_wait(__pod_running, context.currentImageName)
+    K8sDriver(NAMESPACE, context.minikube).verify_app_is_running(Context(context).last_deployed_app())
+    # assert __busy_wait(__pod_running, context.currentImageName)
 
 
 def __busy_wait(run_func, *args):

@@ -6,6 +6,7 @@ from behave import *
 
 from deployer.git_util import GitClient
 from features.steps.support import GIT_REPO_URL, TARGET_ENV, TARGET_ENV_AND_NAMESPACE, NAMESPACE, delete_namespace
+from features.support.deploy import DeployerDriver
 
 use_step_matcher("re")
 SERVICES_FOLDER = '/services/'
@@ -14,15 +15,16 @@ git_client = GitClient(GIT_REPO_URL)
 CONFIG_FILE_NAME = 'global.yml'
 K8S_NAME = 'global-config'
 
+
 @given('namespace "(.+)" doesn\'t exists')
 def clear_namespace(context, namespace=None):
     delete_namespace(namespace)
 
+
 @when("configuring(?: \"(.+)\")?")
-def executing(context, namespace = None):
+def executing(context, namespace=None):
     target = TARGET_ENV_AND_NAMESPACE if namespace is None else "%s:%s" % (TARGET_ENV, namespace)
-    assert os.system("python deployer/deployer.py configure --target %s --git_repository %s" %
-                     (target, GIT_REPO_URL)) == 0
+    DeployerDriver(GIT_REPO_URL, target).configure()
 
 
 @then("config uploaded(?: to \"(.+)\" namespace)?")
@@ -36,9 +38,11 @@ def validate_config_uploaded(context, namespace=None):
 def get_local_configmap_data():
     return open(get_local_config_file_path(), 'rb').read()
 
+
 def get_local_config_file_path():
     abs_file_path = os.getcwd() + "/features/config/global.yml"
     return abs_file_path
+
 
 def get_configmap_k8s(namespace):
     namespace = NAMESPACE if namespace is None else namespace
@@ -54,9 +58,8 @@ class ConfigFilePusher:
         self.git_url = git_repository
 
     def write(self, env, config_file):
-
-        if os.path.exists( self.CHECKOUT_DIRECTORY ):
-            shutil.rmtree( self.CHECKOUT_DIRECTORY )
+        if os.path.exists(self.CHECKOUT_DIRECTORY):
+            shutil.rmtree(self.CHECKOUT_DIRECTORY)
         os.system("git clone %s %s" % (self.git_url, self.CHECKOUT_DIRECTORY))
         self.__copy_config(config_file, "%s/%s" % (self.CHECKOUT_DIRECTORY, env))
         old_dir = os.getcwd()
