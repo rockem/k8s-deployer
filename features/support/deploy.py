@@ -19,7 +19,7 @@ class DeployerDriver:
     def run_deploy_command(self, app_image):
         subprocess.check_output(
             "python deployer/deployer.py deploy --image_name %s --target %s "
-            "--git_repository %s --deploy-timeout=10 %s" %
+            "--git_repository %s --deploy-timeout=20 %s" %
             (app_image.image_name(), self.target, self.git_repo, self.__get_recipe_option_for(app_image.recipe_path())),
             shell=True,
             stderr=subprocess.STDOUT)

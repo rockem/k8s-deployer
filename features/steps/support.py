@@ -8,6 +8,9 @@ import git
 from requests import ConnectionError
 
 from deployer.log import DeployerLogger
+from features.support.app import AppDriver
+from features.support.context import Context
+from features.support.k8s import K8sDriver
 
 REPO_NAME = 'behave_repo'
 RANDOM_IDENTIFIER = getpass.getuser() + "-" + str(int(time.time()))
@@ -27,8 +30,10 @@ logger = DeployerLogger(__name__).getLogger()
 
 
 def create_namespace(context):
-    os.popen("kubectl create namespace %s" % NAMESPACE)
-    context.config.userdata["namespace"] = NAMESPACE  # why this trainwreck
+    k8s = K8sDriver(RANDOM_IDENTIFIER, context.minikube)
+    k8s.create_namespace()
+    Context(context).set_default_namespace(RANDOM_IDENTIFIER)
+    k8s.upload_config('default')
 
 
 def update_k8s_configuration():

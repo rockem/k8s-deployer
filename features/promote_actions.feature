@@ -1,7 +1,7 @@
 Feature: promote service on k8s
 
   Scenario: service is promoted according to git content of source environment
-    Given service is defined in source environment
+    Given "healthy:1.0" uploaded
     When promoting to production
-    Then service is deployed
+    Then service is deployed in production
     And service should be logged in git

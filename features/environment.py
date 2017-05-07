@@ -4,10 +4,10 @@ import subprocess
 from kubectlconf.sync import S3ConfSync
 
 from deployer.log import DeployerLogger
-from features.steps.configurer_steps import ConfigFilePusher
 from features.steps.support import delete_namespace
 from features.support.context import Context
 from features.support.docker import AppImageBuilder, JavaAppBuilder, AWSImagePusher, AppImage
+from features.support.k8s import K8sDriver
 from steps.support import create_namespace, delete_java_service_from_k8s, create_repo, \
     update_k8s_configuration, GIT_REPO_URL, TARGET_ENV
 
@@ -24,7 +24,6 @@ APP_BUILDERS = [
 
 
 def before_all(context):
-    create_namespace(context)
     __build_apps(context)
     if __is_aws_mode(context):
         S3ConfSync(TARGET_ENV).sync()
@@ -34,6 +33,7 @@ def before_all(context):
     else:
         context.minikube = subprocess.check_output('minikube ip', shell=True)[:-1]
         context.aws_uri = ''
+    create_namespace(context)
 
 
 def __build_apps(context):
@@ -56,15 +56,12 @@ def __push_apps_aws(apps):
 
 def after_all(context):
     delete_namespace(context.config.userdata["namespace"])
+    K8sDriver.delete_namespaces(Context(context).namespaces_to_delete())
 
 
 def before_scenario(context, scenario):
     create_repo()
     delete_java_service_from_k8s()
-    if scenario.feature.name == 'Update k8s configuration':
-        ConfigFilePusher(GIT_REPO_URL).write(TARGET_ENV, get_local_config_file_path())
-    else:
-        update_k8s_configuration()
 
 
 def get_local_config_file_path():
