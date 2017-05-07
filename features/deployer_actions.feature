@@ -1,11 +1,11 @@
 Feature: deploy service on k8s
 
   Scenario: deploy simple service
-    When deploy "java:1.0" service
-    Then "java:1.0" service is serving
+    When deploy "healthy:1.0" service
+    Then "healthy:1.0" service is serving
 
   Scenario: service is written to git after deployment
-    When deploy "java:1.0" service
+    When deploy "healthy:1.0" service
     Then it should be logged in git
 
   Scenario: deploy restless service

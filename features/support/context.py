@@ -2,11 +2,13 @@ from features.support.docker import AppImage
 
 LAST_DEPLOYED = 'lastDeployed'
 APPS = 'apps'
+NS_TO_DELETE = 'ns-delete'
 
 
 class Context:
     def __init__(self, context):
         self.context = context
+        self.__user_data()[NS_TO_DELETE] = []
 
     def add_app(self, app):
         try:
@@ -31,3 +33,16 @@ class Context:
 
     def last_deployed_app(self):
         return self.__user_data()[LAST_DEPLOYED]
+
+    def add_namespace_to_delete(self, namespace):
+        self.__user_data()[NS_TO_DELETE].append(namespace)
+
+    def namespaces_to_delete(self):
+        return self.__user_data()[NS_TO_DELETE]
+
+    def set_default_namespace(self, namespace):
+        self.__user_data()["namespace"] = namespace
+        self.add_namespace_to_delete(namespace)
+
+    def default_namespace(self):
+        return self.__user_data()["namespace"]
