@@ -16,7 +16,7 @@ RUN apk add --no-cache python && \
     rm -r /root/.cache
 
 # install git
-RUN apk add --no-cache git=2.8.3-r0
+RUN apk add --no-cache git=2.8.5-r0
 
 # install aws cli profile
 RUN pip install awscli --ignore-installed six
