@@ -32,7 +32,7 @@ spec:
            httpGet:
              path: /health
              port: liveness-port
-           initialDelaySeconds: 30
+           initialDelaySeconds: 60
            timeoutSeconds: 1
          env:
            - name: MY_POD_NAME
