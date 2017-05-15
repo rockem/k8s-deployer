@@ -10,6 +10,7 @@ from deployer.services import ServiceVersionWriter, RecipeReader
 from features.steps.support import GIT_REPO_URL, TARGET_ENV, \
     TARGET_ENV_AND_NAMESPACE
 from features.support.context import Context
+from features.support.deploy import DeployerDriver
 from features.support.repository import RecipeRepository
 from test.test_recipe import RecipeFileCreator
 
@@ -38,8 +39,7 @@ def prepare_recipe(context):
 
 @when("promoting to production")
 def promote(context):
-    assert os.system("python deployer/deployer.py promote --source kuku --target %s "
-                     "--git_repository %s" % (TARGET_ENV_AND_NAMESPACE, GIT_REPO_URL)) == 0
+    DeployerDriver(GIT_REPO_URL, TARGET_ENV_AND_NAMESPACE).promote()
 
 
 @then("it should be logged in git")

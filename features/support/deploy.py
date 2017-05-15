@@ -35,3 +35,8 @@ class DeployerDriver:
             "python deployer/deployer.py configure --target %s --git_repository %s" %
             (self.target, self.git_repo),
             shell=True, stderr=subprocess.STDOUT)
+
+    def promote(self):
+        subprocess.check_output("python deployer/deployer.py promote --source int --target %s "
+                                "--git_repository %s" % (self.target, self.git_repo),
+                                shell=True, stderr=subprocess.STDOUT)
