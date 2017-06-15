@@ -2,6 +2,7 @@ import os
 
 import yaml
 from behave import given, then, when
+from behave import use_step_matcher
 
 from deployer.file import YamlReader
 from deployer.log import DeployerLogger
@@ -14,15 +15,18 @@ from features.support.deploy import DeployerDriver
 from features.support.repository import RecipeRepository
 from test.test_recipe import RecipeFileCreator
 
+use_step_matcher("re")
+
 logger = DeployerLogger(__name__).getLogger()
 
-
-@given("service is defined in source environment")
-def write_service_to_int_git(context):
-    prepare_recipe(context)
-    ServiceVersionWriter(GIT_REPO_URL).write('kuku', Recipe.builder().ingredients(
+@given("\"(.*):(.*)\" service is defined in (.*) environment")
+def write_service_to_int_git(context, name, version, env):
+    app = Context(context).get_app_for(name, version)
+    prepare_recipe(name, version)
+    ServiceVersionWriter(GIT_REPO_URL).write(env, Recipe.builder().ingredients(
         YamlReader().read(os.path.realpath(RecipeFileCreator.RECIPE))).build())
     delete_recipe()
+    Context(context).set_last_deployed_app(app)
 
 
 def delete_recipe():
@@ -32,14 +36,14 @@ def delete_recipe():
         pass
 
 
-def prepare_recipe(context):
+def prepare_recipe(name, version):
     with open(RecipeFileCreator.RECIPE, 'w') as outfile:
-        yaml.dump({'image_name': '%sdeployer-test-java:1.0' % context.aws_uri}, outfile, default_flow_style=False)
+        yaml.dump({'image_name': '%s:%s' % (name, version)}, outfile, default_flow_style=False)
 
-
-@when("promoting to production")
+@when("promoting")
 def promote(context):
     DeployerDriver(GIT_REPO_URL, TARGET_ENV_AND_NAMESPACE).promote()
+    #Context(context).set_last_deployed_app(app)
 
 
 @then("it should be logged in git")
