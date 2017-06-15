@@ -29,7 +29,7 @@ def deploy(context, namespace):
 
 @then("service is deployed(?: in \"(.+)\")?")
 def is_deployed(context, namespace):
-    K8sDriver(NAMESPACE, context.minikube).
+    # K8sDriver(NAMESPACE, context.minikube).
 
     logger.info('service:%s, namespace:%s' % (JAVA_SERVICE_NAME, NAMESPACE))
     namespace = NAMESPACE if namespace is None else namespace
