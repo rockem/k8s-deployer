@@ -4,4 +4,4 @@ Feature: promote service on k8s
     Given "healthy:1.0" service is defined in int environment
     When promoting
     Then it should be running
-    #And service should be logged in "prod"
+    And it should be logged in git

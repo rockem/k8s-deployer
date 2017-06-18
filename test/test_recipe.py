@@ -1,5 +1,6 @@
 import os
 
+import errno
 import yaml
 from nose.tools.nontrivial import raises
 
@@ -47,8 +48,22 @@ class RecipeFileCreator():
     RECIPE = './recipe.yml'
 
     def create_for(self, path, data):
+
+        if not os.path.exists(os.path.dirname(path)):
+            try:
+                os.makedirs(os.path.dirname(path))
+            except OSError as exc:
+                if exc.errno != errno.EEXIST:
+                    raise
+
         with open(path, 'w') as outfile:
             yaml.dump(data, outfile, default_flow_style=False)
+
+    def delete_from(self, path):
+        try:
+            os.remove(path)
+        except OSError:
+            print 'recipe path not found'
 
     def delete(self):
         try:

@@ -5,12 +5,15 @@ import errno
 import git
 import yaml
 
+from test.test_recipe import RecipeFileCreator
+
 REPO_NAME = 'behave_repo'
 GIT_REPO_URL = "file://" + os.getcwd() + '/' + REPO_NAME
 CHECKOUT_DIR = 'behave_co'
-
+RECIPE_PATH = CHECKOUT_DIR + "/int/services/recipe.yml"
 
 class RecipeRepository:
+
     def __init__(self):
         pass
 
@@ -30,7 +33,21 @@ class RecipeRepository:
     def __checkout_repo(self):
         if os.path.exists(CHECKOUT_DIR):
             shutil.rmtree(CHECKOUT_DIR)
-        git.Repo.clone_from(GIT_REPO_URL, CHECKOUT_DIR)
+        return git.Repo.clone_from(GIT_REPO_URL, CHECKOUT_DIR)
+
+    def log_app(self, app):
+        repo = self.__checkout_repo()
+        self.__create_recipe(app)
+        repo.git.add('--all')
+        repo.index.commit("updated by tests")
+        repo.remote().push()
+        self.__delete_recipe()
+
+    def __delete_recipe(self):
+        RecipeFileCreator().delete_from(RECIPE_PATH)
+
+    def __create_recipe(self, app):
+        RecipeFileCreator().create_for(RECIPE_PATH, {'image_name': app.image_name()})
 
     def verify_recipe_is_logged_for(self, app):
         self.__checkout_repo()
