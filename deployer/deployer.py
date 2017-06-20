@@ -4,6 +4,7 @@ import click
 from kubectlconf.sync import S3ConfSync
 
 from deploy import ImageDeployer
+from deployer.deploy import DeployError
 from services import ServiceVersionWriter, RecipeReader, ConfigUploader, GlobalConfigFetcher
 from file import YamlReader
 from k8s import Connector
@@ -44,7 +45,10 @@ class PromoteCommand(object):
     def run(self):
         recipes = RecipeReader(self.git_repository).read(self.from_env)
         for recipe in recipes:
-            DeployCommand(self.to_env, self.git_repository, self.connector, recipe).run()
+            try:
+                DeployCommand(self.to_env, self.git_repository, self.connector, recipe).run()
+            except DeployError as e:
+                logger.warn("Failed to deploy %s with error: %s" % (recipe.image(), e.message))
 
 
 class ConfigureCommand(object):
