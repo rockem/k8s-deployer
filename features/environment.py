@@ -14,6 +14,8 @@ from steps.support import create_namespace, delete_java_service_from_k8s, create
 logger = DeployerLogger(__name__).getLogger()
 
 APP_BUILDERS = [
+    AppImageBuilder('version', 'healthy',['VERSION=healthy']),
+    AppImageBuilder('version', 'sick',['VERSION=sick']),
     AppImageBuilder('healthy', '1.0'),
     AppImageBuilder('sick', '1.0'),
     AppImageBuilder('restless', '1.0'),

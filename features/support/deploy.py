@@ -3,6 +3,9 @@ import os
 import subprocess
 
 
+class DeployDriverError(Exception):
+    pass
+
 class DeployerDriver:
     def __init__(self, git_repo, target):
         self.git_repo = git_repo
@@ -11,10 +14,13 @@ class DeployerDriver:
     def deploy(self, app_image, should_fail=False):
         try:
             self.run_deploy_command(app_image)
+            if should_fail:
+                raise DeployDriverError()
         except subprocess.CalledProcessError as e:
             if not should_fail:
                 print(e.output)
                 raise e
+
 
     def run_deploy_command(self, app_image):
         subprocess.check_output(

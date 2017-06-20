@@ -8,7 +8,10 @@ app = Flask(__name__)
 
 @app.route('/health')
 def api_health():
-    return flask.jsonify({'status': {'code': 'UP'}})
+    if os.getenv('APP_VERSION') == 'sick':
+        raise RuntimeError()
+    else:
+        return flask.jsonify({'status': {'code': 'UP'}})
 
 
 @app.route('/version')
