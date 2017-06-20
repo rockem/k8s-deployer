@@ -4,7 +4,7 @@ import click
 from kubectlconf.sync import S3ConfSync
 
 from deploy import ImageDeployer
-from deployer.deploy import DeployError
+from deploy import DeployError
 from services import ServiceVersionWriter, RecipeReader, ConfigUploader, GlobalConfigFetcher
 from file import YamlReader
 from k8s import Connector
