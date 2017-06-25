@@ -35,7 +35,8 @@ class K8sDriver:
                     print ('found a match -> %s' % result)
                     if self.minikube is not None:
                         result = '%s:%s' % (self.minikube, result)
-                        o = requests.get('http://' + result + "/health")
+                        print ('request %s','http://' + result + "/health")
+                        o = requests.get('http://' + result + "/health", timeout=1)
                         print ('this is the service output %s' % o)
                         json_health = json.loads(o.text)
                         assert json_health['status'] == 'UP' or json_health['status']['code'] == 'UP'

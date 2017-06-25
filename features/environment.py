@@ -8,8 +8,7 @@ from features.steps.support import delete_namespace
 from features.support.context import Context
 from features.support.docker import AppImageBuilder, JavaAppBuilder, AWSImagePusher, AppImage
 from features.support.k8s import K8sDriver
-from steps.support import create_namespace, delete_java_service_from_k8s, create_repo, \
-    update_k8s_configuration, GIT_REPO_URL, TARGET_ENV
+from steps.support import create_namespace, delete_java_service_from_k8s, create_repo, TARGET_ENV
 
 logger = DeployerLogger(__name__).getLogger()
 
@@ -35,7 +34,7 @@ def before_all(context):
     else:
         context.minikube = subprocess.check_output('minikube ip', shell=True)[:-1]
         context.aws_uri = ''
-    create_namespace(context)
+    # create_namespace(context)
 
 
 def __build_apps(context):
@@ -56,12 +55,23 @@ def __push_apps_aws(apps):
         AWSImagePusher(app).push()
 
 
-def after_all(context):
+# def after_all(context):
+#     delete_namespace(context.config.userdata["namespace"])
+#     K8sDriver.delete_namespaces(Context(context).namespaces_to_delete())
+
+def after_scenario(context, scenario):
     delete_namespace(context.config.userdata["namespace"])
     K8sDriver.delete_namespaces(Context(context).namespaces_to_delete())
 
-
 def before_scenario(context, scenario):
+
+    if scenario.name.encode("utf-8") == 'Creating namespace if it not exists':
+        Context(context).set_default_namespace("inna-amazia")
+        print ("no default")
+    else:
+        create_namespace(context)
+        print ("default namespace")
+
     create_repo()
     delete_java_service_from_k8s()
 

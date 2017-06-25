@@ -13,10 +13,10 @@ from features.support.context import Context
 from features.support.k8s import K8sDriver
 
 REPO_NAME = 'behave_repo'
-RANDOM_IDENTIFIER = getpass.getuser() + "-" + str(int(time.time()))
-NAMESPACE = RANDOM_IDENTIFIER
+# RANDOM_IDENTIFIER = getpass.getuser() + "-" + str(int(time.time()))
+# NAMESPACE = getpass.getuser() + "-" + str(int(time.time()))
 TARGET_ENV = 'int'
-TARGET_ENV_AND_NAMESPACE = TARGET_ENV + ':' + NAMESPACE
+# TARGET_ENV_AND_NAMESPACE = TARGET_ENV + ':' + NAMESPACE
 GIT_REPO_URL = "file://" + os.getcwd() + '/' + REPO_NAME
 # GIT_REPO = "https://git.dnsk.io/media-platform/k8s-config"
 # GIT_REPO = "git@git.dnsk.io:media-platform/k8s-config.git"
@@ -28,23 +28,26 @@ AWS_SECRET_KEY = 'pzHyzfkDiOLeFJVhwXjSxm4w0UNHjRQCGvencPzx'
 
 logger = DeployerLogger(__name__).getLogger()
 
+def get_target_environment(context):
+    return TARGET_ENV + ':' +  Context(context).default_namespace()
 
 def create_namespace(context):
-    k8s = K8sDriver(RANDOM_IDENTIFIER, context.minikube)
+    namespace = getpass.getuser() + "-" + str(int(time.time()))
+    k8s = K8sDriver(namespace, context.minikube)
     k8s.create_namespace()
-    Context(context).set_default_namespace(RANDOM_IDENTIFIER)
+    Context(context).set_default_namespace(namespace)
     k8s.upload_config('default')
 
 
-def update_k8s_configuration():
-    print("deleting configmap")
-    os.popen("kubectl delete configmap global-config --namespace=%s" % NAMESPACE)
-    print("creating configmap")
-    subprocess.check_output(
-        "kubectl create configmap global-config --from-file=global.yml=%s --namespace=%s" % (os.getcwd() +
-                                                                                             '/features/config/common.yml',
-                                                                                             NAMESPACE), shell=True)
-    print("configmap created all is cool")
+# def update_k8s_configuration():
+#     print("deleting configmap")
+#     os.popen("kubectl delete configmap global-config --namespace=%s" % NAMESPACE)
+#     print("creating configmap")
+#     subprocess.check_output(
+#         "kubectl create configmap global-config --from-file=global.yml=%s --namespace=%s" % (os.getcwd() +
+#                                                                                              '/features/config/common.yml',
+#                                                                                              NAMESPACE), shell=True)
+#     print("configmap created all is cool")
 
 
 def create_repo():
@@ -84,4 +87,4 @@ def __busy_wait(run_func, *args):
 
 
 def delete_namespace(namespace):
-    os.system("kubectl delete namespace %s" % namespace)
+    os.system("kubectl delete ns --force %s" % namespace)

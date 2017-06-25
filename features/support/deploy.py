@@ -37,10 +37,14 @@ class DeployerDriver:
         return recipe_option
 
     def configure(self):
-        subprocess.check_output(
-            "python deployer/deployer.py configure --target %s --git_repository %s" %
-            (self.target, self.git_repo),
-            shell=True, stderr=subprocess.STDOUT)
+        try:
+            subprocess.check_output(
+                "python deployer/deployer.py configure --target %s --git_repository %s" %
+                (self.target, self.git_repo),
+                shell=True, stderr=subprocess.STDOUT)
+        except subprocess.CalledProcessError as e:
+            print(e.output)
+            raise e
 
     def promote(self):
         try:

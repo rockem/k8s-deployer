@@ -8,8 +8,7 @@ from deployer.file import YamlReader
 from deployer.log import DeployerLogger
 from deployer.recipe import Recipe
 from deployer.services import ServiceVersionWriter, RecipeReader
-from features.steps.support import GIT_REPO_URL, TARGET_ENV, \
-    TARGET_ENV_AND_NAMESPACE
+from features.steps.support import GIT_REPO_URL,get_target_environment
 from features.support.context import Context
 from features.support.deploy import DeployerDriver
 from features.support.repository import RecipeRepository
@@ -27,7 +26,7 @@ def write_service_to_int_git(context, name, version, env):
 
 @when("promoting")
 def promote(context):
-    DeployerDriver(GIT_REPO_URL, TARGET_ENV_AND_NAMESPACE).promote()
+    DeployerDriver(GIT_REPO_URL, get_target_environment(context)).promote()
 
 
 @then("it should be logged in git")

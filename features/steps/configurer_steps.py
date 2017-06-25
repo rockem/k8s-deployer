@@ -1,6 +1,6 @@
 from behave import *
 
-from features.steps.support import GIT_REPO_URL, TARGET_ENV, TARGET_ENV_AND_NAMESPACE
+from features.steps.support import GIT_REPO_URL, TARGET_ENV, get_target_environment
 from features.support.context import Context
 from features.support.deploy import DeployerDriver
 from features.support.k8s import K8sDriver
@@ -22,6 +22,7 @@ def clear_namespace(context, namespace):
 
 @when("configuring(?: \"(.+)\")?")
 def executing(context, namespace=None):
+    TARGET_ENV_AND_NAMESPACE = get_target_environment(context)
     target = TARGET_ENV_AND_NAMESPACE if namespace is None else "%s:%s" % (TARGET_ENV, namespace)
     DeployerDriver(GIT_REPO_URL, target).configure()
 
