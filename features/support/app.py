@@ -9,7 +9,8 @@ class AppDriver:
     def is_running(self):
         pass
 
-    def __busy_wait(run_func, *args):
+    @staticmethod
+    def busy_wait(run_func, *args):
         result = False
         for _ in range(20):  # TODO - should be 120
             try:
@@ -21,5 +22,3 @@ class AppDriver:
             time.sleep(1)
 
         return result
-
-

@@ -1,22 +1,12 @@
-import os
-
-import yaml
 from behave import given, then, when
 from behave import use_step_matcher
 
-from deployer.file import YamlReader
-from deployer.log import DeployerLogger
-from deployer.recipe import Recipe
-from deployer.services import ServiceVersionWriter, RecipeReader
 from features.steps.support import GIT_REPO_URL,get_target_environment
 from features.support.context import Context
 from features.support.deploy import DeployerDriver
 from features.support.repository import RecipeRepository
-from test.test_recipe import RecipeFileCreator
 
 use_step_matcher("re")
-
-logger = DeployerLogger(__name__).getLogger()
 
 @given("\"(.*):(.*)\" service is defined in (.*) environment")
 def write_service_to_int_git(context, name, version, env):

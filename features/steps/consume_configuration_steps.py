@@ -18,10 +18,8 @@ def upload_config(context, config_name):
 
 @then("the service should get the new configuration")
 def verify_config_was_overriden(context):
-    c = Context(context)
-    svc_host = K8sDriver(c.default_namespace(), context.minikube).get_service_domain_for(c.last_deployed_app())
-    greeting = __get_greeting_of(svc_host)
-    assert greeting == 'Hello overridden world'
+    svc_host = K8sDriver(Context(context).default_namespace(), context.minikube).get_service_domain_for(Context(context).last_deployed_app())
+    assert __get_greeting_of(svc_host) == 'Hello overridden world'
 
 
 def __get_greeting_of(svc_host):

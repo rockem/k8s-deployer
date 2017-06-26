@@ -1,12 +1,11 @@
 import json
 import re
 import subprocess
-
 import requests
 import time
-
 import yaml
 
+from features.support.app import AppDriver
 from features.support.repository import LocalConfig
 
 GLOBAL_CONFIG_NAME = 'global-config'
@@ -51,20 +50,7 @@ class K8sDriver:
         raise Exception('The service in k8s probably did not start')
 
     def verify_app_is_running(self, app):
-        assert self.__busy_wait(self.__pod_running, app.service_name())
-
-    def __busy_wait(self, run_func, *args):
-        result = False
-        for _ in range(20):  # TODO - should be 120
-            try:
-                if run_func(*args):
-                    result = True
-                    break
-            except Exception:
-                pass
-            time.sleep(1)
-
-        return result
+        assert AppDriver.busy_wait(self.__pod_running, app.service_name())
 
     def __pod_running(self, image_name):
         pod_name = self.__grab_pod_name(image_name)
