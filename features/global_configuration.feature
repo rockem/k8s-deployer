@@ -1,4 +1,3 @@
-#@pushed_global_config
 Feature: Update k8s configuration
 
   Scenario: Upload configMap from git to specific namespace
@@ -6,9 +5,10 @@ Feature: Update k8s configuration
     When configuring
     Then config "kuku" uploaded
 
+  @create_custom_namespace:non-existing-namespace
   Scenario: Creating namespace if it not exists
     Given config "kuku" was pushed to git
-    And namespace "inna-amazia" doesn't exists
-    When configuring "inna-amazia"
-    Then config "kuku" uploaded to "inna-amazia" namespace
+    And namespace "non-existing-namespace" doesn't exists
+    When configuring "non-existing-namespace"
+    Then config "kuku" uploaded to "non-existing-namespace" namespace
 

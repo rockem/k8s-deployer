@@ -1,6 +1,8 @@
 import os
 
 import subprocess
+
+import re
 from kubectlconf.sync import S3ConfSync
 
 from deployer.log import DeployerLogger
@@ -34,7 +36,6 @@ def before_all(context):
     else:
         context.minikube = subprocess.check_output('minikube ip', shell=True)[:-1]
         context.aws_uri = ''
-    # create_namespace(context)
 
 
 def __build_apps(context):
@@ -55,26 +56,27 @@ def __push_apps_aws(apps):
         AWSImagePusher(app).push()
 
 
-# def after_all(context):
-#     delete_namespace(context.config.userdata["namespace"])
-#     K8sDriver.delete_namespaces(Context(context).namespaces_to_delete())
-
 def after_scenario(context, scenario):
     delete_namespace(context.config.userdata["namespace"])
     K8sDriver.delete_namespaces(Context(context).namespaces_to_delete())
 
 def before_scenario(context, scenario):
-
-    if scenario.name.encode("utf-8") == 'Creating namespace if it not exists':
-        Context(context).set_default_namespace("inna-amazia")
-        print ("no default")
-    else:
-        create_namespace(context)
-        print ("default namespace")
-
+    handle_namespace(context, scenario)
     create_repo()
     delete_java_service_from_k8s()
 
+
+def handle_namespace(context, scenario):
+    if scenario.tags and scenario.tags[0].startswith('create_custom_namespace'):
+        Context(context).set_default_namespace(__extract_namespace(scenario.tags[0]))
+    else:
+        create_namespace(context)
+
+
+def __extract_namespace(tag):
+    match = re.search(':(.*)', tag)
+    if match:
+        return match.group(1)
 
 def get_local_config_file_path():
     abs_file_path = os.getcwd() + "/features/config/global.yml"
