@@ -1,14 +1,14 @@
+import subprocess
 import sys
 
 import click
-from kubectlconf.sync import S3ConfSync
 
 from deploy import ImageDeployer
-from services import ServiceVersionWriter, RecipeReader, ConfigUploader, GlobalConfigFetcher
 from file import YamlReader
-from k8s import Connector
+from k8s import Connector, S3Sync
 from log import DeployerLogger
 from recipe import Recipe
+from services import ServiceVersionWriter, RecipeReader, ConfigUploader, GlobalConfigFetcher
 from util import EnvironmentParser
 
 logger = DeployerLogger('deployer').getLogger()
@@ -69,7 +69,7 @@ class ActionRunner:
         self.timeout = timeout
 
     def run(self, action):
-        # self.__update_kubectl()
+        S3Sync(self.target).sync()
         connector = Connector(EnvironmentParser(self.target).namespace())
         if action == 'deploy':
             recipe = Recipe.builder().ingredients(YamlReader().read(self.recipe_path)).image(self.image_name).build()
@@ -78,10 +78,6 @@ class ActionRunner:
             PromoteCommand(self.source, self.target, self.git_repository, connector, self.timeout).run()
         elif action == 'configure':
             ConfigureCommand(self.target, self.git_repository, connector).run()
-
-    def __update_kubectl(self):
-        S3ConfSync(EnvironmentParser(self.target).env_name()).sync()
-
 
 @click.command()
 @click.argument('action', type=click.Choice(['deploy', 'promote', 'configure']))
