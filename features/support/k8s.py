@@ -19,7 +19,7 @@ class K8sDriver:
 
     def get_service_domain_for(self, app):
         counter = 0
-        while counter < 20:
+        while counter < 60:
             counter += 1
             try:
                 output = self.__run(
@@ -34,12 +34,12 @@ class K8sDriver:
                     print ('found a match -> %s' % result)
                     if self.minikube is not None:
                         result = '%s:%s' % (self.minikube, result)
-                        print ('request %s','http://' + result + "/health")
-                        o = requests.get('http://' + result + "/health", timeout=1)
-                        print ('this is the service output %s' % o)
-                        json_health = json.loads(o.text)
-                        assert json_health['status'] == 'UP' or json_health['status']['code'] == 'UP'
-                        return result
+                    print ('request %s','http://' + result + "/health")
+                    o = requests.get('http://' + result + "/health", timeout=1)
+                    print ('this is the service output %s' % o)
+                    json_health = json.loads(o.text)
+                    assert json_health['status'] == 'UP' or json_health['status']['code'] == 'UP'
+                    return result
                 else:
                     print ('didnt found a match, going to sleep and run for another try')
                     time.sleep(1)

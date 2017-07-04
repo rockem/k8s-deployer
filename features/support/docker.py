@@ -19,6 +19,12 @@ class AppImage:
     def name(self):
         return self._name
 
+    def sevice_name(self):
+        return self._service_name
+
+    def version(self):
+        return self._version
+
     def image_name(self):
         if self._aws_mode:
             return '%s/%s' % (self.AWS_REGISTRY_URI, self.__service_name_version())
@@ -83,13 +89,11 @@ class AWSImagePusher:
         self.app = app
 
     def push(self):
-        if not self.__is_image_exists_in_aws(self.app.image_name()):
+        if not self.__is_image_exists_in_aws(self.app.sevice_name(), self.app.version()):
             subprocess.check_output('docker push %s' % (self.app.image_name()),
                                     shell=True)
 
-    def __is_image_exists_in_aws(self, image_name):
-        name = image_name.split(':')[0]
-        version = image_name.split(':')[1]
+    def __is_image_exists_in_aws(self, name,version):
         output = subprocess.check_output(
             'aws ecr batch-get-image --repository-name %s --image-ids imageTag=%s' % (name, version),
             shell=True)

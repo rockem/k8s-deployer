@@ -12,7 +12,7 @@ class AppDriver:
     @staticmethod
     def busy_wait(run_func, *args):
         result = False
-        for _ in range(20):  # TODO - should be 120
+        for _ in range(120):  # TODO - should be 120
             try:
                 if run_func(*args):
                     result = True

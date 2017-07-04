@@ -28,6 +28,7 @@ def get_target_environment(context):
 
 def create_namespace(context):
     namespace = getpass.getuser() + "-" + str(int(time.time()))
+    print ("namespace : %s" ,namespace)
     k8s = K8sDriver(namespace, context.minikube)
     k8s.create_namespace()
     Context(context).set_default_namespace(namespace)

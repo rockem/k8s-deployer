@@ -30,4 +30,5 @@ def service_updated(context, name, version):
 
 def __validate_version_updated(domain, version):
     result = requests.get('http://%s/version' % domain)
+
     assert json.loads(result.text)['version'] == str(version), 'Healthy service not serving anymore'
