@@ -1,12 +1,18 @@
 FROM docker:1.11.2
 
 # install kubectl
-ENV KUBECTL_VERSION 1.2.0
+ENV KUBECTL_VERSION 1.5.1
+ENV KOPS_VERSION 1.5.1
 
 RUN apk add curl ca-certificates && \
     curl -s -L https://storage.googleapis.com/kubernetes-release/release/v${KUBECTL_VERSION}/bin/linux/amd64/kubectl -o /usr/bin/kubectl && \
     chmod +x /usr/bin/kubectl && \
     kubectl version --client
+
+#install kops
+RUN  curl -s -L https://github.com/kubernetes/kops/releases/download/${KOPS_VERSION}/kops-linux-amd64 -o /usr/bin/kops \
+     && chmod +x /usr/bin/kops
+
 
 # install python
 RUN apk add --no-cache python && \
