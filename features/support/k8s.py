@@ -19,12 +19,12 @@ class K8sDriver:
 
     def get_service_domain_for(self, app):
         counter = 0
-        while counter < 60:
+        while counter < 120:
             counter += 1
             try:
                 output = self.__run(
                     "kubectl describe --namespace %s services %s" % (self.namespace, app.service_name()))
-                print (output)
+                print ("kubectl describe : %s" %output)
                 if self.minikube is None:
                     match = re.search(r"LoadBalancer Ingress:\s(.*)", output)
                 else:
@@ -35,8 +35,8 @@ class K8sDriver:
                     if self.minikube is not None:
                         result = '%s:%s' % (self.minikube, result)
                     print ('request %s','http://' + result + "/health")
-                    o = requests.get('http://' + result + "/health", timeout=1)
-                    print ('this is the service output %s' % o)
+                    o = requests.get('http://' + result + "/health")
+                    print ('this is the service output %s' % o.text)
                     json_health = json.loads(o.text)
                     assert json_health['status'] == 'UP' or json_health['status']['code'] == 'UP'
                     return result
@@ -94,6 +94,4 @@ class K8sDriver:
 
     def upload_config(self, config_name):
         subprocess.call("kubectl delete configmap global-config --namespace=%s" % self.namespace, shell=True)
-        self.__run(
-            "kubectl create configmap global-config --from-file=global.yml=%s --namespace=%s" %
-            (LocalConfig(config_name).get_path(), self.namespace))
+        self.__run("kubectl create configmap global-config --from-file=global.yml=%s --namespace=%s" % (LocalConfig(config_name).get_path(), self.namespace))

@@ -72,7 +72,7 @@ class ActionRunner:
         self.timeout = timeout
 
     def run(self, action):
-        self.__update_kubectl()
+       # self.__update_kubectl()
         connector = Connector(EnvironmentParser(self.target).namespace())
         if action == 'deploy':
             recipe = Recipe.builder().ingredients(YamlReader().read(self.recipe_path)).image(self.image_name).build()
