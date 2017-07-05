@@ -1,4 +1,5 @@
 import requests
+import time
 from behave import *
 from flask import json
 
@@ -25,7 +26,17 @@ def service_is_serving(context, service_name):
 @then("service \"(.*)\" updated to version (.*)")
 def service_updated(context, name, version):
     domain = K8sDriver(Context(context).default_namespace(), context.minikube).get_service_domain_for(Context(context).get_app_for(name, version))
-    __validate_version_updated(domain, version)
+    busy_wait(__validate_version_updated,domain, version)
+
+def busy_wait(run_func, *args):
+    for _ in range(120):
+        try:
+            run_func(*args)
+            return
+        except Exception:
+            pass
+        time.sleep(1)
+    run_func(*args)
 
 def __validate_version_updated(domain, version):
     result = requests.get('http://%s/version' % domain)

@@ -17,8 +17,6 @@ logger = DeployerLogger(__name__).getLogger()
 APP_BUILDERS = [
     AppImageBuilder('version', 'healthy',['VERSION=healthy']),
     AppImageBuilder('version', 'sick',['VERSION=sick']),
-    AppImageBuilder('healthy', '1.0'),
-    AppImageBuilder('sick', '1.0'),
     AppImageBuilder('restless', '1.0'),
     JavaAppBuilder(AppImageBuilder('java', '1.0')),
     AppImageBuilder('version', '1.0', ['VERSION=1.0']),
@@ -27,7 +25,7 @@ APP_BUILDERS = [
 
 
 def before_all(context):
-    #context.config.userdata['mode']='aws'
+
     __build_apps(context)
     if __is_aws_mode(context):
         S3ConfSync(TARGET_ENV).sync()
