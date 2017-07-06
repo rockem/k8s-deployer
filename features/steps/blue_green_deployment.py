@@ -4,6 +4,7 @@ from behave import *
 from flask import json
 
 from features.steps.support import get_target_environment, GIT_REPO_URL
+from features.support.app import AppDriver
 from features.support.context import Context
 from features.support.deploy import DeployerDriver
 from features.support.k8s import K8sDriver
@@ -26,17 +27,8 @@ def service_is_serving(context, service_name):
 @then("service \"(.*)\" updated to version (.*)")
 def service_updated(context, name, version):
     domain = K8sDriver(Context(context).default_namespace(), context.minikube).get_service_domain_for(Context(context).get_app_for(name, version))
-    busy_wait(__validate_version_updated,domain, version)
+    AppDriver.busy_wait(__validate_version_updated,domain, version)
 
-def busy_wait(run_func, *args):
-    for _ in range(120):
-        try:
-            run_func(*args)
-            return
-        except Exception:
-            pass
-        time.sleep(1)
-    run_func(*args)
 
 def __validate_version_updated(domain, version):
     result = requests.get('http://%s/version' % domain)

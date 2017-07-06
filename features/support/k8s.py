@@ -36,7 +36,6 @@ class K8sDriver:
                         result = '%s:%s' % (self.minikube, result)
                     print ('request %s','http://' + result + "/health")
                     o = requests.get('http://' + result + "/health",timeout = 1 )
-                    print ('this is the service output %s' % o.text)
                     json_health = json.loads(o.text)
                     assert json_health['status'] == 'UP' or json_health['status']['code'] == 'UP'
                     return result
@@ -50,7 +49,7 @@ class K8sDriver:
         raise Exception('The service in k8s probably did not start')
 
     def verify_app_is_running(self, app):
-        assert AppDriver.busy_wait(self.__pod_running, app.service_name())
+        assert AppDriver.busy_wait_bool(self.__pod_running, app.service_name())
 
     def __pod_running(self, image_name):
         pod_name = self.__grab_pod_name(image_name)

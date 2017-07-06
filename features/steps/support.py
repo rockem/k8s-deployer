@@ -13,10 +13,6 @@ from features.support.k8s import K8sDriver
 REPO_NAME = 'behave_repo'
 TARGET_ENV = 'int'
 GIT_REPO_URL = "file://" + os.getcwd() + '/' + REPO_NAME
-# GIT_REPO = "https://git.dnsk.io/media-platform/k8s-config"
-# GIT_REPO = "git@git.dnsk.io:media-platform/k8s-config.git"
-
-
 JAVA_SERVICE_NAME = "deployer-test-java"
 AWS_ACCESS_KEY = 'AKIAJUHGHBF4SEHXKLZA'
 AWS_SECRET_KEY = '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'
@@ -24,7 +20,7 @@ AWS_SECRET_KEY = 'pzHyzfkDiOLeFJVhwXjSxm4w0UNHjRQCGvencPzx'
 logger = DeployerLogger(__name__).getLogger()
 
 def get_target_environment(context):
-    return TARGET_ENV + ':' +  Context(context).default_namespace()
+    return  Context(context).default_namespace()
 
 def create_namespace(context):
     namespace = getpass.getuser() + "-" + str(int(time.time()))

@@ -1,19 +1,13 @@
-import subprocess
 import sys
-
 import click
-
-
 from deploy import ImageDeployer, DeployError
 from deploy import ImageDeployer
-
 from file import YamlReader
-from k8s import Connector, S3Sync
+from k8s import Connector
 from log import DeployerLogger
 from recipe import Recipe
 from services import ServiceVersionWriter, RecipeReader, ConfigUploader, GlobalConfigFetcher
 from util import EnvironmentParser
-
 logger = DeployerLogger('deployer').getLogger()
 
 
@@ -28,7 +22,7 @@ class DeployCommand(object):
         logger.debug('is exposed %s ' % self.recipe.expose())
         self.__validate_image_contains_tag()
         self.image_deployer.deploy()
-        ServiceVersionWriter(self.git_repository).write(EnvironmentParser(self.target).env_name(), self.recipe)
+        ServiceVersionWriter(self.git_repository).write(EnvironmentParser(self.target).name(), self.recipe)
         logger.debug("finished deploying image:%s" % self.recipe.image())
 
     def __validate_image_contains_tag(self):
@@ -95,7 +89,6 @@ class ActionRunner:
 @click.option('--deploy-timeout', default=120)
 def main(action, image_name, source, target, git_repository, recipe, deploy_timeout):
     ActionRunner(image_name, source, target, git_repository, recipe, deploy_timeout).run(action)
-
 
 if __name__ == "__main__":
     main()

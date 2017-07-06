@@ -40,22 +40,6 @@ class ServiceExplorer(object):
             return default_color
 
 
-HEED_DOMAIN = ".k8sd.heedapps.io"
-BUCKET_NAME = "s3://state-kops-clusters-store-dev"
-
-class S3Sync(object):
-
-    def __init__(self, target):
-        self.target = target
-
-    def sync(self):
-        logger.debug("syncing to {}".format(self.target))
-        self.__run("kops export kubecfg --name={} --state={}".format(self.target + HEED_DOMAIN, BUCKET_NAME))
-
-    def __run(self, command):
-        return subprocess.check_output(command, shell=True)
-
-
 class Connector(object):
     def __init__(self, namespace):
         self.namespace = namespace

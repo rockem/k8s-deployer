@@ -81,24 +81,24 @@ class ImageDeployer(object):
         print "Name is: %s" % name
         color = ServiceExplorer(self.connector).get_color(name)
         return {
-            'env': self.target,
+            'env': EnvironmentParser(self.target).env(),
             'name': name + "-" + ColorDesider().invert_color(color),
             'serviceName': name,
             'image': self.recipe.image(),
             'podColor': ColorDesider().invert_color(color),
             'serviceColor': color,
-            'myEnv': EnvironmentParser(self.target).env_name()
+            'myEnv': EnvironmentParser(self.target).name()
         }
 
     def __create_props_force(self):
         name = ImageNameParser(self.recipe.image()).name()
         color = ServiceExplorer(self.connector).get_color(name)
         return {
-            'env': self.target,
+            'env':  EnvironmentParser(self.target).env(),
             'name': name,
             'serviceName': name,
             'image': self.recipe.image(),
             'podColor': ColorDesider().invert_color(color),
             'serviceColor': color,
-            'myEnv': EnvironmentParser(self.target).env_name()
+            'myEnv': EnvironmentParser(self.target).name()
         }

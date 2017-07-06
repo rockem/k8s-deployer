@@ -22,11 +22,7 @@ def clear_namespace(context, namespace):
 
 @when("configuring(?: \"(.+)\")?")
 def executing(context, namespace=None):
-    DeployerDriver(GIT_REPO_URL, __get_target(context, namespace)).configure()
-
-
-def __get_target(context, namespace):
-    return get_target_environment(context) if namespace is None else "%s:%s" % (TARGET_ENV, namespace)
+    DeployerDriver(GIT_REPO_URL, get_target_environment(context)).configure()
 
 
 @then("config \"(.*)\" uploaded(?: to \"(.+)\" namespace)?")

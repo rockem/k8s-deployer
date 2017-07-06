@@ -62,6 +62,6 @@ class GlobalConfigFetcher:
 
     def fetch_for(self, target):
         self.git_client.checkout()
-        env_name = EnvironmentParser(target).env_name()
+        env_name = EnvironmentParser(target).name()
 
         return os.path.join(GitClient.CHECKOUT_DIR, env_name, 'global.yml')
