@@ -29,7 +29,6 @@ def service_updated(context, name, version):
     domain = K8sDriver(Context(context).default_namespace(), context.minikube).get_service_domain_for(Context(context).get_app_for(name, version))
     AppDriver.busy_wait(__validate_version_updated,domain, version)
 
-
 def __validate_version_updated(domain, version):
     result = requests.get('http://%s/version' % domain)
     assert json.loads(result.text)['version'] == str(version), 'Healthy service not serving anymore'

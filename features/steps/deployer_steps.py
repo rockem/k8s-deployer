@@ -14,7 +14,6 @@ from features.support.context import Context
 from features.support.k8s import K8sDriver
 
 use_step_matcher("re")
-CONFIG_MAP = 'global-config'
 
 @when('deploying to namespace(?: \"(.+)\")?')
 def deploy(context, namespace):

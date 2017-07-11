@@ -13,43 +13,40 @@ CONFIG_FILE_NAME = 'global.yml'
 
 
 class K8sDriver:
+
     def __init__(self, namespace, minikube=None):
         self.namespace = namespace
         self.minikube = minikube
 
     def get_service_domain_for(self, app):
-        counter = 0
-        while counter < 120:
-            counter += 1
-            try:
-                output = self.__run(
-                    "kubectl describe --namespace %s services %s" % (self.namespace, app.service_name()))
-                print ("kubectl describe : %s" %output)
-                if self.minikube is None:
-                    match = re.search(r"LoadBalancer Ingress:\s(.*)", output)
-                else:
-                    match = re.search(r"NodePort:\s*<unset>\s*(\d+)/TCP", output)
-                if match:
-                    result = match.group(1)
-                    print ('found a match -> %s' % result)
-                    if self.minikube is not None:
-                        result = '%s:%s' % (self.minikube, result)
-                    print ('request %s','http://' + result + "/health")
-                    o = requests.get('http://' + result + "/health",timeout = 1 )
-                    json_health = json.loads(o.text)
-                    assert json_health['status'] == 'UP' or json_health['status']['code'] == 'UP'
-                    return result
-                else:
-                    print ('didnt found a match, going to sleep and run for another try')
-                    time.sleep(1)
-            except Exception as e:
-                print('%s is not ready yet, going to sleep and run for another try' % app.service_name())
-                time.sleep(1)
+        return AppDriver.busy_wait(self.__get_service_domain_for, app)
 
-        raise Exception('The service in k8s probably did not start')
+    def __get_service_domain_for(self, app):
+        output = self.__run(
+            "kubectl describe --namespace %s services %s" % (self.namespace, app.service_name()))
+        print ("kubectl describe : %s" %output)
+        if self.minikube is None:
+            match = re.search(r"LoadBalancer Ingress:\s(.*)", output)
+        else:
+            match = re.search(r"NodePort:\s*<unset>\s*(\d+)/TCP", output)
+        if match:
+            domain = match.group(1)
+            if self.minikube is not None:
+                domain = '%s:%s' % (self.minikube, domain)
+            print ('request %s','http://' + domain + "/health")
+            self.__validate_status_for(domain)
+            return domain
+        else:
+            print ('didnt found a match, going to sleep and run for another try')
+            time.sleep(1)
+
+    def __validate_status_for(self, result):
+        o = requests.get('http://' + result + "/health", timeout=1)
+        json_health = json.loads(o.text)
+        assert json_health['status'] == 'UP' or json_health['status']['code'] == 'UP'
 
     def verify_app_is_running(self, app):
-        assert AppDriver.busy_wait_bool(self.__pod_running, app.service_name())
+        AppDriver.busy_wait(self.__pod_running, app.service_name())
 
     def __pod_running(self, image_name):
         pod_name = self.__grab_pod_name(image_name)

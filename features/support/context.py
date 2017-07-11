@@ -8,7 +8,6 @@ NS_TO_DELETE = 'ns-delete'
 class Context:
     def __init__(self, context):
         self.context = context
-        self.__user_data()[NS_TO_DELETE] = []
 
     def add_app(self, app):
         try:
@@ -35,10 +34,14 @@ class Context:
         return self.__user_data()[LAST_DEPLOYED]
 
     def add_namespace_to_delete(self, namespace):
+        try:
+            self.__user_data()[NS_TO_DELETE]
+        except:
+            self.__user_data()[NS_TO_DELETE] = []
         self.__user_data()[NS_TO_DELETE].append(namespace)
 
     def namespaces_to_delete(self):
-        return self.__user_data()[NS_TO_DELETE]
+        return  self.__user_data()[NS_TO_DELETE]
 
     def set_default_namespace(self, namespace):
         self.__user_data()["namespace"] = namespace

@@ -5,7 +5,6 @@ Feature: Update k8s configuration
     When configuring
     Then config "kuku" uploaded
 
-  @create_custom_namespace:non-existing-namespace
   Scenario: Creating namespace if it not exists
     Given config "kuku" was pushed to git
     And namespace "non-existing-namespace" doesn't exists

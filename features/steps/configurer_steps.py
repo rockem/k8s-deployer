@@ -1,6 +1,6 @@
 from behave import *
 
-from features.steps.support import GIT_REPO_URL, TARGET_ENV, get_target_environment
+from features.steps.support import GIT_REPO_URL, get_target_environment
 from features.support.context import Context
 from features.support.deploy import DeployerDriver
 from features.support.k8s import K8sDriver
@@ -13,17 +13,14 @@ use_step_matcher("re")
 def push_config(context, config_name):
     ConfigRepository().push_config(config_name)
 
-
 @given('namespace "(.+)" doesn\'t exists')
 def clear_namespace(context, namespace):
     K8sDriver(namespace, context.minikube).delete_namespace()
     Context(context).add_namespace_to_delete(namespace)
 
-
 @when("configuring(?: \"(.+)\")?")
 def executing(context, namespace=None):
-    DeployerDriver(GIT_REPO_URL, get_target_environment(context)).configure()
-
+    DeployerDriver(GIT_REPO_URL,  get_target_environment(context,namespace)).configure()
 
 @then("config \"(.*)\" uploaded(?: to \"(.+)\" namespace)?")
 def validate_config_uploaded(context, config_name, namespace=None):

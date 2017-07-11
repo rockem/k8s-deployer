@@ -11,7 +11,7 @@ REPO_NAME = 'behave_repo'
 GIT_REPO_URL = "file://" + os.getcwd() + '/' + REPO_NAME
 CHECKOUT_DIR = 'behave_co'
 RECIPE_PATH = CHECKOUT_DIR + "/int/services/recipe.yml"
-
+GLOBAL_CONFIG_PATH = CHECKOUT_DIR + '/int/global.yml'
 class RecipeRepository:
 
     def __init__(self):

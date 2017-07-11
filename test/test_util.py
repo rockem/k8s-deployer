@@ -10,6 +10,7 @@ class EnvironmentVariablesFetcherStub(object):
     def fetch(self, key):
         return 'int'
 
+
 class TestEnvironmentParser(object):
     def test_default_namespace_return_when_None_given(self):
         assert self.__environment_parser_for(None).env() == 'int:default'
