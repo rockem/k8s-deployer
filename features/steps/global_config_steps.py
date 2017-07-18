@@ -26,4 +26,3 @@ def executing(context, namespace = None):
 def validate_config_uploaded(context, config_name, namespace=None):
     ns = Context(context).default_namespace() if namespace is None else namespace
     K8sDriver(ns, context.minikube).verify_config_is(LocalConfig(config_name).content())
-

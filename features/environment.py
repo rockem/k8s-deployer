@@ -21,13 +21,14 @@ GIT_REPO_URL = "file://" + os.getcwd() + '/' + REPO_NAME
 logger = DeployerLogger(__name__).getLogger()
 
 APP_BUILDERS = [
-    AppImageBuilder('version', 'healthy',['VERSION=healthy']),
-    AppImageBuilder('version', 'sick',['VERSION=sick']),
+    AppImageBuilder('version', 'healthy', ['VERSION=healthy']),
+    AppImageBuilder('version', 'sick', ['VERSION=sick']),
     AppImageBuilder('restless', '1.0'),
     JavaAppBuilder(AppImageBuilder('java', '1.0')),
     AppImageBuilder('version', '1.0', ['VERSION=1.0']),
     AppImageBuilder('version', '2.0', ['VERSION=2.0'])
 ]
+
 
 def before_all(context):
     __build_apps(context)
@@ -82,8 +83,4 @@ def __delete_java_service_from_k8s():
     os.popen("kubectl delete service %s" % JAVA_SERVICE_NAME)
     os.popen("kubectl delete deployment %s" % JAVA_SERVICE_NAME)
 
-def __extract_namespace(tag):
-    match = re.search(':(.*)', tag)
-    if match:
-        return match.group(1)
 
