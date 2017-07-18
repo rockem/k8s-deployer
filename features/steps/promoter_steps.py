@@ -1,7 +1,7 @@
 from behave import given, then, when
 from behave import use_step_matcher
 
-from features.steps.support import GIT_REPO_URL,get_target_environment
+from features.environment import GIT_REPO_URL
 from features.support.context import Context
 from features.support.deploy import DeployerDriver
 from features.support.repository import RecipeRepository
@@ -16,7 +16,7 @@ def write_service_to_int_git(context, name, version, env):
 
 @when("promoting")
 def promote(context):
-    DeployerDriver(GIT_REPO_URL, get_target_environment(context)).promote()
+    DeployerDriver(GIT_REPO_URL, Context(context).default_namespace()).promote()
 
 
 @then("it should be logged in git")

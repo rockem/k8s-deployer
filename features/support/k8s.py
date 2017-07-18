@@ -11,36 +11,41 @@ from features.support.repository import LocalConfig
 GLOBAL_CONFIG_NAME = 'global-config'
 CONFIG_FILE_NAME = 'global.yml'
 
-
 class K8sDriver:
-
     def __init__(self, namespace, minikube=None):
         self.namespace = namespace
         self.minikube = minikube
 
     def get_service_domain_for(self, app):
-        return AppDriver.busy_wait(self.__get_service_domain_for, app)
+        return AppDriver.busy_wait(self.__get_service_domain_for, app.service_name())
 
-    def __get_service_domain_for(self, app):
-        output = self.__run(
-            "kubectl describe --namespace %s services %s" % (self.namespace, app.service_name()))
-        print ("kubectl describe : %s" %output)
-        if self.minikube is None:
-            match = re.search(r"LoadBalancer Ingress:\s(.*)", output)
-        else:
-            match = re.search(r"NodePort:\s*<unset>\s*(\d+)/TCP", output)
-        if match:
-            domain = match.group(1)
-            if self.minikube is not None:
-                domain = '%s:%s' % (self.minikube, domain)
-            print ('request %s','http://' + domain + "/health")
-            self.__validate_status_for(domain)
+    def __get_service_domain_for(self, service_name):
+        domain = self.__extract_domain_name(service_name)
+        if domain:
+            self.__check_healthy(domain)
             return domain
         else:
             print ('didnt found a match, going to sleep and run for another try')
             time.sleep(1)
 
-    def __validate_status_for(self, result):
+    def __describe_service(self, service_name):
+        return self.__run("kubectl describe --namespace %s services %s" % (self.namespace, service_name))
+
+    def __extract_domain_name(self, service_name):
+        output = self.__describe_service(service_name)
+        if self.minikube is None:
+            match = re.search(r"LoadBalancer Ingress:\s(.*)", output)
+        else:
+            match = re.search(r"NodePort:\s*<unset>\s*(\d+)/TCP", output)
+
+        if match:
+            domain_name = match.group(1)
+            if self.minikube is not None:
+                domain_name = '%s:%s' % (self.minikube, domain_name)
+
+        return domain_name
+
+    def __check_healthy(self, result):
         o = requests.get('http://' + result + "/health", timeout=1)
         json_health = json.loads(o.text)
         assert json_health['status'] == 'UP' or json_health['status']['code'] == 'UP'

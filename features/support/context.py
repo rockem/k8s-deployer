@@ -49,3 +49,4 @@ class Context:
 
     def default_namespace(self):
         return self.__user_data()["namespace"]
+

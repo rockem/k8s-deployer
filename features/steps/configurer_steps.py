@@ -1,6 +1,6 @@
 from behave import *
 
-from features.steps.support import GIT_REPO_URL, get_target_environment
+from features.environment import GIT_REPO_URL
 from features.support.context import Context
 from features.support.deploy import DeployerDriver
 from features.support.k8s import K8sDriver
@@ -19,8 +19,8 @@ def clear_namespace(context, namespace):
     Context(context).add_namespace_to_delete(namespace)
 
 @when("configuring(?: \"(.+)\")?")
-def executing(context, namespace=None):
-    DeployerDriver(GIT_REPO_URL,  get_target_environment(context,namespace)).configure()
+def executing(context, namespace = None):
+    DeployerDriver(GIT_REPO_URL, Context(context).default_namespace() if namespace == None else namespace).configure()
 
 @then("config \"(.*)\" uploaded(?: to \"(.+)\" namespace)?")
 def validate_config_uploaded(context, config_name, namespace=None):
