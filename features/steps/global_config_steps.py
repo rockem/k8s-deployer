@@ -13,17 +13,19 @@ use_step_matcher("re")
 def push_config(context, config_name):
     ConfigRepository().push_config(config_name)
 
+
 @given('namespace "(.+)" doesn\'t exists')
 def clear_namespace(context, namespace):
     K8sDriver(namespace, context.minikube).delete_namespace()
     Context(context).add_namespace_to_delete(namespace)
 
+
 @when("configuring(?: \"(.+)\")?")
 def executing(context, namespace=None):
-    DeployerDriver(GIT_REPO_URL,  get_target_environment(context,namespace)).configure()
+    DeployerDriver(GIT_REPO_URL, get_target_environment(context, namespace)).configure()
+
 
 @then("config \"(.*)\" uploaded(?: to \"(.+)\" namespace)?")
 def validate_config_uploaded(context, config_name, namespace=None):
     ns = Context(context).default_namespace() if namespace is None else namespace
     K8sDriver(ns, context.minikube).verify_config_is(LocalConfig(config_name).content())
-

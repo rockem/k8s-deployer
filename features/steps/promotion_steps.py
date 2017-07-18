@@ -1,18 +1,20 @@
 from behave import given, then, when
 from behave import use_step_matcher
 
-from features.steps.support import GIT_REPO_URL,get_target_environment
+from features.steps.support import GIT_REPO_URL, get_target_environment
 from features.support.context import Context
 from features.support.deploy import DeployerDriver
 from features.support.repository import RecipeRepository
 
 use_step_matcher("re")
 
+
 @given("\"(.*):(.*)\" service is defined in (.*) environment")
 def write_service_to_int_git(context, name, version, env):
     app = Context(context).get_app_for(name, version)
     RecipeRepository().log_app(app)
     Context(context).set_last_deployed_app(app)
+
 
 @when("promoting")
 def promote(context):

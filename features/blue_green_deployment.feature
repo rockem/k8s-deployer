@@ -5,7 +5,6 @@ Feature: dark deploy service to k8s
     And deploy "version:sick" service should fail
     Then "version:healthy" service is serving
 
-
   Scenario: updated service
     When deploy "version:1.0" service
     And deploy "version:2.0" service

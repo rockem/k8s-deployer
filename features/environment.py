@@ -13,13 +13,14 @@ from steps.support import create_namespace, delete_java_service_from_k8s, create
 logger = DeployerLogger(__name__).getLogger()
 
 APP_BUILDERS = [
-    AppImageBuilder('version', 'healthy',['VERSION=healthy']),
-    AppImageBuilder('version', 'sick',['VERSION=sick']),
+    AppImageBuilder('version', 'healthy', ['VERSION=healthy']),
+    AppImageBuilder('version', 'sick', ['VERSION=sick']),
     AppImageBuilder('restless', '1.0'),
     JavaAppBuilder(AppImageBuilder('java', '1.0')),
     AppImageBuilder('version', '1.0', ['VERSION=1.0']),
     AppImageBuilder('version', '2.0', ['VERSION=2.0'])
 ]
+
 
 def before_all(context):
     __build_apps(context)
@@ -33,10 +34,12 @@ def before_all(context):
         context.minikube = subprocess.check_output('minikube ip', shell=True)[:-1]
         context.aws_uri = ''
 
+
 def __build_apps(context):
     for b in APP_BUILDERS:
         app = b.build(__is_aws_mode(context))
         Context(context).add_app(app)
+
 
 def __is_aws_mode(context):
     try:
@@ -44,22 +47,27 @@ def __is_aws_mode(context):
     except KeyError:
         return False
 
+
 def __push_apps_aws(apps):
     for app in apps:
         AWSImagePusher(app).push()
 
+
 def after_scenario(context, scenario):
     K8sDriver.delete_namespaces(Context(context).namespaces_to_delete())
+
 
 def before_scenario(context, scenario):
     create_namespace(context)
     create_repo()
     delete_java_service_from_k8s()
 
+
 def __extract_namespace(tag):
     match = re.search(':(.*)', tag)
     if match:
         return match.group(1)
+
 
 def get_local_config_file_path():
     abs_file_path = os.getcwd() + "/features/config/global.yml"
