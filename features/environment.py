@@ -31,6 +31,7 @@ APP_BUILDERS = [
 
 
 def before_all(context):
+    #context.config.userdata['mode']='aws'
     __build_apps(context)
     os.environ['TARGET_ENV'] = TARGET_ENV
     if __is_aws_mode(context):
