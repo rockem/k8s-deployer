@@ -7,6 +7,8 @@ import re
 import time
 import git
 import shutil
+
+from kubectlconf.kops import KopsSync
 from kubectlconf.sync import S3ConfSync
 from deployer.log import DeployerLogger
 from features.support.context import Context
@@ -31,17 +33,17 @@ APP_BUILDERS = [
 
 
 def before_all(context):
-    #context.config.userdata['mode']='aws'
     __build_apps(context)
     os.environ['TARGET_ENV'] = TARGET_ENV
     if __is_aws_mode(context):
-        S3ConfSync(TARGET_ENV).sync()
+        KopsSync(TARGET_ENV).sync()
         context.aws_uri = "911479539546.dkr.ecr.us-east-1.amazonaws.com/"
         context.minikube = None
         __push_apps_aws(Context(context).all_apps())
     else:
         context.minikube = subprocess.check_output('minikube ip', shell=True)[:-1]
         context.aws_uri = ''
+
 
 def __build_apps(context):
     for b in APP_BUILDERS:
@@ -53,6 +55,7 @@ def __is_aws_mode(context):
         return context.config.userdata['mode'] == 'aws'
     except KeyError:
         return False
+
 
 def __push_apps_aws(apps):
     for app in apps:
@@ -68,6 +71,7 @@ def before_scenario(context, scenario):
 
 def __create_namespace(context):
     namespace = getpass.getuser() + "-" + str(int(time.time()))
+    print ("namespace:%s" %(namespace))
     k8s = K8sDriver(namespace, context.minikube)
     k8s.create_namespace()
     Context(context).set_default_namespace(namespace)

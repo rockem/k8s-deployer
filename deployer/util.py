@@ -19,7 +19,6 @@ class EnvironmentVariablesFetcher(object):
 
 class EnvironmentParser(object):
     DEFAULT_NAMESPACE = 'default'
-
     def __init__(self, target_namespace):
         self.env_variable_fetcher = EnvironmentVariablesFetcher()
         self.target_namespace = self.DEFAULT_NAMESPACE if self.__is_default(target_namespace) else target_namespace
