@@ -68,7 +68,7 @@ spec:
                  apiVersion: v1
                  fieldPath: metadata.name
            - name: ENVIRONMENT
-             value: int
+             value: {myEnv}
          imagePullPolicy: Always
          volumeMounts:
          - name: shared-logs
