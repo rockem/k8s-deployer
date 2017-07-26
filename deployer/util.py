@@ -1,8 +1,6 @@
 import os
 import re
 
-from kubectlconf.sync import S3ConfSync
-
 
 class ImageNameParser(object):
     SERVICE_NAME_PATTERN = r'^(.*/)?(.+):'
@@ -14,26 +12,28 @@ class ImageNameParser(object):
         return re.search(self.SERVICE_NAME_PATTERN, self.image_name).group(2)
 
 
+class EnvironmentVariablesFetcher(object):
+    def fetch(self, key):
+        return os.environ.get(key)
+
+
 class EnvironmentParser(object):
     DEFAULT_NAMESPACE = 'default'
-
-    def __init__(self, env):
-        self.env = env.split(':', 1)
-        if self.__no_namespace_in(self.env):
-            self.env.append(self.DEFAULT_NAMESPACE)
-
-    def __no_namespace_in(self, env):
-        return len(env) < 2
+    def __init__(self, target_namespace):
+        self.env_variable_fetcher = EnvironmentVariablesFetcher()
+        self.target_namespace = self.DEFAULT_NAMESPACE if self.__is_default(target_namespace) else target_namespace
 
     def namespace(self):
-        return self.env[1]
+        return self.target_namespace
 
-    def env_name(self):
-        return self.env[0]
+    def __is_default(self, target_namespace):
+        return target_namespace == '' or target_namespace == None
 
+    def name(self):
+        return self.env_variable_fetcher.fetch('TARGET_ENV')
 
-def update_kubectl(env):
-    S3ConfSync(EnvironmentParser(env).env_name()).sync()
+    def env(self):
+        return "{0}:{1}".format(self.name(), self.target_namespace)
 
 
 def create_directory(path):

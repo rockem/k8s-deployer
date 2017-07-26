@@ -2,10 +2,10 @@ import os
 
 import yaml
 
+from git_util import GitClient
 from file import YamlReader
-from recipe import Recipe
-from gitclient.git_client import GitClient
 from log import DeployerLogger
+from recipe import Recipe
 from util import create_directory, EnvironmentParser, ImageNameParser
 
 logger = DeployerLogger(__name__).getLogger()
@@ -40,10 +40,12 @@ class RecipeReader:
 
     def __gather_recipes(self, services_path):
         recipes = []
-        for filename in os.listdir(services_path):
-            logger.debug('recipe is %s' % os.path.join(services_path, filename))
-            recipes.append(Recipe.builder().ingredients(YamlReader().read(os.path.join(services_path, filename))).build())
+        for dir in os.listdir(services_path):
+            logger.debug('recipe is %s' % os.path.join(services_path, dir))
+            recipes.append(
+                Recipe.builder().ingredients(YamlReader().read(os.path.join(services_path, dir))).build())
         return recipes
+
 
 class ConfigUploader:
     def __init__(self, target, connector):
@@ -60,6 +62,6 @@ class GlobalConfigFetcher:
 
     def fetch_for(self, target):
         self.git_client.checkout()
-        env_name = EnvironmentParser(target).env_name()
+        env_name = EnvironmentParser(target).name()
 
         return os.path.join(GitClient.CHECKOUT_DIR, env_name, 'global.yml')

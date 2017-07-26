@@ -1,0 +1,43 @@
+buildscript {
+    repositories {
+        mavenCentral()
+        maven { url "http://om-artifactory.mm.local:8081//artifactory/libs-develop-local" }
+    }
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:1.4.1.RELEASE")
+    }
+}
+
+apply plugin: 'idea'
+apply plugin: 'java'
+apply plugin: 'spring-boot'
+apply plugin: 'application'
+
+jar {
+    baseName = 'java-app'
+    version =  '0.1.0'
+}
+
+
+mainClassName = "com.agt.greeter.Application"
+applicationName = "service"
+
+repositories {
+    mavenCentral()
+    maven { url "http://om-artifactory.mm.local:8081//artifactory/libs-develop-local" }
+}
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+dependencies {
+    compile 'org.springframework.boot:spring-boot-starter-actuator:1.1.8.RELEASE'
+    compile 'org.springframework.boot:spring-boot-starter-web:1.4.2.RELEASE'
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '2.14'
+}
+
+

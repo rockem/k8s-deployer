@@ -39,12 +39,11 @@ class ServiceExplorer(object):
         except KeyError as e:
             return default_color
 
-class Connector(object):
 
+class Connector(object):
     def __init__(self, namespace):
         self.namespace = namespace
         self.__create_namespace_if_needed(self.namespace)
-
 
     def __create_namespace_if_needed(self, namespace):
         os.popen("kubectl create namespace %s" % namespace)
@@ -63,8 +62,8 @@ class Connector(object):
 
 
     def check_pods_health(self, pod_name):
-        self.__run("kubectl --namespace %s exec -p %s wget http://localhost:8080/health" % (self.namespace,pod_name))
-        output =  self.__run("kubectl --namespace %s exec -p %s cat health" % (self.namespace, pod_name))
+        self.__run("kubectl --namespace %s exec -p %s wget http://localhost:8080/health" % (self.namespace, pod_name))
+        output = self.__run("kubectl --namespace %s exec -p %s cat health" % (self.namespace, pod_name))
         logger.debug(output)
         try:
             self.__run("kubectl --namespace %s exec -p %s rm health" % (self.namespace, pod_name))
@@ -83,11 +82,13 @@ class Connector(object):
         return self.__run("kubectl cluster-info")
 
     def apply(self, sourceToDeploy):
-        return self.__run("kubectl --namespace %s apply --validate=false --record -f %s" % (self.namespace, sourceToDeploy))
+        return self.__run(
+            "kubectl --namespace %s apply --validate=false --record -f %s" % (self.namespace, sourceToDeploy))
 
     def upload_config_map(self, config_file_path):
         os.system("kubectl --namespace %s delete configmap global-config" % (self.namespace))
-        return self.__run("kubectl --namespace %s create configmap global-config --from-file=%s" % (self.namespace, config_file_path))
+        return self.__run(
+            "kubectl --namespace %s create configmap global-config --from-file=%s" % (self.namespace, config_file_path))
 
     def __run(self, command):
         return subprocess.check_output(command, shell=True)
