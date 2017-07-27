@@ -11,6 +11,7 @@ from features.support.repository import LocalConfig
 GLOBAL_CONFIG_NAME = 'global-config'
 CONFIG_FILE_NAME = 'global.yml'
 
+
 class K8sDriver:
     def __init__(self, namespace, minikube=None):
         self.namespace = namespace
@@ -25,7 +26,7 @@ class K8sDriver:
             self.__check_healthy(domain)
             return domain
         else:
-            print ('didnt found a match, going to sleep and run for another try')
+            print ('didn\'t found a match, going to sleep and run for another try')
             time.sleep(1)
 
     def __describe_service(self, service_name):
@@ -95,4 +96,5 @@ class K8sDriver:
 
     def upload_config(self, config_name):
         subprocess.call("kubectl delete configmap global-config --namespace=%s" % self.namespace, shell=True)
-        self.__run("kubectl create configmap global-config --from-file=global.yml=%s --namespace=%s" % (LocalConfig(config_name).get_path(), self.namespace))
+        self.__run("kubectl create configmap global-config --from-file=global.yml=%s --namespace=%s" % (
+        LocalConfig(config_name).get_path(), self.namespace))

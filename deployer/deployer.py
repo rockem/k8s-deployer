@@ -1,6 +1,6 @@
 import sys
 import click
-from deploy import ImageDeployer, DeployError
+from deploy import DeployError
 from deploy import ImageDeployer
 from file import YamlReader
 from k8s import Connector

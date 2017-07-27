@@ -32,7 +32,7 @@ COPY . /opt/deployer
 
 #dependecies installations
 RUN pip install -r /opt/deployer/requirements.txt
-RUN pip install --trusted-host om-artifactory.mm.local -i http://om-artifactory.mm.local:8081/artifactory/api/pypi/pypi-platform/simple KubectlConf
+RUN pip install --trusted-host 172.31.194.4 -i http://172.31.194.4:8081/artifactory/api/pypi/pypi-platform/simple KubectlConf
 
 #define temp workdir
 WORKDIR /opt/deployer
