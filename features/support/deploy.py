@@ -2,6 +2,8 @@ import os
 
 import subprocess
 
+from features.support.docker import AppImage
+
 
 class DeployDriverError(Exception):
     pass

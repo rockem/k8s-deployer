@@ -40,9 +40,6 @@ class ConfigurationGenerator(object):
             raise TemplateCorruptedError(
                 "template corrupted - we found properties in template that is missing in the configuration!:  " + e.message)
 
-    def __validate_service_configuration(self, f, lines):
-        if not self.service_configuration:
-            self.__write_to_target(f, lines)
 
     def __read_lines_from_source(self, source):
         with self.__open_file_for(source, "r") as f:

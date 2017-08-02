@@ -87,7 +87,8 @@ class ImageDeployer(object):
             'image': self.recipe.image(),
             'podColor': ColorDesider().invert_color(color),
             'serviceColor': color,
-            'myEnv': EnvironmentParser(self.target).name()
+            'myEnv': EnvironmentParser(self.target).name(),
+            'logging':self.recipe.logging()
         }
 
     def __create_props_force(self):
@@ -100,5 +101,6 @@ class ImageDeployer(object):
             'image': self.recipe.image(),
             'podColor': ColorDesider().invert_color(color),
             'serviceColor': color,
-            'myEnv': EnvironmentParser(self.target).name()
+            'myEnv': EnvironmentParser(self.target).name(),
+            'logging':self.recipe.logging()
         }

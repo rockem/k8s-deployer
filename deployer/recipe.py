@@ -42,6 +42,12 @@ class Recipe(object):
     def image(self):
         return self.ingredients[IMAGE_LABEL]
 
+    def logging(self):
+        try:
+            return self.ingredients['logging']
+        except KeyError:
+            return 'log4j'
+
     def expose(self):
         try:
             expose = self.ingredients[EXPOSE_LABEL]

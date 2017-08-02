@@ -45,37 +45,9 @@ spec:
                  fieldPath: metadata.namespace
            - name: MY_ENV
              value: {myEnv}
-       - name: fluentd-kubernetes
-         image: 911479539546.dkr.ecr.us-east-1.amazonaws.com/fluentd:latest
-         env:
-           - name: ELASTICSEARCH_HOST
-             value: "elkdev.heedapps.io"
-           - name: ELASTICSEARCH_USER
-             valueFrom:
-               secretKeyRef:
-                 name: es-secrets
-                 key: user
-           - name: ELASTICSEARCH_PASSWORD
-             valueFrom:
-               secretKeyRef:
-                 name: es-secrets
-                 key: password
-           - name: FLUENTD_LOGSTASH_PREFIX
-             value: "log4j"
-           - name: SERVICE_NAME
-             valueFrom:
-               fieldRef:
-                 apiVersion: v1
-                 fieldPath: metadata.name
-           - name: ENVIRONMENT
-             value: {myEnv}
-         imagePullPolicy: Always
-         volumeMounts:
-         - name: shared-logs
-           mountPath: /opt/log/
        volumes:
          - name: shared-logs
-           emptyDir: {}
+           emptyDir: {{}}
          - name: config-volume
            configMap:
              name: global-config
