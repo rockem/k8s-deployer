@@ -52,7 +52,7 @@ class TestImageDeployer(object):
 
     def test_should_not_append_logging(self):
          self.__deploy_image('no_color:0.1', True, {'expose':'exposed','logging':'none'})
-         assert cmp(YamlReader("./out/deployment.yml").read(),YamlReader("./orig/deployment.yml").read()) == 0
+         assert cmp(YamlReader("./test/out/deployment.yml").read(),YamlReader("./test/orig/deployment.yml").read()) == 0
 
 
     def test_should_update_service_color_given_colorless_service(self):
