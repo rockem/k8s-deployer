@@ -20,7 +20,7 @@ class TestRecipe():
         assert Recipe.builder().ingredients(self.read_recipe()).build().expose() is False
 
     def read_recipe(self):
-        return YamlReader().read(RecipeFileCreator.RECIPE)
+        return YamlReader.read(RecipeFileCreator.RECIPE)
 
     def generate_file_for(self, dic):
         self.TestRecipeUtil.create_for(RecipeFileCreator.RECIPE, dic)

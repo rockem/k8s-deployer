@@ -25,9 +25,9 @@ class K8sYmlCreator(object):
         return self
 
     def __generate(self, target):
-        lines = YamlReader().read_lines(self.__full_path(self.source_dir, target), "r")
+        lines = YamlReader.read_lines(self.__full_path(self.source_dir, target), "r")
         data = self.__find_and_replace_configuration(lines)
-        YamlWriter().write_lines(self.__full_path(self.dest_dir, target), data)
+        YamlWriter.write_lines(self.__full_path(self.dest_dir, target), data)
 
     def __full_path(self, path, element):
         return path + element + ".yml"
@@ -35,9 +35,9 @@ class K8sYmlCreator(object):
     def append_node(self, element, location = None):
         if self.configuration.has_key(element) and self.configuration[element]!='NONE':
             self.__generate(element)
-            dict= YamlReader().read(self.__full_path(self.dest_dir,  self.target))
+            dict= YamlReader.read(self.__full_path(self.dest_dir,  self.target))
             node = self.__find_node(location, dict)
-            node.append(YamlReader().read(self.__full_path(self.dest_dir, element)))
+            node.append(YamlReader.read(self.__full_path(self.dest_dir, element)))
             with open(self.__full_path(self.dest_dir, self.target), "w+") as f:
                 yaml.dump(dict, f, default_flow_style=False)
         return self
