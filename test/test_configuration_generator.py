@@ -1,7 +1,7 @@
 import os
 import yaml
 from nose.tools import raises
-from deployer.configuration_generator import ConfigurationGenerator, TemplateCorruptedError
+from deployer.configuration_generator import ConfigGenerator, TemplateCorruptedError
 
 CONFIGURATION = './configuration.yml'
 TARGET = './generated_deployment.yml'
@@ -14,7 +14,7 @@ class TestConfigurationGenerator(object):
     def setupTest(self, configurationDic, templateDic):
         self.generate_file(CONFIGURATION, configurationDic)
         self.generate_file(SOURCE, templateDic)
-        self.cg = ConfigurationGenerator(self.fetch_configuration())
+        self.cg = ConfigGenerator(self.fetch_configuration())
 
     def fetch_configuration(self):
         try:

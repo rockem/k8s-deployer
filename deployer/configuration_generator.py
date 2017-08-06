@@ -1,5 +1,7 @@
 import os
 
+import yaml
+
 from log import DeployerLogger
 
 logger = DeployerLogger(__name__).getLogger()
@@ -9,8 +11,22 @@ class TemplateCorruptedError(Exception):
     def __init(self, message):
         super(TemplateCorruptedError, self).__init__(message)
 
+# class ConfigAppender(object):
+#
+#     def __init__(self, element):
+#         self.config = yaml.load(open(get_target_dest(element)))
+#
+#     def append_to(self, target):
+#         deployment = yaml.load(open(get_target_dest(target)))
+#         deployment['spec']['template']['spec']['containers'].append(self.config)
+#         self.__write_to_target(deployment, target)
+#         logger.debug(" logging append succeeded for %s" % target)
+#
+#     def __write_to_target(self, deployment, target):
+#         with open(get_target_dest(target), "w+") as f:
+#             yaml.dump(deployment, f, default_flow_style=False)
 
-class ConfigurationGenerator(object):
+class ConfigGenerator(object):
     def __init__(self, service_configuration):
         self.service_configuration = service_configuration
         if not os.path.exists("deployer/produce/"):
@@ -39,7 +55,6 @@ class ConfigurationGenerator(object):
         except KeyError as e:
             raise TemplateCorruptedError(
                 "template corrupted - we found properties in template that is missing in the configuration!:  " + e.message)
-
 
     def __read_lines_from_source(self, source):
         with self.__open_file_for(source, "r") as f:

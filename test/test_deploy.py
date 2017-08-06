@@ -14,9 +14,13 @@ class HealthCheckerStub(object):
         return self.healthy
 
 
-class DeployRunnerStub(object):
-    def deploy(self, config, elements):
-        pass
+class K8sDeployerStub(object):
+    def __init__(self, connector):
+        self.connector=connector
+        self.deploy_called = False
+
+    def deploy(self,target):
+        self.deploy_called = True
 
 
 class ConnectorStub(object):
@@ -30,16 +34,28 @@ class ConnectorStub(object):
             return str('{"spec": {"selector": {"color": "green"}}}')
 
 
+class K8sYmlCreatorStub(object):
+    def __init__(self):
+        pass
+    def generate(self,x,e):
+        return self
+    def append_node(self,element,location=None):
+        return self
+    def full_path(self):
+        return ""
+
 class TestImageDeployer(object):
     @raises(DeployError)
     def test_should_fail_given_sick_service(self):
         self.__deploy_image('sick_image:0.1', False, 'exposed')
 
     def __deploy_image(self, image_name, is_check_health, recipe):
-        deployer = ImageDeployer('test_target', ConnectorStub('test_namespace'), RecipeBuilder().ingredients(
+        connector_stub = ConnectorStub('test_namespace')
+        deployer = ImageDeployer('test_target', connector_stub, RecipeBuilder().ingredients(
             {'image_name': image_name, 'expose': recipe is 'exposed'}).build(), 1)
         deployer.health_checker = HealthCheckerStub(is_check_health)
-        deployer.deploy_runner = DeployRunnerStub()
+        deployer.k8s_deployer = K8sDeployerStub(connector_stub)
+        deployer.k8s_yml_creator = K8sYmlCreatorStub()
         deployer.deploy()
         return deployer
 
@@ -49,4 +65,5 @@ class TestImageDeployer(object):
     def test_skip_validation_and_deploy_given_route53_kubernetes(self):
         deployer = self.__deploy_image('not_exposed:0.1', False, 'not_exposed')
         assert deployer.health_checker.health_called is False
+
         assert deployer.configuration.get('name') == 'not_exposed'

@@ -8,14 +8,26 @@ from log import DeployerLogger
 
 logger = DeployerLogger('PodHealthChecker').getLogger()
 
-class PodHealthChecker(object):
+class K8sDeployer(object):
 
+    def __init__(self, connector):
+        self.connector = connector
+        print "init K8sDeployer!"
+
+    def deploy(self,target):
+        # source_to_deploy = os.path.join('deployer/produce/' + "%s.yml" % target)
+        self.connector.cluster_info()
+        logger.debug("going to deploy {}".format(target))
+        self.connector.apply(target)
+
+
+class PodHealthChecker(object):
     def __init__(self, connector):
         self.connector = connector
 
     def health_check(self, pod_name):
         pod_name = self.__extract_pod_name(pod_name).strip()
-        logger.debug('pod name after extraction! %s' %pod_name)
+        logger.debug('pod name after extraction! %s' % pod_name)
         return 'UP' in self.connector.check_pods_health(pod_name)
 
     def __extract_pod_name(self, pod_name):
@@ -25,8 +37,8 @@ class PodHealthChecker(object):
         else:
             raise Exception('service %s has no pod!' % pod_name)
 
-class ServiceExplorer(object):
 
+class ServiceExplorer(object):
     def __init__(self, connector):
         self.connector = connector
 
@@ -51,15 +63,14 @@ class Connector(object):
     def __ignore_blue_green(self, pod_name):
         try:
             cmd = "kubectl --namespace %s exec -p %s ls /opt/app/ignore_blue_green" % (self.namespace, pod_name)
-            logger.debug("ignore blue green command is %s" %cmd)
+            logger.debug("ignore blue green command is %s" % cmd)
             self.__run(cmd)
         except subprocess.CalledProcessError as e:
-            logger.debug("this is the exception - %s" %e)
+            logger.debug("this is the exception - %s" % e)
             logger.debug('we didnt find any ignore file so we will check health')
             return True
 
         return False
-
 
     def check_pods_health(self, pod_name):
         self.__run("kubectl --namespace %s exec -p %s wget http://localhost:8080/health" % (self.namespace, pod_name))

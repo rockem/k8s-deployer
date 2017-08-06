@@ -1,10 +1,12 @@
 import time
 
 from color_desider import ColorDesider
-from deployRunner import DeployRunner
-from k8s import PodHealthChecker, ServiceExplorer
+from yml_creator import K8sYmlCreator
+from k8s import PodHealthChecker, ServiceExplorer, K8sDeployer
 from log import DeployerLogger
 from util import ImageNameParser, EnvironmentParser
+
+APPEND_LOCATION = 'spec.template.spec.containers'
 
 logger = DeployerLogger('ImageDeployer').getLogger()
 
@@ -19,8 +21,9 @@ class ImageDeployer(object):
         self.target = target
         self.configuration = {}
         self.connector = connector
-        self.deploy_runner = DeployRunner(connector)
         self.health_checker = PodHealthChecker(connector)
+        self.k8s_deployer = K8sDeployer(connector)
+        self.k8s_yml_creator = K8sYmlCreator();
         self.recipe = recipe
         self.timeout = timeout
 
@@ -45,12 +48,14 @@ class ImageDeployer(object):
     def __deploy(self):
         self.configuration = self.__create_props_force()
         print "going to force deploy with this config {}".format(self.configuration)
-        self.deploy_runner.deploy(self.configuration, ['deployment'])
+        self.k8s_deployer.deploy(self.k8s_yml_creator.generate(self.configuration, 'deployment').append_node('fluentd', APPEND_LOCATION).full_path())
 
     def __dark_deploy(self):
         self.configuration = self.__create_props_blue_green()
         print "going to dark deploy with this config {}".format(self.configuration)
-        self.deploy_runner.deploy(self.configuration, ['deployment', 'service'])
+        self.k8s_deployer.deploy(
+            self.k8s_yml_creator.generate(self.configuration, 'deployment').append_node('fluentd', APPEND_LOCATION).full_path())
+        self.k8s_deployer.deploy(self.k8s_yml_creator.generate(self.configuration, 'service').full_path())
 
     def __is_healthy(self):
         name = "%s" % self.configuration["name"]
@@ -74,7 +79,7 @@ class ImageDeployer(object):
 
     def __expose(self):
         self.configuration['serviceColor'] = ColorDesider().invert_color(self.configuration.get("serviceColor"))
-        self.deploy_runner.deploy(self.configuration, ['service'])
+        self.k8s_deployer.deploy(self.k8s_yml_creator.generate(self.configuration, 'service').full_path())
 
     def __create_props_blue_green(self):
         name = ImageNameParser(self.recipe.image()).name()
@@ -88,19 +93,19 @@ class ImageDeployer(object):
             'podColor': ColorDesider().invert_color(color),
             'serviceColor': color,
             'myEnv': EnvironmentParser(self.target).name(),
-            'logging':self.recipe.logging()
+            'fluentd': self.recipe.logging()
         }
 
     def __create_props_force(self):
         name = ImageNameParser(self.recipe.image()).name()
         color = ServiceExplorer(self.connector).get_color(name)
         return {
-            'env':  EnvironmentParser(self.target).env(),
+            'env': EnvironmentParser(self.target).env(),
             'name': name,
             'serviceName': name,
             'image': self.recipe.image(),
             'podColor': ColorDesider().invert_color(color),
             'serviceColor': color,
             'myEnv': EnvironmentParser(self.target).name(),
-            'logging':self.recipe.logging()
+            'fluentd': self.recipe.logging()
         }
