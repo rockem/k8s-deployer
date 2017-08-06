@@ -71,7 +71,7 @@ class ActionRunner:
     def run(self, action):
         connector = Connector(EnvironmentParser(self.target).namespace())
         if action == 'deploy':
-            recipe = Recipe.builder().ingredients(YamlReader.read(self.recipe_path)).image(self.image_name).build()
+            recipe = Recipe.builder().ingredients(YamlReader(self.recipe_path).read()).image(self.image_name).build()
             DeployCommand(self.target, self.git_repository, connector, recipe, self.timeout).run()
         elif action == 'promote':
             PromoteCommand(self.source, self.target, self.git_repository, connector, self.timeout).run()

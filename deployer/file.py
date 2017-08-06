@@ -2,25 +2,31 @@ import yaml
 
 
 class YamlReader(object):
+    def __init__(self,path):
+        self.path=path
 
-    @staticmethod
-    def read( path):
+    def read(self):
         try:
-            content = open(str(path), "r+")
+            content = open(str(self.path), "r+")
             return yaml.load(content)
         except IOError:
             return {}
-    @staticmethod
-    def read_lines(path, rw):
-        with open(str(path), rw) as f:
+
+    def read_lines(self,):
+        with open(str(self.path),  "r+") as f:
             return f.read()
 
 
 class YamlWriter(object):
-    @staticmethod
-    def write_lines( path, lines):
-        f = open(str(path), "w")
+    def __init__(self,path):
+        self.path=path
+
+    def write_lines(self, lines):
+        f = open(str(self.path), "w")
         for line in lines:
             f.write(line)
         f.close()
 
+    def update(self, data):
+        with open(self.path, "w+") as f:
+            yaml.dump(data, f, default_flow_style=False)

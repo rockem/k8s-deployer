@@ -1,61 +1,52 @@
 import os
 
-import yaml
-
 from file import YamlReader, YamlWriter
 
 
-class K8sYmlLocationError(Exception):
+class YmlLocationError(Exception):
     def __init(self, message):
-        super(K8sYmlLocationError, self).__init__(message)
+        super(YmlLocationError, self).__init__(message)
 
-class K8sYmlCreator(object):
 
-    def __init__(self,source_dir='./deployer/orig/', dest_dir='./out/'):
-        self.source_dir = source_dir
-        self.dest_dir = dest_dir
+SOURCE_DIR = './orig/'
+DEST_DIR = './out/'
 
-        if not os.path.exists(dest_dir):
-            os.makedirs(dest_dir)
 
-    def generate(self,configuration,target):
+class YmlCreator(object):
+    def __init__(self, configuration, target):
+        if not os.path.exists(DEST_DIR):
+            os.makedirs(DEST_DIR)
         self.target = target
         self.configuration = configuration
         self.__generate(self.target)
-        return self
 
     def __generate(self, target):
-        lines = YamlReader.read_lines(self.__full_path(self.source_dir, target), "r")
+        lines = YamlReader(self.__full_path(SOURCE_DIR, target)).read_lines()
         data = self.__find_and_replace_configuration(lines)
-        YamlWriter.write_lines(self.__full_path(self.dest_dir, target), data)
+        YamlWriter(self.__full_path(DEST_DIR, target)).write_lines(data)
 
     def __full_path(self, path, element):
         return path + element + ".yml"
 
-    def append_node(self, element, location = None):
-        if self.configuration.has_key(element) and self.configuration[element]!='NONE':
-            self.__generate(element)
-            dict= YamlReader.read(self.__full_path(self.dest_dir,  self.target))
-            node = self.__find_node(location, dict)
-            node.append(YamlReader.read(self.__full_path(self.dest_dir, element)))
-            with open(self.__full_path(self.dest_dir, self.target), "w+") as f:
-                yaml.dump(dict, f, default_flow_style=False)
+    def append_node(self, element, location=None):
+        self.__generate(element)
+        data = YamlReader(self.__full_path(DEST_DIR, self.target)).read()
+        self.__retrieve_node(location, data).append(YamlReader(self.__full_path(DEST_DIR, element)).read())
+        YamlWriter(self.__full_path(DEST_DIR, self.target)).update(data)
         return self
 
-    def __find_node(self, location, dict):
-        output = dict
-        if location != None:
+    def __retrieve_node(self, location, root):
+        output = root
+        if location is not None:
             for p in location.split('.'):
                 try:
                     output = output[p]
                 except:
-                    raise K8sYmlLocationError("No element on location : %s " % location)
+                    raise YmlLocationError("No element on location : %s " % location)
         return output
-
 
     def __find_and_replace_configuration(self, lines):
         return lines.format(**self.configuration)
 
-
-    def full_path(self):
-        return self.__full_path(self.dest_dir, self.target)
+    def create(self):
+        return self.__full_path(DEST_DIR, self.target)
