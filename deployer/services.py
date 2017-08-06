@@ -43,7 +43,7 @@ class RecipeReader:
         for dir in os.listdir(services_path):
             logger.debug('recipe is %s' % os.path.join(services_path, dir))
             recipes.append(
-                Recipe.builder().ingredients(YamlReader().read(os.path.join(services_path, dir))).build())
+                Recipe.builder().ingredients(YamlReader(os.path.join(services_path, dir)).read()).build())
         return recipes
 
 

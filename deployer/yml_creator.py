@@ -21,19 +21,25 @@ class YmlCreator(object):
         self.__generate(self.target)
 
     def __generate(self, target):
-        lines = YamlReader(self.__full_path(SOURCE_DIR, target)).read_lines()
+        lines = YamlReader(self.__source_path(target)).read_lines()
         data = self.__find_and_replace_configuration(lines)
-        YamlWriter(self.__full_path(DEST_DIR, target)).write_lines(data)
+        YamlWriter(self.__destination_path(target)).write_lines(data)
 
     def __full_path(self, path, element):
         return path + element + ".yml"
 
     def append_node(self, element, location=None):
         self.__generate(element)
-        data = YamlReader(self.__full_path(DEST_DIR, self.target)).read()
-        self.__retrieve_node(location, data).append(YamlReader(self.__full_path(DEST_DIR, element)).read())
+        data = YamlReader(self.__destination_path(self.target)).read()
+        self.__retrieve_node(location, data).append(YamlReader(self.__destination_path(element)).read())
         YamlWriter(self.__full_path(DEST_DIR, self.target)).update(data)
         return self
+
+    def __source_path(self,elem):
+        return self.__full_path(SOURCE_DIR, elem)
+
+    def __destination_path(self, elem):
+        return self.__full_path(DEST_DIR, elem)
 
     def __retrieve_node(self, location, root):
         output = root
