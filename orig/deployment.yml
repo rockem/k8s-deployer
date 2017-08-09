@@ -6,6 +6,7 @@ metadata:
        name: {name}
 spec:
    replicas: 1
+   revisionHistoryLimit: 10
    selector:
      matchLabels:
        name: {name}
