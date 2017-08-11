@@ -4,7 +4,7 @@ pipeline:
     commands:
       - pip install -r requirements.txt
       - python -m nose test
-      - behave features
+      - behave -D mode=aws features
 
   publish:
     image: plugins/docker
