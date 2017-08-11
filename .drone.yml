@@ -1,0 +1,14 @@
+pipeline:
+  test:
+    image: registry.dnsk.io:5000/agt/aws-k8s-docker
+    commands:
+      - pip install -r requirements.txt
+      - python nose
+      - behave features
+
+  publish:
+    image: plugins/docker
+    repo: registry.dnsk.io:5000/agt/k8s-deployer
+    tags: latest
+    when:
+      branch: develop
