@@ -3,7 +3,7 @@ pipeline:
     image: registry.dnsk.io:5000/agt/aws-k8s-docker
     commands:
       - pip install -r requirements.txt
-      - python nose
+      - python -m nose test
       - behave features
 
   publish:
