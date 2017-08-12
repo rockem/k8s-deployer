@@ -5,7 +5,7 @@ import subprocess
 import time
 
 import git
-from kubectlconf.kops import KopsSync
+from kubectlconf.s3 import S3Sync
 
 from deployer.log import DeployerLogger
 from features.support.context import Context
@@ -33,7 +33,8 @@ def before_all(context):
     __build_apps(context)
     os.environ['TARGET_ENV'] = TARGET_ENV
     if __is_aws_mode(context):
-        KopsSync(TARGET_ENV).sync()
+        os.system('kubectl-conf ')
+        S3Sync(TARGET_ENV).sync()
         context.aws_uri = "911479539546.dkr.ecr.us-east-1.amazonaws.com/"
         context.minikube = None
         __push_apps_aws(Context(context).all_apps())
