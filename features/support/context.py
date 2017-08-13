@@ -40,8 +40,10 @@ class Context:
             self.__user_data()[NS_TO_DELETE] = []
         self.__user_data()[NS_TO_DELETE].append(namespace)
 
-    def namespaces_to_delete(self):
-        return  self.__user_data()[NS_TO_DELETE]
+    def pop_namespaces_to_delete(self):
+        to_delete = self.__user_data()[NS_TO_DELETE]
+        self.__user_data()[NS_TO_DELETE] = []
+        return to_delete
 
     def set_default_namespace(self, namespace):
         self.__user_data()["namespace"] = namespace

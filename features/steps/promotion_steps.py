@@ -1,11 +1,11 @@
 from behave import given, then, when
 from behave import use_step_matcher
-from features.environment import GIT_REPO_URL
 from features.support.context import Context
 from features.support.deploy import DeployerDriver
 from features.support.repository import RecipeRepository
 
 use_step_matcher("re")
+
 
 @given("\"(.*):(.*)\" service is defined in (.*) environment")
 def write_service_to_int_git(context, name, version, env):
@@ -13,9 +13,10 @@ def write_service_to_int_git(context, name, version, env):
     RecipeRepository().log_app(app)
     Context(context).set_last_deployed_app(app)
 
+
 @when("promoting")
 def promote(context):
-    DeployerDriver(GIT_REPO_URL, Context(context).default_namespace()).promote()
+    DeployerDriver(RecipeRepository.GIT_REPO_URL, Context(context).default_namespace()).promote()
 
 
 @then("it should be logged in git")

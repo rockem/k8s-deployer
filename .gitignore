@@ -18,8 +18,10 @@ behave_repo/
 *.lock
 *.tar
 *.zip
-features/apps/build/
 build/
 .gradle
-co/
-behave_co
+config_repo
+recipe_repo
+config_co
+recipe_co
+out

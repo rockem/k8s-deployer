@@ -1,21 +1,17 @@
 import getpass
 import os
-import shutil
 import subprocess
 import time
 
-import git
 from kubectlconf.s3 import S3Sync
 
 from deployer.log import DeployerLogger
 from features.support.context import Context
 from features.support.docker import AppImageBuilder, JavaAppBuilder, AWSImagePusher
 from features.support.k8s import K8sDriver
+from features.support.repository import RecipeRepository, ConfigRepository
 
-JAVA_SERVICE_NAME = "deployer-test-java"
-REPO_NAME = 'behave_repo'
 TARGET_ENV = 'int'
-GIT_REPO_URL = "file://" + os.getcwd() + '/' + REPO_NAME
 
 logger = DeployerLogger(__name__).getLogger()
 
@@ -62,13 +58,14 @@ def __push_apps_aws(apps):
 
 
 def after_scenario(context, scenario):
-    K8sDriver.delete_namespaces(Context(context).namespaces_to_delete())
+    for ns in Context(context).pop_namespaces_to_delete():
+        K8sDriver(ns).delete_namespace()
 
 
 def before_scenario(context, scenario):
     __create_namespace(context)
-    __create_repo()
-    __delete_java_service_from_k8s()
+    RecipeRepository().create()
+    ConfigRepository().create()
 
 
 def __create_namespace(context):
@@ -78,16 +75,3 @@ def __create_namespace(context):
     k8s.create_namespace()
     Context(context).set_default_namespace(namespace)
     k8s.upload_config('default')
-
-
-def __create_repo():
-    if os.path.exists(REPO_NAME):
-        shutil.rmtree(REPO_NAME)
-    repo = git.Repo()
-    repo.init(REPO_NAME, bare=True)
-
-
-def __delete_java_service_from_k8s():
-    logger.debug('deleting service and deployment from the current k8s env')
-    os.popen("kubectl delete service %s" % JAVA_SERVICE_NAME)
-    os.popen("kubectl delete deployment %s" % JAVA_SERVICE_NAME)

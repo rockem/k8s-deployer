@@ -89,12 +89,7 @@ class K8sDriver:
     def create_namespace(self):
         self.__run("kubectl create namespace %s" % self.namespace)
 
-    @classmethod
-    def delete_namespaces(cls, namespaces):
-        for n in namespaces:
-            subprocess.call("kubectl delete namespace %s" % n, shell=True)
-
     def upload_config(self, config_name):
         subprocess.call("kubectl delete configmap global-config --namespace=%s" % self.namespace, shell=True)
         self.__run("kubectl create configmap global-config --from-file=global.yml=%s --namespace=%s" % (
-        LocalConfig(config_name).get_path(), self.namespace))
+            LocalConfig(config_name).get_path(), self.namespace))
