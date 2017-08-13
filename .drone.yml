@@ -1,6 +1,7 @@
 pipeline:
   test:
     image: registry.dnsk.io:5000/agt/aws-k8s-docker
+    pull: true
     commands:
       - pip install -r requirements.txt
       - python -m nose test
