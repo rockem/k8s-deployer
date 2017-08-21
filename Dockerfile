@@ -9,6 +9,7 @@ RUN pip install -r /opt/deployer/requirements.txt
 #define temp workdir
 WORKDIR /opt/deployer
 
+
 #run service unit tests
 RUN python -m nose test
 
