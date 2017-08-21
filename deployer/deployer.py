@@ -1,3 +1,4 @@
+import os
 import sys
 import click
 from deploy import DeployError
@@ -72,6 +73,7 @@ class ActionRunner:
         connector = Connector(EnvironmentParser(self.target).namespace())
         if action == 'deploy':
             recipe = Recipe.builder().ingredients(YamlReader(self.recipe_path).read()).image(self.image_name).build()
+            print("recipe exist: %s"%os.path.isfile(self.recipe_path))
             DeployCommand(self.target, self.git_repository, connector, recipe, self.timeout).run()
         elif action == 'promote':
             PromoteCommand(self.source, self.target, self.git_repository, connector, self.timeout).run()
