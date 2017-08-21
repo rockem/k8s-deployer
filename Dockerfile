@@ -13,7 +13,7 @@ WORKDIR /opt/deployer
 RUN python -m nose test
 
 #define workspace
-WORKDIR /kubebase
+WORKDIR /drone/src
 
 # login to aws and run script
 ENTRYPOINT ["/opt/deployer/deployer_complete.sh"]
