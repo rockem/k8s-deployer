@@ -17,4 +17,7 @@ spec:
   - protocol: TCP
     targetPort: 8080
     port: 80
+  - protocol: TCP
+    targetPort: 51000
+    port: 51000
   type: LoadBalancer
