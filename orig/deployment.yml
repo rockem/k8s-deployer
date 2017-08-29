@@ -33,8 +33,8 @@ spec:
            httpGet:
              path: /health
              port: liveness-port
-           initialDelaySeconds: 30
-           timeoutSeconds: 1
+           initialDelaySeconds: 45
+           timeoutSeconds: 5
          env:
            - name: MY_POD_NAME
              valueFrom:
