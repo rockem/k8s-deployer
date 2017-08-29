@@ -85,7 +85,7 @@ class ActionRunner:
 @click.option('--source', default=False)
 @click.option('--target')
 @click.option('--git_repository')
-@click.option('--recipe')
+@click.option('--recipe', default="")
 @click.option('--deploy-timeout', default=120)
 def main(action, image_name, source, target, git_repository, recipe, deploy_timeout):
     ActionRunner(image_name, source, target, git_repository, recipe, deploy_timeout).run(action)
