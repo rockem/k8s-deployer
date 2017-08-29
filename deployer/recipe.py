@@ -4,6 +4,7 @@ from log import DeployerLogger
 
 EXPOSE_LABEL = 'expose'
 IMAGE_LABEL = 'image_name'
+LOGGING_LABEL = 'logging'
 
 logger = DeployerLogger(__name__).getLogger()
 
@@ -44,7 +45,7 @@ class Recipe(object):
 
     def logging(self):
         try:
-            return self.ingredients['logging']
+            return self.ingredients[LOGGING_LABEL]
         except KeyError:
             return 'log4j'
 
