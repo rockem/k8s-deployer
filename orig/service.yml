@@ -7,7 +7,7 @@ metadata:
     dns: route53
     auto-ingress: "yes"
   annotations:
-      external-dns.alpha.kubernetes.io/hostname: {env}-k8s-{serviceName}.heed-dev.io.
+      external-dns.alpha.kubernetes.io/hostname: {myEnv}-k8s-{serviceName}.heed-dev.io.
 spec:
   selector:
     name: {serviceName}-{serviceColor}
