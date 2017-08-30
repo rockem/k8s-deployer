@@ -25,7 +25,6 @@ spec:
            mountPath: /opt/log/
          - name: config-volume
            mountPath: /opt/service/config
-
          ports:
          - name: liveness-port
            containerPort: 8080

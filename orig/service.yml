@@ -7,7 +7,7 @@ metadata:
     dns: route53
     auto-ingress: "yes"
   annotations:
-      domainName: {env}-k8s-{serviceName}.heedapps.io
+      external-dns.alpha.kubernetes.io/hostname: {env}-k8s-{serviceName}.heed-dev.io.
 spec:
   selector:
     name: {serviceName}-{serviceColor}
@@ -17,9 +17,4 @@ spec:
     - protocol: TCP
       targetPort: 8080
       port: 80
-      name: tcp-80
-    - protocol: TCP
-      targetPort: 51000
-      port: 51000
-      name: tcp-51000
   type: LoadBalancer
