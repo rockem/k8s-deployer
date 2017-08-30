@@ -2,7 +2,7 @@ import time
 
 
 class AppDriver:
-    NUM_ITER = 120
+    NUM_ITER = 160
     def __init__(self, app):
         self.app = app
 
