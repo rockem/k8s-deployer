@@ -32,7 +32,7 @@ spec:
            httpGet:
              path: /health
              port: liveness-port
-           initialDelaySeconds: 240
+           initialDelaySeconds: 120
            timeoutSeconds: 5
          env:
            - name: MY_POD_NAME
@@ -45,6 +45,8 @@ spec:
                  fieldPath: metadata.namespace
            - name: MY_ENV
              value: {myEnv}
+       nodeSelector:
+         beta.kubernetes.io/instance-type: m3.large
        volumes:
          - name: shared-logs
            emptyDir: {{}}
