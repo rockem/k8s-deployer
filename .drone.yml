@@ -9,6 +9,7 @@ pipeline:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
 
+
   publish:
     image: plugins/docker
     repo: registry.dnsk.io:5000/agt/k8s-deployer
