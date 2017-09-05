@@ -13,6 +13,6 @@ pipeline:
   publish:
     image: plugins/docker
     repo: registry.dnsk.io:5000/agt/k8s-deployer
-    tags: 1.2.0
+    tags: latest
     when:
       branch: develop
