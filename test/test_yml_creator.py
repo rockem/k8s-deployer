@@ -12,7 +12,7 @@ TARGET_DIR= "./out/"
 TARGET= 'config'
 APPEND= 'append'
 
-class TestK8sYmlCreator(object):
+class TestYmlCreator(object):
 
     def __init__(self):
         if not os.path.exists(SOURCE_DIR):

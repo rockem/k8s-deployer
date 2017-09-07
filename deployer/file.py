@@ -1,5 +1,4 @@
 import yaml
-import ast
 
 from log import DeployerLogger
 
@@ -7,19 +6,23 @@ logger = DeployerLogger('YamlReader').getLogger()
 
 
 class YamlReader(object):
-    def __init__(self,path):
-        self.path=path
+    def __init__(self, path):
+        self.path = path
 
     def read(self):
         try:
             content = open(str(self.path), "r+")
             return yaml.load(content)
         except IOError as err:
-            logger.warn("Could not load yml path '%s' with the error: '%s'. Will try to read it as a raw string." % (self.path, err.strerror))
-            return self.read_yaml_from_raw_string()
+            logger.warn("Could not load yml path '%s' with the error: '%s'. Will try to read it as a raw string." % (
+                self.path, err.strerror))
+            if self.path != '':
+                return yaml.load(self.path)
+            else:
+                return {}
 
-    def read_lines(self,):
-        with open(str(self.path),  "r+") as f:
+    def read_lines(self):
+        with open(str(self.path), "r+") as f:
             return f.read()
 
     def read_yaml_from_raw_string(self):
@@ -42,8 +45,8 @@ class YamlReader(object):
         return dictionary
 
 class YamlWriter(object):
-    def __init__(self,path):
-        self.path=path
+    def __init__(self, path):
+        self.path = path
 
     def write_lines(self, lines):
         f = open(str(self.path), "w")

@@ -32,6 +32,7 @@ class DeployerDriver:
             print("command %s fail - %s" % (command, e.output))
             raise e
 
+
     def run_deploy_command(self, app_image):
         self.__run(
             "python deployer/deployer.py deploy --image_name %s --target %s --git_repository %s --deploy-timeout=20 %s" % (
@@ -39,9 +40,10 @@ class DeployerDriver:
                 self.__get_recipe_option_for(app_image.recipe_path())))
 
     def __get_recipe_option_for(self, path):
-        recipe_option = ''
         if os.path.isfile(path):
             recipe_option = '--recipe %s' % os.path.realpath(path)
+        else:
+            recipe_option = "logging: none"
         return recipe_option
 
     def configure(self):
