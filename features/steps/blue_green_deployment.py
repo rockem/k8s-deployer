@@ -3,7 +3,7 @@ import time
 from behave import *
 from flask import json
 
-from features.support.app import AppDriver
+from features.support.app import BusyWait
 from features.support.context import Context
 from features.support.deploy import DeployerDriver
 from features.support.k8s import K8sDriver
@@ -29,7 +29,7 @@ def service_is_serving(context, service_name):
 def service_updated(context, name, version):
     domain = K8sDriver(Context(context).default_namespace(), context.minikube).get_service_domain_for(
         Context(context).get_app_for(name, version))
-    AppDriver.busy_wait(__validate_version_updated, domain, version)
+    BusyWait.execute(__validate_version_updated, domain, version)
 
 
 def __validate_version_updated(domain, version):

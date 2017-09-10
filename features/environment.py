@@ -36,6 +36,7 @@ def before_all(context):
         context.minikube = None
         __push_apps_aws(Context(context).all_apps())
     else:
+        K8sDriver.add_node_label('beta.kubernetes.io/instance-type', 'm3.large')
         context.minikube = subprocess.check_output('minikube ip', shell=True)[:-1]
         context.aws_uri = ''
 
@@ -76,3 +77,6 @@ def __create_namespace(context):
     k8s.create_namespace()
     Context(context).set_default_namespace(namespace)
     k8s.upload_config('default')
+
+
+
