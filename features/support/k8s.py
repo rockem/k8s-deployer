@@ -5,7 +5,7 @@ import requests
 import time
 import yaml
 
-from features.support.app import AppDriver
+from features.support.app import BusyWait
 from features.support.repository import LocalConfig
 
 GLOBAL_CONFIG_NAME = 'global-config'
@@ -18,41 +18,10 @@ class K8sDriver:
         self.minikube = minikube
 
     def get_service_domain_for(self, app):
-        return AppDriver.busy_wait(self.__get_service_domain_for, app.service_name())
-
-    def __get_service_domain_for(self, service_name):
-        domain = self.__extract_domain_name(service_name)
-        if domain:
-            self.__check_healthy(domain)
-            return domain
-        else:
-            print ('didn\'t found a match, going to sleep and run for another try')
-            time.sleep(1)
-
-    def __describe_service(self, service_name):
-        return self.__run("kubectl describe --namespace %s services %s" % (self.namespace, service_name))
-
-    def __extract_domain_name(self, service_name):
-        output = self.__describe_service(service_name)
-        if self.minikube is None:
-            match = re.search(r"LoadBalancer Ingress:\s(.*)", output)
-        else:
-            match = re.search(r"NodePort:\s*<unset>\s*(\d+)/TCP", output)
-
-        if match:
-            domain_name = match.group(1)
-            if self.minikube is not None:
-                domain_name = '%s:%s' % (self.minikube, domain_name)
-
-        return domain_name
-
-    def __check_healthy(self, result):
-        o = requests.get('http://' + result + "/health", timeout=1)
-        json_health = json.loads(o.text)
-        assert json_health['status'] == 'UP' or json_health['status']['code'] == 'UP'
+        return ServiceDomainFetcher(self.namespace, self.minikube).fetch(app)
 
     def verify_app_is_running(self, app):
-        AppDriver.busy_wait(self.__pod_running, app.service_name())
+        BusyWait.execute(self.__pod_running, app.service_name())
 
     def __pod_running(self, image_name):
         pod_name = self.__grab_pod_name(image_name)
@@ -93,3 +62,50 @@ class K8sDriver:
         subprocess.call("kubectl delete configmap global-config --namespace=%s" % self.namespace, shell=True)
         self.__run("kubectl create configmap global-config --from-file=global.yml=%s --namespace=%s" % (
             LocalConfig(config_name).get_path(), self.namespace))
+
+    @staticmethod
+    def add_node_label(name, value):
+        subprocess.call("kubectl label --overwrite nodes minikube %s=%s" % (name, value), shell=True)
+
+
+class ServiceDomainFetcher:
+
+    def __init__(self, namespace, minikube=None):
+        self.namespace = namespace
+        self.minikube = minikube
+
+    def fetch(self, app):
+        return BusyWait.execute(self.__get_service_domain_for, app.service_name())
+
+    def __get_service_domain_for(self, service_name):
+        domain = self.__extract_domain_name(service_name)
+        if domain:
+            self.__check_healthy(domain)
+            return domain
+        else:
+            print ('didn\'t found a match, going to sleep and run for another try')
+            time.sleep(1)
+
+    def __describe_service(self, service_name):
+        return subprocess.check_output("kubectl describe --namespace %s services %s" % (self.namespace, service_name), shell=True)
+
+    def __extract_domain_name(self, service_name):
+        output = self.__describe_service(service_name)
+        if self.minikube is None:
+            match = re.search(r"LoadBalancer Ingress:\s(.*)", output)
+        else:
+            match = re.search(r"NodePort:\s+[a-zA-Z0-9_-]+\s+(\d+)/TCP", output)
+
+        if match:
+            domain_name = match.group(1)
+            if self.minikube is not None:
+                domain_name = '%s:%s' % (self.minikube, domain_name)
+        else:
+            raise AttributeError('Failed to find domain in: %s' % output)
+
+        return domain_name
+
+    def __check_healthy(self, result):
+        o = requests.get('http://' + result + "/health", timeout=1)
+        json_health = json.loads(o.text)
+        assert json_health['status'] == 'UP' or json_health['status']['code'] == 'UP'
