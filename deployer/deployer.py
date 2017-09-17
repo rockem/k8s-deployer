@@ -1,14 +1,16 @@
-import os
 import sys
+
 import click
+
 from deploy import DeployError
 from deploy import ImageDeployer
 from file import YamlReader
-from k8s import Connector
+from k8s import K8sConnector
 from log import DeployerLogger
 from recipe import Recipe
 from services import ServiceVersionWriter, RecipeReader, ConfigUploader, GlobalConfigFetcher
 from util import EnvironmentParser
+
 logger = DeployerLogger('deployer').getLogger()
 
 
@@ -75,7 +77,7 @@ class ActionRunner:
         self.timeout = timeout
 
     def run(self, action):
-        connector = Connector(EnvironmentParser(self.target).namespace())
+        connector = K8sConnector(EnvironmentParser(self.target).namespace())
         if action == 'deploy':
             recipe = Recipe.builder().ingredients(YamlReader(self.recipe_path).read()).image(self.image_name).build()
             DeployCommand(self.target, self.git_repository, connector, recipe, self.timeout).run()
@@ -95,6 +97,7 @@ class ActionRunner:
 @click.option('--deploy-timeout', default=120)
 def main(action, image_name, source, target, git_repository, recipe, deploy_timeout):
     ActionRunner(image_name, source, target, git_repository, recipe, deploy_timeout).run(action)
+
 
 if __name__ == "__main__":
     main()

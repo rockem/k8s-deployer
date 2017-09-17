@@ -32,7 +32,8 @@ class YamlReader(object):
             dictionary = dict(x.split(':') for x in self.path.split(';'))
             return self.convert_bool_representations_to_bool_types(dictionary)
         except ValueError as error:
-            logger.warn("Could not parse string '%s' with the error: '%s'. Will return empty dictionary." % (self.path, error.message))
+            logger.warn("Could not parse string '%s' with the error: '%s'. Will return empty dictionary." % (
+            self.path, error.message))
             return {}
 
     @staticmethod
@@ -43,6 +44,7 @@ class YamlReader(object):
             if value.lower() == "false":
                 dictionary[key] = False
         return dictionary
+
 
 class YamlWriter(object):
     def __init__(self, path):

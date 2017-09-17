@@ -4,7 +4,6 @@ import subprocess
 import time
 
 from kubectlconf.kops import KopsSync
-from kubectlconf.s3 import S3Sync
 
 from deployer.log import DeployerLogger
 from features.support.context import Context
@@ -23,7 +22,8 @@ APP_BUILDERS = [
     AppImageBuilder('stateful', '1.0'),
     JavaAppBuilder(AppImageBuilder('java', '1.0')),
     AppImageBuilder('version', '1.0', ['VERSION=1.0']),
-    AppImageBuilder('version', '2.0', ['VERSION=2.0'])
+    AppImageBuilder('version', '2.0', ['VERSION=2.0']),
+    AppImageBuilder('ported', '1.0'),
 ]
 
 
@@ -59,11 +59,6 @@ def __push_apps_aws(apps):
         AWSImagePusher(app).push()
 
 
-def after_scenario(context, scenario):
-    for ns in Context(context).pop_namespaces_to_delete():
-        K8sDriver(ns).delete_namespace()
-
-
 def before_scenario(context, scenario):
     __create_namespace(context)
     RecipeRepository().create()
@@ -72,11 +67,13 @@ def before_scenario(context, scenario):
 
 def __create_namespace(context):
     namespace = getpass.getuser() + "-" + str(int(time.time()))
-    print ("namespace:%s" % (namespace))
+    print ("namespace:%s" % namespace)
     k8s = K8sDriver(namespace, context.minikube)
     k8s.create_namespace()
     Context(context).set_default_namespace(namespace)
     k8s.upload_config('default')
 
 
-
+def after_scenario(context, scenario):
+    for ns in Context(context).pop_namespaces_to_delete():
+        K8sDriver(ns).delete_namespace()

@@ -1,64 +1,32 @@
-import os
-
 import yaml
+from nose.tools.nontrivial import raises
 
-from deployer.yml_creator import YmlCreator,YmlLocationError
+from deployer.yml_creator import YmlCreator, YmlLocationError
 
-CONFIGURATION = {"ENV": "test", "MY_ENV": "12345"}
-CONFIGURATION_APPEND = {"ENV": "test", "MY_ENV": "12345", "append": "123"}
-APPEND_CNTX = {"MY_ENV": "{MY_ENV}"}
-SOURCE_DIR= "./orig/"
-TARGET_DIR= "./out/"
-TARGET= 'config'
-APPEND= 'append'
+CONFIGURATION = {"ENV": "test", "KUKU": "12345"}
+APPEND_TEMPLATE = {"name": "{KUKU}"}
+
 
 class TestYmlCreator(object):
-
     def __init__(self):
-        if not os.path.exists(SOURCE_DIR):
-            os.makedirs(SOURCE_DIR)
-
-    def __setup(self, target_cntx, configuration, append_cntx = None, location = None):
-        self.__write_to_file(self.__get_file_path(SOURCE_DIR, TARGET), target_cntx)
-        self.k8s_yml_creator = YmlCreator(configuration, TARGET)
-
-        if append_cntx != None:
-            self.__write_to_file(self.__get_file_path(SOURCE_DIR, APPEND), append_cntx)
-            self.k8s_yml_creator.append_node(APPEND, location)
-        return yaml.load(open(self.__get_file_path(TARGET_DIR, TARGET)))
-
-    def __get_file_path(self, dir, element):
-        return dir + element + ".yml"
-
-    def __write_to_file(self, path, data):
-        yaml.dump(data, open(path, 'w+'), default_flow_style=False)
+        pass
 
     def test_created_output_replaced_by_config(self):
-        target_cntx = {"deploy": "{ENV}"}
-        generated=self.__setup(target_cntx, CONFIGURATION)
-        assert cmp({"deploy":"test"},generated) == 0
+        base_yml = {"deploy": "{ENV}"}
+        created_yml = YmlCreator(self.__to_yml(base_yml)).config(CONFIGURATION).create()
+        assert yaml.load(created_yml)['deploy'] == CONFIGURATION['ENV']
+
+    def __to_yml(self, base_yml):
+        return yaml.dump(base_yml, default_flow_style=False)
 
     def test_created_output_appended_replaced_by_config(self):
-        target_cntx = [{"deploy": "{ENV}"}]
-        generated = self.__setup(target_cntx, CONFIGURATION_APPEND, APPEND_CNTX)
-        assert cmp([{"deploy":"test"},{"MY_ENV":"12345"}],generated) == 0
+        base_yml = {"deploys": []}
+        created = YmlCreator(self.__to_yml(base_yml)) \
+            .append_node(self.__to_yml(APPEND_TEMPLATE), 'deploys') \
+            .config(CONFIGURATION) \
+            .create()
+        assert yaml.load(created)['deploys'][0]['name'] == CONFIGURATION['KUKU']
 
-    def test_appended_output_created_in_defined_location(self):
-        target_cntx = {"root": [{"deploy": "{ENV}"}]}
-        generated = self.__setup(target_cntx, CONFIGURATION_APPEND, APPEND_CNTX, "root")
-        assert cmp({"root":[{"deploy":"test"},{"MY_ENV":"12345"}]},generated) == 0
-
-    def test_fail_generating_yaml_on_non_exist_location(self):
-        try:
-            self.__setup({"root": "123"}, {"append": "123"}, {"dd": ""}, "1.2.3")
-        except YmlLocationError:
-            pass
-
-
-    def tearDown(self):
-        if os.path.isfile(self.__get_file_path(TARGET_DIR, APPEND)):
-            os.remove(self.__get_file_path(TARGET_DIR, APPEND))
-        if os.path.isfile(self.__get_file_path(SOURCE_DIR, APPEND)):
-            os.remove(self.__get_file_path(SOURCE_DIR, APPEND))
-        os.remove(self.__get_file_path(TARGET_DIR, TARGET))
-        os.remove(self.__get_file_path(SOURCE_DIR, TARGET))
+    @raises(YmlLocationError)
+    def test_fail_append_on_non_exist_node(self):
+        YmlCreator('').append_node(self.__to_yml(APPEND_TEMPLATE), 'unknownNode').create()

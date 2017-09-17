@@ -1,6 +1,4 @@
-import os
-
-from file import YamlReader, YamlWriter
+import yaml
 
 
 class YmlLocationError(Exception):
@@ -8,38 +6,25 @@ class YmlLocationError(Exception):
         super(YmlLocationError, self).__init__(message)
 
 
-SOURCE_DIR = './orig/'
-DEST_DIR = './out/'
-
-
 class YmlCreator(object):
-    def __init__(self, configuration, target):
-        if not os.path.exists(DEST_DIR):
-            os.makedirs(DEST_DIR)
-        self.target = target
-        self.configuration = configuration
-        self.__generate(self.target)
+    def __init__(self, base_yml):
+        self.base_yml = base_yml
+        self.configuration = {}
+        self.nodes = {}
 
-    def __generate(self, target):
-        lines = YamlReader(self.__source_path(target)).read_lines()
-        data = self.__find_and_replace_configuration(lines)
-        YamlWriter(self.__destination_path(target)).write_lines(data)
-
-    def __full_path(self, path, element):
-        return path + element + ".yml"
-
-    def append_node(self, element, location=None):
-        self.__generate(element)
-        data = YamlReader(self.__destination_path(self.target)).read()
-        self.__retrieve_node(location, data).append(YamlReader(self.__destination_path(element)).read())
-        YamlWriter(self.__full_path(DEST_DIR, self.target)).update(data)
+    def config(self, properties):
+        self.configuration.update(properties)
         return self
 
-    def __source_path(self,elem):
-        return self.__full_path(SOURCE_DIR, elem)
+    def append_node(self, element, location):
+        self.nodes[location] = element
+        return self
 
-    def __destination_path(self, elem):
-        return self.__full_path(DEST_DIR, elem)
+    def create(self):
+        data = yaml.load(self.__apply_configuration(self.base_yml))
+        for location, element in self.nodes.iteritems():
+            self.__retrieve_node(location, data).append(yaml.load(self.__apply_configuration(element)))
+        return yaml.dump(data, default_flow_style=False)
 
     def __retrieve_node(self, location, root):
         output = root
@@ -51,8 +36,5 @@ class YmlCreator(object):
                     raise YmlLocationError("No element on location : %s " % location)
         return output
 
-    def __find_and_replace_configuration(self, lines):
+    def __apply_configuration(self, lines):
         return lines.format(**self.configuration)
-
-    def create(self):
-        return self.__full_path(DEST_DIR, self.target)

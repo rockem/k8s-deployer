@@ -1,12 +1,9 @@
 import time
 
 from color_desider import ColorDesider
-from yml_creator import YmlCreator
-from k8s import PodHealthChecker, ServiceExplorer, K8sDeployer
+from k8s import PodHealthChecker, ServiceExplorer
 from log import DeployerLogger
 from util import ImageNameParser, EnvironmentParser
-
-APPEND_LOCATION = 'spec.template.spec.containers'
 
 logger = DeployerLogger('ImageDeployer').getLogger()
 
@@ -16,30 +13,12 @@ class DeployError(Exception):
         super(DeployError, self).__init__(message)
 
 
-class DeployDescriptorFactory(object):
-    def __init__(self, configuration):
-        self.configuration = configuration
-
-    def service(self):
-        return YmlCreator(self.configuration, 'service').create()
-
-    def deployment(self):
-        yml_creator = YmlCreator(self.configuration, 'deployment')
-        if self.__is_logging_enabled():
-            yml_creator.append_node('fluentd', APPEND_LOCATION)
-        return yml_creator.create()
-
-    def __is_logging_enabled(self):
-        return self.configuration.has_key("logging") and self.configuration["logging"] != "none"
-
-
 class ImageDeployer(object):
     def __init__(self, target, connector, recipe, timeout):
         self.target = target
         self.configuration = {}
         self.connector = connector
         self.health_checker = PodHealthChecker(connector)
-        self.k8s_deployer = K8sDeployer(connector)
         self.recipe = recipe
         self.timeout = timeout
 
@@ -63,18 +42,17 @@ class ImageDeployer(object):
 
     def __deploy(self):
         self.configuration = self.__create_props_force()
-        self.k8s_deployer.deploy(DeployDescriptorFactory(self.configuration).deployment())
+        self.connector.apply_deployment(self.configuration)
         print "going to force deploy with this config {}".format(self.configuration)
 
     def __dark_deploy(self):
         self.configuration = self.__create_props_blue_green()
         print "going to dark deploy with this config {}".format(self.configuration)
-        self.k8s_deployer.deploy(DeployDescriptorFactory(self.configuration).deployment())
-        self.k8s_deployer.deploy(DeployDescriptorFactory(self.configuration).service())
+        self.connector.apply_deployment(self.configuration)
+        self.connector.apply_service(self.configuration)
 
     def __is_healthy(self):
         name = "%s" % self.configuration["name"]
-        logger.debug("this is a name ->>>>>>>>> %s" % name)
         return self.__busy_wait(self.health_checker.health_check, name)  # TODO - use name not concat
 
     def __busy_wait(self, run_func, *args):
@@ -94,7 +72,7 @@ class ImageDeployer(object):
 
     def __expose(self):
         self.configuration['serviceColor'] = ColorDesider().invert_color(self.configuration.get("serviceColor"))
-        self.k8s_deployer.deploy(DeployDescriptorFactory(self.configuration).service())
+        self.connector.apply_service(self.configuration)
 
     def __create_props_blue_green(self):
         name = ImageNameParser(self.recipe.image()).name()

@@ -1,7 +1,6 @@
 from nose.tools import raises
 
 from deployer.deploy import DeployError, ImageDeployer
-from deployer.file import YamlReader
 from deployer.recipe import RecipeBuilder
 
 
@@ -17,16 +16,29 @@ class HealthCheckerStub(object):
 
 class K8sDeployerStub(object):
     def __init__(self, connector):
-        self.connector=connector
+        self.connector = connector
         self.deploy_called = False
 
-    def deploy(self,target):
+    def deploy(self, target):
         self.deploy_called = True
 
 
 class ConnectorStub(object):
-    def __init__(self, namespace):
-        self.namespace = namespace
+    def __init__(self, healthy=True):
+        self.healthy = healthy
+        self.applied_descriptors = {}
+
+    def apply_service(self, desc):
+        self.applied_descriptors['service'] = desc
+
+    def apply_deployment(self, desc):
+        self.applied_descriptors['deployment'] = desc
+
+    def describe_pod(self, name):
+        return "Name: %s" % name
+
+    def check_pods_health(self, name):
+        return 'UP' if self.healthy else 'DOWN'
 
     def get_service_as_json(self, service_name):
         if service_name == 'no_color':
@@ -35,31 +47,23 @@ class ConnectorStub(object):
             return str('{"spec": {"selector": {"color": "green"}}}')
 
 
-
 class TestImageDeployer(object):
     @raises(DeployError)
     def test_should_fail_given_sick_service(self):
-        self.__deploy_image('sick_image:0.1', False,{'expose':'exposed',"logging":"none"})
+        self.__deploy(False, {'image_name': 'kuku:123'})
 
-    def __deploy_image(self, image_name, is_check_health, recipe):
-        connector_stub = ConnectorStub('test_namespace')
-        deployer = ImageDeployer('test_target', connector_stub, RecipeBuilder().ingredients(
-            {'image_name': image_name, 'expose': recipe['expose'] is 'exposed',"logging":recipe["logging"]}).build(), 1)
-        deployer.health_checker = HealthCheckerStub(is_check_health)
-        deployer.k8s_deployer = K8sDeployerStub(connector_stub)
+    def __deploy(self, healthy, properties):
+        self.connector = ConnectorStub(healthy)
+        deployer = ImageDeployer('test_target', self.connector, RecipeBuilder().ingredients(
+            properties).build(), 1)
         deployer.deploy()
-        return deployer
-
-    # def test_should_not_append_logging(self):
-    #      self.__deploy_image('no_color:0.1', True, {'expose':'exposed','logging':'none'})
-    #      assert cmp(YamlReader("./test/out/deployment.yml").read(),YamlReader("./test/orig/deployment.yml").read()) == 0
-
 
     def test_should_update_service_color_given_colorless_service(self):
-        assert self.__deploy_image('no_color:0.1', True, {'expose':'exposed','logging':'none'}).configuration.get('serviceColor') == 'green'
+        self.__deploy(True, {'image_name': 'no_color:123'})
+        assert self.connector.applied_descriptors['service']['serviceColor'] == 'green'
+        assert self.connector.applied_descriptors['deployment']['serviceColor'] == 'green'
 
-    def test_skip_validation_and_deploy_given_route53_kubernetes(self):
-        deployer = self.__deploy_image('not_exposed:0.1', False, {'expose':'not_exposed','logging':'none'})
-        assert deployer.health_checker.health_called is False
-
-        assert deployer.configuration.get('name') == 'not_exposed'
+    def test_skip_validation_and_deploy_when_not_exposed(self):
+        self.__deploy(False, {'image_name': 'not_exposed:123', 'expose': False})
+        assert self.connector.applied_descriptors.has_key('service') is False
+        assert self.connector.applied_descriptors.has_key('deployment') is True

@@ -56,7 +56,7 @@ class RecipeRepository(GitRepository):
         RecipeFileCreator().delete_from(self.RECIPE_PATH)
 
     def __create_recipe(self, app):
-        RecipeFileCreator().create_for(self.RECIPE_PATH, {'image_name': app.image_name()})
+        RecipeFileCreator().create_for(self.RECIPE_PATH, {'image_name': app.image_name(), 'logging': 'none'})
 
     def verify_recipe_is_logged_for(self, app):
         super(RecipeRepository, self)._checkout_repo()
