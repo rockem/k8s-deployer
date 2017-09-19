@@ -4,7 +4,6 @@ metadata:
   name: {serviceName} #configured
   labels:
     name: {serviceName}
-    dns: route53
     auto-ingress: "yes"
   annotations:
       external-dns.alpha.kubernetes.io/hostname: {myEnv}-{serviceName}.heed-dev.io.
