@@ -1,7 +1,9 @@
 import requests
 from behave import *
+from requests.adapters import HTTPAdapter
 
 from features.support.context import Context
+from features.support.http import http_get
 from features.support.k8s import K8sDriver
 
 use_step_matcher("re")
@@ -16,5 +18,5 @@ def pod_running(context):
 @then("port 5000 is available")
 def step_impl(context):
     domain = K8sDriver(Context(context).default_namespace(), context.minikube).get_service_domain_for(
-        Context(context).last_deployed_app())
-    assert requests.get('http://%s/greet' % domain).text == "Hello Ported"
+        Context(context).last_deployed_app(), 'tcp-5000')
+    assert http_get('http://%s/greet' % domain).text == "Hello Ported"

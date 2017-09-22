@@ -67,3 +67,9 @@ class TestImageDeployer(object):
         self.__deploy(False, {'image_name': 'not_exposed:123', 'expose': False})
         assert self.connector.applied_descriptors.has_key('service') is False
         assert self.connector.applied_descriptors.has_key('deployment') is True
+
+    def test_delegate_ports_details(self):
+        ports = ['50:5000']
+        self.__deploy(True, {'image_name': 'ported:123', 'ports': ports})
+        assert self.connector.applied_descriptors['service']['ports'] == ports
+        assert self.connector.applied_descriptors['deployment']['ports'] == ports

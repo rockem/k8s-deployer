@@ -16,7 +16,6 @@ Feature: deploy service on k8s
     When deploy "restless:1.0" service
     Then recipe should be logged in git
 
-    
   Scenario: expose another port
     When deploy "ported:1.0" service
     Then port 5000 is available

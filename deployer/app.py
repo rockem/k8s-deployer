@@ -4,11 +4,11 @@ import click
 
 from deploy import DeployError
 from deploy import ImageDeployer
-from file import YamlReader
+from yml import YmlReader
 from k8s import K8sConnector
 from log import DeployerLogger
 from recipe import Recipe
-from services import ServiceVersionWriter, RecipeReader, ConfigUploader, GlobalConfigFetcher
+from services import ServiceVersionWriter, RecipesReader, ConfigUploader, GlobalConfigFetcher
 from util import EnvironmentParser
 
 logger = DeployerLogger('deployer').getLogger()
@@ -43,7 +43,7 @@ class PromoteCommand(object):
         self.timeout = timeout
 
     def run(self):
-        recipes = RecipeReader(self.git_repository).read(self.from_env)
+        recipes = RecipesReader(self.git_repository).read(self.from_env)
         for recipe in recipes:
             try:
                 DeployCommand(self.to_env, self.git_repository, self.connector, recipe, self.timeout).run()
@@ -79,7 +79,7 @@ class ActionRunner:
     def run(self, action):
         connector = K8sConnector(EnvironmentParser(self.target).namespace())
         if action == 'deploy':
-            recipe = Recipe.builder().ingredients(YamlReader(self.recipe_path).read()).image(self.image_name).build()
+            recipe = Recipe.builder().ingredients(YmlReader(self.recipe_path).read()).image(self.image_name).build()
             DeployCommand(self.target, self.git_repository, connector, recipe, self.timeout).run()
         elif action == 'promote':
             PromoteCommand(self.source, self.target, self.git_repository, connector, self.timeout).run()

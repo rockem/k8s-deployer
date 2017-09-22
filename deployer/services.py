@@ -3,7 +3,7 @@ import os
 import yaml
 
 from git_util import GitClient
-from file import YamlReader
+from yml import YmlReader
 from log import DeployerLogger
 from recipe import Recipe
 from util import create_directory, EnvironmentParser, ImageNameParser
@@ -30,7 +30,7 @@ class ServiceVersionWriter:
             yaml.dump(recipe.ingredients, service_file, default_flow_style=False, allow_unicode=False)
 
 
-class RecipeReader:
+class RecipesReader:
     def __init__(self, git_repository):
         self.git_client = GitClient(git_repository)
 
@@ -43,7 +43,7 @@ class RecipeReader:
         for dir in os.listdir(services_path):
             logger.debug('recipe is %s' % os.path.join(services_path, dir))
             recipes.append(
-                Recipe.builder().ingredients(YamlReader(os.path.join(services_path, dir)).read()).build())
+                Recipe.builder().ingredients(YmlReader(os.path.join(services_path, dir)).read()).build())
         return recipes
 
 

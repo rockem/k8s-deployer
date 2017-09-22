@@ -1,11 +1,9 @@
+import errno
 import os
 import shutil
 
-import errno
 import git
 import yaml
-
-from test.test_recipe import RecipeFileCreator
 
 
 class GitRepository(object):
@@ -64,6 +62,34 @@ class RecipeRepository(GitRepository):
         recipe = self.get_recipe_for(app)
         for k in source_recipe.keys():
             assert recipe[k] == source_recipe[k]
+
+
+class RecipeFileCreator():
+    RECIPE = './recipe.yml'
+
+    def create_for(self, path, data):
+
+        if not os.path.exists(os.path.dirname(path)):
+            try:
+                os.makedirs(os.path.dirname(path))
+            except OSError as exc:
+                if exc.errno != errno.EEXIST:
+                    raise
+
+        with open(path, 'w') as outfile:
+            yaml.dump(data, outfile, default_flow_style=False)
+
+    def delete_from(self, path):
+        try:
+            os.remove(path)
+        except OSError:
+            print 'recipe path not found'
+
+    def delete(self):
+        try:
+            os.remove(self.RECIPE)
+        except OSError:
+            print 'recipe path not found'
 
 
 class ConfigRepository(GitRepository):

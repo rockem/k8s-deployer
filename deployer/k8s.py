@@ -5,13 +5,12 @@ import subprocess
 
 from flask import json
 
-from yml_creator import YmlCreator
+from deployer.yml import ByPath
 from log import DeployerLogger
-from yml_creator import YmlCreator
+from yml import FileYmlCreator
+from yml import find_node
 
 logger = DeployerLogger('k8s').getLogger()
-
-TEMPLATE_PATH = 'orig'
 
 
 class PodHealthChecker(object):
@@ -48,64 +47,66 @@ class ServiceExplorer(object):
 class DeployDescriptorFactory(object):
     DEST_DIR = './out/'
     CONTAINERS_LOCATION = 'spec.template.spec.containers'
+    DEPLOYMENT_PORTS_LOCATION = 'spec.template.spec.containers'
 
     def __init__(self, template_path, configuration):
         self.configuration = configuration
         self.template_path = template_path
 
     def service(self):
-        return self.__create(self.__create_yml_creator_for('service'), 'service')
+        creator = FileYmlCreator(self.template_path, 'service').config(self.configuration)
+        self.__add_ports(creator, 'service-port', ByPath('spec.ports'))
+        return creator.create(self.DEST_DIR)
 
-    def __create(self, creator, template):
-        if not os.path.exists(self.DEST_DIR):
-            os.makedirs(self.DEST_DIR)
-        out_path = self.__yml_path(self.DEST_DIR, template)
-        with open(out_path, 'w') as f:
-            f.write(creator.create())
-        return out_path
+    def __add_ports(self, creator, yml, locator):
+        if 'ports' in self.configuration:
+            creator.append_many(
+                yml,
+                locator,
+                map(self.__port_props_from, self.configuration['ports']))
 
-    def __yml_path(self, path, template):
-        return os.path.join(path, template) + '.yml'
-
-    def __create_yml_creator_for(self, template):
-        return YmlCreator(self.__read(self.__template_path(template))).config(self.configuration)
-
-    def __read(self, path):
-        with open(path, 'r') as f:
-            return f.read()
-
-    def __template_path(self, template):
-        return self.__yml_path(self.template_path, template)
+    def __port_props_from(self, mapping):
+        ports = mapping.split(':')
+        return {
+            'outPort': ports[0],
+            'port': ports[1]
+        }
 
     def deployment(self):
-        creator = self.__create_yml_creator_for('deployment')
+        creator = FileYmlCreator(self.template_path, 'deployment').config(self.configuration)
+        self.__add_logging(creator)
+        self.__add_ports(creator, 'deployment-port', ByContainerPorts(self.configuration['name']))
+        return creator.create(self.DEST_DIR)
+
+    def __add_logging(self, creator):
         if self.__is_logging_enabled():
-            creator.append_node(self.__read(self.__template_path('fluentd')), self.CONTAINERS_LOCATION)
-        return self.__create(creator, 'deployment')
+            creator.append('fluentd', self.CONTAINERS_LOCATION)
 
     def __is_logging_enabled(self):
         return self.configuration.has_key("logging") and self.configuration["logging"] != "none"
 
 
+class ByContainerPorts:
+    def __init__(self, name):
+        self.name = name
+
+    def locate(self, data):
+        containers = find_node('spec.template.spec.containers', data)
+        for c in containers:
+            if c['name'] == self.name:
+                return c['ports']
+        return None
+
+
 class K8sConnector(object):
+    TEMPLATE_PATH = 'orig'
+
     def __init__(self, namespace):
         self.namespace = namespace
         self.__create_namespace_if_needed(self.namespace)
 
     def __create_namespace_if_needed(self, namespace):
         os.popen("kubectl create namespace %s" % namespace)
-
-    def __ignore_blue_green(self, pod_name):
-        try:
-            cmd = "kubectl --namespace %s exec -p %s ls /opt/app/ignore_blue_green" % (self.namespace, pod_name)
-            logger.debug("ignore blue green command is %s" % cmd)
-            self.__run(cmd)
-        except subprocess.CalledProcessError as e:
-            logger.debug("this is the exception - %s" % e)
-            logger.debug('we didnt find any ignore file so we will check health')
-            return True
-
-        return False
 
     def check_pods_health(self, pod_name):
         self.__run("kubectl --namespace %s exec -p %s wget http://localhost:8080/health" % (self.namespace, pod_name))
@@ -127,22 +128,22 @@ class K8sConnector(object):
     def cluster_info(self):
         return self.__run("kubectl cluster-info")
 
-    def apply(self, sourceToDeploy):
+    def apply(self, source_to_deploy):
         return self.__run(
-            "kubectl --namespace %s apply --validate=false --record -f %s" % (self.namespace, sourceToDeploy))
+            "kubectl --namespace %s apply --validate=false --record -f %s" % (self.namespace, source_to_deploy))
 
     def apply_service(self, properties):
         return self.__run(
             "kubectl --namespace %s apply --validate=false --record -f %s" %
-            (self.namespace, DeployDescriptorFactory(TEMPLATE_PATH, properties).service()))
+            (self.namespace, DeployDescriptorFactory(self.TEMPLATE_PATH, properties).service()))
 
     def apply_deployment(self, properties):
         return self.__run(
             "kubectl --namespace %s apply --validate=false --record -f %s" %
-            (self.namespace, DeployDescriptorFactory(TEMPLATE_PATH, properties).deployment()))
+            (self.namespace, DeployDescriptorFactory(self.TEMPLATE_PATH, properties).deployment()))
 
     def upload_config_map(self, config_file_path):
-        os.system("kubectl --namespace %s delete configmap global-config" % (self.namespace))
+        os.system("kubectl --namespace %s delete configmap global-config" % self.namespace)
         return self.__run(
             "kubectl --namespace %s create configmap global-config --from-file=%s" % (self.namespace, config_file_path))
 

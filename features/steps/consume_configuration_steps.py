@@ -4,6 +4,7 @@ from behave import use_step_matcher
 
 from deployer.log import DeployerLogger
 from features.support.context import Context
+from features.support.http import http_get
 from features.support.k8s import K8sDriver
 
 logger = DeployerLogger(__name__).getLogger()
@@ -25,4 +26,4 @@ def verify_config_was_overriden(context):
 
 def __get_greeting_of(svc_host):
     url = 'http://%s/greeting' % svc_host
-    return requests.get(url).text
+    return http_get(url).text
