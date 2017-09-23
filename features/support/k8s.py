@@ -1,6 +1,7 @@
 import json
 import re
 import subprocess
+from time import sleep
 
 import yaml
 
@@ -91,6 +92,7 @@ class AWSServiceDomainFetcher(ServiceDomainFetcher):
         super(self.__class__, self).__init__(namespace)
 
     def _extract_domain_from(self, svc_json, port_name):
+        sleep(10)
         print '=> %s' % svc_json['status']['loadBalancer']
         ingress = svc_json['status']['loadBalancer']['ingress']
         if len(ingress) > 0:
