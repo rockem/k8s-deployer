@@ -19,7 +19,7 @@ class K8sDriver:
 
     def get_service_domain_for(self, app, port_name='tcp-80'):
         if self.minikube is None:
-            return ServiceDomainFetcher(self.namespace, self.minikube).fetch(app, port_name)
+            return AWSServiceDomainFetcher(self.namespace).fetch(app, port_name)
         else:
             return MinikubeServiceDomainFetcher(self.namespace, self.minikube).fetch(app, port_name)
 
@@ -71,60 +71,59 @@ class K8sDriver:
         subprocess.call("kubectl label --overwrite nodes minikube %s=%s" % (name, value), shell=True)
 
 
-class ServiceDomainFetcher:
-    def __init__(self, namespace, minikube=None):
-        self.namespace = namespace
-        self.minikube = minikube
+class ServiceDomainFetcher(object):
+    def __init__(self, namespace):
+        self._namespace = namespace
 
     def fetch(self, app, port_name):
-        return BusyWait.execute(self.__get_service_domain_for, app.service_name(), port_name)
+        svc_json = json.loads(self.__describe_service(app.service_name()))
+        return self._extract_domain_from(svc_json, port_name)
 
-    def __get_service_domain_for(self, service_name, port_name):
-        return self.__extract_domain_name(service_name, port_name)
+    def __describe_service(self, service_name):
+        return subprocess.check_output(
+            "kubectl get --namespace %s service %s -o json" % (self._namespace, service_name), shell=True)
 
-    def __extract_domain_name(self, service_name, port_name):
-        svc_json = json.loads(self.__describe_service(service_name))
+    def _extract_domain_from(self, svc_json, port_name):
+        return 'not implemented'
+
+
+class AWSServiceDomainFetcher(ServiceDomainFetcher):
+    def __init__(self, namespace):
+        super(self.__class__, self).__init__(namespace)
+
+    def _extract_domain_from(self, svc_json, port_name):
         ingress = svc_json['status']['loadBalancer']['ingress']
         if len(ingress) > 0:
-            return ['%s:%s' % (ingress[0], p['port'])
+            return ['%s:%s' % (ingress[0]['hostname'], p['port'])
                     for p in svc_json['spec']['ports']
                     if p['name'] == port_name][0]
         else:
             raise AttributeError('Failed to find domain in: %s' % svc_json)
 
-    def __describe_service(self, service_name):
-        return subprocess.check_output("kubectl get --namespace %s service %s -o json" % (self.namespace, service_name),
-                                       shell=True)
 
-    def __check_healthy(self, domain):
-        o = requests.get('http://' + domain + "/health", timeout=1)
-        json_health = json.loads(o.text)
-        assert json_health['status'] == 'UP' or json_health['status']['code'] == 'UP'
-
-
-class MinikubeServiceDomainFetcher:
+class MinikubeServiceDomainFetcher(ServiceDomainFetcher):
     def __init__(self, namespace, minikube_ip):
-        self.namespace = namespace
+        super(self.__class__, self).__init__(namespace)
         self.minikube = minikube_ip
 
-    def fetch(self, app, port_name):
-        return self.__get_service_domain_for(app.service_name(), port_name)
-
-    def __get_service_domain_for(self, service_name, port_name):
-        return self.__extract_domain_name(service_name, port_name)
-
-    def __extract_domain_name(self, service_name, port_name):
-        output = self.__describe_service(service_name)
+    def _extract_domain_from(self, svc_json, port_name):
         return [
             '%s:%s' % (self.minikube, p['nodePort'])
-            for p in json.loads(output)['spec']['ports']
+            for p in svc_json['spec']['ports']
             if p['name'] == port_name][0]
 
-    def __describe_service(self, service_name):
-        return subprocess.check_output(
-            "kubectl get --namespace %s service %s -o json" % (self.namespace, service_name), shell=True)
 
-    def __check_healthy(self, domain):
-        o = requests.get('http://' + domain + "/health", timeout=1)
-        json_health = json.loads(o.text)
-        assert json_health['status'] == 'UP' or json_health['status']['code'] == 'UP'
+class Base(object):
+    def foo(self):
+        pass
+
+    def run(self):
+        return self.foo()
+
+
+class Drived(Base):
+    def foo(self):
+        return 'derived foo'
+
+
+print Drived().run()

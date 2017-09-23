@@ -28,7 +28,6 @@ class DeployerDriver:
 
     def __run(self, command):
         try:
-            print("os.environ.get %s" % os.environ.get('TARGET_ENV'))
             subprocess.check_output(command, shell=True, stderr=subprocess.STDOUT)
         except subprocess.CalledProcessError as e:
             print("command %s fail - %s" % (command, e.output))
