@@ -91,6 +91,7 @@ class AWSServiceDomainFetcher(ServiceDomainFetcher):
         super(self.__class__, self).__init__(namespace)
 
     def _extract_domain_from(self, svc_json, port_name):
+        print '=> %s' % svc_json['status']['loadBalancer']
         ingress = svc_json['status']['loadBalancer']['ingress']
         if len(ingress) > 0:
             return ['%s:%s' % (ingress[0]['hostname'], p['port'])
