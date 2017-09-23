@@ -1,8 +1,7 @@
 import json
 import re
 import subprocess
-import requests
-import time
+
 import yaml
 
 from features.support.app import BusyWait

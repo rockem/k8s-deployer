@@ -5,7 +5,7 @@ import subprocess
 
 from flask import json
 
-from deployer.yml import ByPath
+from yml import ByPath
 from log import DeployerLogger
 from yml import FileYmlCreator
 from yml import find_node
