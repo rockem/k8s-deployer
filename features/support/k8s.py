@@ -76,8 +76,11 @@ class ServiceDomainFetcher(object):
         self._namespace = namespace
 
     def fetch(self, app, port_name):
+        return BusyWait.execute(self.__fetch_helper, app, port_name)
+
+    def __fetch_helper(self, app, port_name):
         svc_json = json.loads(self.__describe_service(app.service_name()))
-        return BusyWait.execute(self._extract_domain_from, svc_json, port_name)
+        return self._extract_domain_from(svc_json, port_name)
 
     def __describe_service(self, service_name):
         return subprocess.check_output(
@@ -92,7 +95,6 @@ class AWSServiceDomainFetcher(ServiceDomainFetcher):
         super(self.__class__, self).__init__(namespace)
 
     def _extract_domain_from(self, svc_json, port_name):
-        print '=> %s' % svc_json['status']['loadBalancer']
         ingress = svc_json['status']['loadBalancer']['ingress']
         if len(ingress) > 0:
             return ['%s:%s' % (ingress[0]['hostname'], p['port'])
