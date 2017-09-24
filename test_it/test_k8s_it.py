@@ -4,7 +4,8 @@ import subprocess
 
 import time
 
-from deployer.k8s import Connector
+from deployer.k8s import K8sConnector
+
 
 class TestConnectorIt:
     _namespace = ""
@@ -31,14 +32,14 @@ class TestConnectorIt:
 
     @classmethod
     def __create_connector(cls):
-        cls._connector = Connector(cls._namespace)
+        cls._connector = K8sConnector(cls._namespace)
 
     @classmethod
     def _delete_namespace(cls):
         subprocess.call("kubectl delete namespace %s" % cls._namespace, shell=True)
 
     def test_modify_job_successfully(self):
-        connector = Connector(self._namespace)
+        connector = K8sConnector(self._namespace)
         job = {'name': 'job1', 'schedule': '*/1 * * * *', 'url': 'job1/run'}
 
         connector.upload_job(job)

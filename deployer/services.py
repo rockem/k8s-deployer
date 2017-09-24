@@ -63,7 +63,7 @@ class ConfigUploader:
     def create_jobs_from(self, jobs_file_path):
         jobs_list = []
         logger.info('Going to read the jobs from file \'%s\'' % jobs_file_path)
-        content = YamlReader(jobs_file_path).read()
+        content = YmlReader(jobs_file_path).read()
         for item in content['jobs']:
             job_name = next(iter(item))
             jobs_list.append( {'name': job_name,

@@ -85,6 +85,9 @@ class DeployDescriptorFactory(object):
     def __is_logging_enabled(self):
         return self.configuration.has_key("logging") and self.configuration["logging"] != "none"
 
+    def job(self):
+        return FileYmlCreator(self.template_path, 'cronjob').config(self.configuration).create(self.DEST_DIR)
+
 
 class ByContainerPorts:
     def __init__(self, name):
@@ -148,13 +151,12 @@ class K8sConnector(object):
             "kubectl --namespace %s create configmap global-config --from-file=%s" % (self.namespace, config_file_path))
 
     def upload_job(self, job):
-        job_config_file = self.__create_job_config_file_from(job)
         self.delete_job(job['name'])
-        self.__run("kubectl create --namespace %s -f %s" % (self.namespace, job_config_file))
-
-    def __create_job_config_file_from(self, job):
-        return YmlCreator({"job_name": job['name'], "cron": job['schedule'], "url": job['url']},
-                          "cronjob_template").create()
+        self.__run("kubectl create --namespace %s -f %s" % (
+            self.namespace,
+            DeployDescriptorFactory(
+                self.TEMPLATE_PATH,
+                {"job_name": job['name'], "cron": job['schedule'], "url": job['url']}).job()))
 
     def delete_job(self, job_name):
         os.system("kubectl --namespace %s delete jobs %s" % (self.namespace, job_name))
