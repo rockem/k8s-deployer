@@ -11,3 +11,9 @@ Feature: Update k8s configuration
     When configuring "non-existing-namespace"
     Then config "kuku" uploaded to "non-existing-namespace" namespace
 
+  Scenario: Upload job from git to specific namespace
+    Given "stateful:1.0" service was deployed successfully
+    And job "jobs" was pushed to git
+    When configuring
+    Then the job for "stateful:1.0" service was invoked
+

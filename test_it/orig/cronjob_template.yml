@@ -1,0 +1,19 @@
+apiVersion: batch/v2alpha1
+kind: CronJob
+metadata:
+  name: {job_name}
+spec:
+  schedule: "{cron}"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: {job_name}
+            image: byrnedo/alpine-curl
+            args:
+            - /usr/bin/curl
+            - {url}
+          restartPolicy: OnFailure

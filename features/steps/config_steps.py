@@ -1,5 +1,7 @@
 from behave import *
+import requests
 
+from features.support.app import BusyWait
 from features.support.context import Context
 from features.support.deploy import DeployerDriver
 from features.support.k8s import K8sDriver
@@ -11,6 +13,11 @@ use_step_matcher("re")
 @given("config \"(.*)\" was pushed to git")
 def push_config(context, config_name):
     ConfigRepository().push_config(config_name)
+
+
+@given("job \"(.*)\" was pushed to git")
+def push_config(context, job_name):
+    ConfigRepository().push_job(job_name)
 
 
 @given('namespace "(.+)" doesn\'t exists')
@@ -29,3 +36,15 @@ def executing(context, namespace=None):
 def validate_config_uploaded(context, config_name, namespace=None):
     ns = Context(context).default_namespace() if namespace is None else namespace
     K8sDriver(ns, context.minikube).verify_config_is(LocalConfig(config_name).content())
+
+
+@then("the job for \"(.*):(.*)\" service was invoked")
+def jobs_were_invoked_on_service(context, service, version):
+    domain = K8sDriver(Context(context).default_namespace(), context.minikube).get_service_domain_for(
+        Context(context).get_app_for(service, version))
+    BusyWait.execute(_validate_job_was_invoked, domain)
+
+
+def _validate_job_was_invoked(domain):
+    service_response = requests.get('http://%s/verify' % domain)
+    assert service_response.status_code == 200

@@ -20,6 +20,7 @@ APP_BUILDERS = [
     AppImageBuilder('version', 'healthy', ['VERSION=healthy']),
     AppImageBuilder('version', 'sick', ['VERSION=sick']),
     AppImageBuilder('restless', '1.0'),
+    AppImageBuilder('stateful', '1.0'),
     JavaAppBuilder(AppImageBuilder('java', '1.0')),
     AppImageBuilder('version', '1.0', ['VERSION=1.0']),
     AppImageBuilder('version', '2.0', ['VERSION=2.0'])
@@ -30,7 +31,6 @@ def before_all(context):
     __build_apps(context)
     os.environ['TARGET_ENV'] = TARGET_ENV
     if __is_aws_mode(context):
-        os.system('kubectl-conf ')
         KopsSync(TARGET_ENV).sync()
         context.aws_uri = "911479539546.dkr.ecr.us-east-1.amazonaws.com/"
         context.minikube = None
