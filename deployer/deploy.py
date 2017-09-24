@@ -79,7 +79,6 @@ class ImageDeployer(object):
                 pass
             time.sleep(1)
 
-        logger.debug("BW=> %s" % result)
         return result
 
     def __expose(self):

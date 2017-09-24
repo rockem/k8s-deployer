@@ -114,19 +114,3 @@ class MinikubeServiceDomainFetcher(ServiceDomainFetcher):
             '%s:%s' % (self.minikube, p['nodePort'])
             for p in svc_json['spec']['ports']
             if p['name'] == port_name][0]
-
-
-class Base(object):
-    def foo(self):
-        pass
-
-    def run(self):
-        return self.foo()
-
-
-class Drived(Base):
-    def foo(self):
-        return 'derived foo'
-
-
-print Drived().run()

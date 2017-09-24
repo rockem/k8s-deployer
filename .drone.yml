@@ -3,6 +3,7 @@ pipeline:
     image: registry.dnsk.io:5000/agt/aws-k8s-docker
     pull: true
     commands:
+      - /opt/login.sh
       - pip install -r requirements.txt
       - python -m nose test
       - kubectl-conf int --kops
