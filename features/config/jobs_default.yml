@@ -1,0 +1,4 @@
+jobs:
+  - job1:
+      schedule: "*/1 * * * *"
+      url: "someurl"

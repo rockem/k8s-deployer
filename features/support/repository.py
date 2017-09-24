@@ -71,25 +71,38 @@ class ConfigRepository(GitRepository):
     GIT_REPO_URL = "file://" + os.getcwd() + '/' + REPO_NAME
     CHECKOUT_DIR = 'config_co'
     GLOBAL_CONFIG_PATH = CHECKOUT_DIR + '/int/global.yml'
+    JOBS_PATH = CHECKOUT_DIR + '/int/jobs.yml'
 
     def __init__(self):
         super(ConfigRepository, self).__init__(self.REPO_NAME, self.CHECKOUT_DIR)
 
-    def push_config(self, config_name='default'):
+    def push_job(self, job_config):
+        config_dict = {job_config: self.JOBS_PATH,
+                       "default": self.GLOBAL_CONFIG_PATH}
+        self.__push(config_dict)
+
+    def push_config(self, config_name):
+        config_dict = {config_name: self.GLOBAL_CONFIG_PATH,
+                       "jobs_default": self.JOBS_PATH}
+        self.__push(config_dict)
+
+    def __push(self, config_dict):
         repo = super(ConfigRepository, self)._checkout_repo()
-        self.copy_config(config_name)
+        for source, target in config_dict.iteritems():
+            self._copy(source, target)
         repo.git.add('--all')
         repo.index.commit("updated by tests")
         repo.remote().push()
 
-    def copy_config(self, config_name):
-        if not os.path.exists(os.path.dirname(self.GLOBAL_CONFIG_PATH)):
+    @staticmethod
+    def _copy(source, target):
+        if not os.path.exists(os.path.dirname(target)):
             try:
-                os.makedirs(os.path.dirname(self.GLOBAL_CONFIG_PATH))
+                os.makedirs(os.path.dirname(target))
             except OSError as exc:  # Guard against race condition
                 if exc.errno != errno.EEXIST:
                     raise
-        shutil.copyfile(LocalConfig(config_name).get_path(), self.GLOBAL_CONFIG_PATH)
+        shutil.copyfile(LocalConfig(source).get_path(), target)
 
 
 class LocalConfig:

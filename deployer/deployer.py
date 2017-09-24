@@ -56,8 +56,13 @@ class ConfigureCommand(object):
         self.connector = connector
 
     def run(self):
-        ConfigUploader(self.target, self.connector).upload(
-            GlobalConfigFetcher(self.git_repository).fetch_for(self.target))
+        fetcher = GlobalConfigFetcher(self.git_repository)
+        fetcher.checkout()
+
+        ConfigUploader(self.connector).upload_config(
+            fetcher.fetch_global_configuration_for(self.target))
+        ConfigUploader(self.connector).upload_jobs(
+            fetcher.fetch_jobs_for(self.target))
 
 
 class ActionRunner:
@@ -78,6 +83,7 @@ class ActionRunner:
             PromoteCommand(self.source, self.target, self.git_repository, connector, self.timeout).run()
         elif action == 'configure':
             ConfigureCommand(self.target, self.git_repository, connector).run()
+
 
 @click.command()
 @click.argument('action', type=click.Choice(['deploy', 'promote', 'configure']))

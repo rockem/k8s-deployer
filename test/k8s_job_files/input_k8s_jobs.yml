@@ -1,0 +1,7 @@
+jobs:
+  - job1:
+      schedule: "*/1 * * * *"
+      url: "job1/run"
+  - job2:
+      schedule: "*/1 * * * *"
+      url: "job2/run"

@@ -1,20 +1,22 @@
+import glob
 import os
 import re
 import subprocess
 
 from flask import json
 
+from yml_creator import YmlCreator
 from log import DeployerLogger
 
 logger = DeployerLogger('PodHealthChecker').getLogger()
 
-class K8sDeployer(object):
 
+class K8sDeployer(object):
     def __init__(self, connector):
         self.connector = connector
         print "init K8sDeployer!"
 
-    def deploy(self,target):
+    def deploy(self, target):
         # source_to_deploy = os.path.join('deployer/produce/' + "%s.yml" % target)
         self.connector.cluster_info()
         logger.debug("going to deploy {}".format(target))
@@ -100,6 +102,18 @@ class Connector(object):
         os.system("kubectl --namespace %s delete configmap global-config" % (self.namespace))
         return self.__run(
             "kubectl --namespace %s create configmap global-config --from-file=%s" % (self.namespace, config_file_path))
+
+    def upload_job(self, job):
+        job_config_file = self.__create_job_config_file_from(job)
+        self.delete_job(job['name'])
+        self.__run("kubectl create --namespace %s -f %s" % (self.namespace, job_config_file))
+
+    def __create_job_config_file_from(self, job):
+        return YmlCreator({"job_name": job['name'], "cron": job['schedule'], "url": job['url']}, "cronjob_template").create()
+
+    def delete_job(self, job_name):
+        os.system("kubectl --namespace %s delete jobs %s" % (self.namespace, job_name))
+        os.system("kubectl --namespace %s delete cronjob %s" % (self.namespace, job_name))
 
     def __run(self, command):
         return subprocess.check_output(command, shell=True)
