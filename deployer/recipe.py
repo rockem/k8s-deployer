@@ -34,15 +34,18 @@ class RecipeBuilder(object):
 
 
 class Recipe(object):
+    LOGGING_DEFAULT = 'log4j'
+    EXPOSE_DEFAULT = True
+
     def __init__(self, ingredients):
         self.ingredients = ingredients
         self.__set_defaults()
 
     def __set_defaults(self):
         if not self.ingredients.has_key(LOGGING_LABEL):
-            self.ingredients[LOGGING_LABEL] = 'log4j'
+            self.ingredients[LOGGING_LABEL] = self.LOGGING_DEFAULT
         if not self.ingredients.has_key(EXPOSE_LABEL):
-            self.ingredients[EXPOSE_LABEL] = True
+            self.ingredients[EXPOSE_LABEL] = self.EXPOSE_DEFAULT
         if PORTS_LABEL not in self.ingredients:
             self.ingredients[PORTS_LABEL] = []
 

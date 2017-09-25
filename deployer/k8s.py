@@ -44,7 +44,7 @@ class ServiceExplorer(object):
             return default_color
 
 
-class DeployDescriptorFactory(object):
+class K8sDescriptorFactory(object):
     DEST_DIR = './out/'
     CONTAINERS_LOCATION = 'spec.template.spec.containers'
     DEPLOYMENT_PORTS_LOCATION = 'spec.template.spec.containers'
@@ -138,12 +138,12 @@ class K8sConnector(object):
     def apply_service(self, properties):
         return self.__run(
             "kubectl --namespace %s apply --validate=false --record -f %s" %
-            (self.namespace, DeployDescriptorFactory(self.TEMPLATE_PATH, properties).service()))
+            (self.namespace, K8sDescriptorFactory(self.TEMPLATE_PATH, properties).service()))
 
     def apply_deployment(self, properties):
         return self.__run(
             "kubectl --namespace %s apply --validate=false --record -f %s" %
-            (self.namespace, DeployDescriptorFactory(self.TEMPLATE_PATH, properties).deployment()))
+            (self.namespace, K8sDescriptorFactory(self.TEMPLATE_PATH, properties).deployment()))
 
     def upload_config_map(self, config_file_path):
         os.system("kubectl --namespace %s delete configmap global-config" % self.namespace)
@@ -154,7 +154,7 @@ class K8sConnector(object):
         self.delete_job(job['name'])
         self.__run("kubectl create --namespace %s -f %s" % (
             self.namespace,
-            DeployDescriptorFactory(
+            K8sDescriptorFactory(
                 self.TEMPLATE_PATH,
                 {"job_name": job['name'], "cron": job['schedule'], "url": job['url']}).job()))
 

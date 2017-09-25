@@ -7,5 +7,4 @@ connectKube.sh
 tmp/
 out
 
-test
 features
