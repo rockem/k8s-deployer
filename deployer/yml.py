@@ -53,8 +53,6 @@ def find_node(location, root):
             try:
                 output = output[p]
             except:
-                print root
-                print p
                 raise NodeNotFoundError("No element on location : %s " % location)
     return output
 

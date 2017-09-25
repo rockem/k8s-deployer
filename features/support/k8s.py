@@ -113,4 +113,5 @@ class MinikubeServiceDomainFetcher(ServiceDomainFetcher):
         return [
             '%s:%s' % (self.minikube, p['nodePort'])
             for p in svc_json['spec']['ports']
-            if p['name'] == port_name][0]
+            if p['name'] == port_name
+        ][0]
