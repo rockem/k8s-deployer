@@ -5,6 +5,7 @@ from log import DeployerLogger
 EXPOSE_LABEL = 'expose'
 IMAGE_LABEL = 'image_name'
 LOGGING_LABEL = 'logging'
+PORTS_LABEL = 'ports'
 
 logger = DeployerLogger(__name__).getLogger()
 
@@ -15,7 +16,7 @@ class RecipeError(Exception):
 
 
 class RecipeBuilder(object):
-    _ingredients = None
+    _ingredients = {}
     _image = None
 
     def ingredients(self, ingredients):
@@ -35,6 +36,15 @@ class RecipeBuilder(object):
 class Recipe(object):
     def __init__(self, ingredients):
         self.ingredients = ingredients
+        self.__set_defaults()
+
+    def __set_defaults(self):
+        if not self.ingredients.has_key(LOGGING_LABEL):
+            self.ingredients[LOGGING_LABEL] = 'log4j'
+        if not self.ingredients.has_key(EXPOSE_LABEL):
+            self.ingredients[EXPOSE_LABEL] = True
+        if PORTS_LABEL not in self.ingredients:
+            self.ingredients[PORTS_LABEL] = []
 
     @staticmethod
     def builder():
@@ -44,18 +54,13 @@ class Recipe(object):
         return self.ingredients[IMAGE_LABEL]
 
     def logging(self):
-        try:
-            return self.ingredients[LOGGING_LABEL]
-        except KeyError:
-            return 'log4j'
+        return self.ingredients[LOGGING_LABEL]
 
     def expose(self):
-        try:
-            expose = self.ingredients[EXPOSE_LABEL]
-        except KeyError:
-            return True
-
+        expose = self.ingredients[EXPOSE_LABEL]
         if not isinstance(expose, bool):
             raise RecipeError('%s is not a valid value' % expose)
-
         return expose
+
+    def ports(self):
+        return self.ingredients[PORTS_LABEL]

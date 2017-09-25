@@ -5,3 +5,7 @@ connectKube.sh
 *.pem
 .cfssl
 tmp/
+out
+
+test
+features

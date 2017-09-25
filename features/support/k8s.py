@@ -1,8 +1,8 @@
 import json
 import re
 import subprocess
-import requests
-import time
+from time import sleep
+
 import yaml
 
 from features.support.app import BusyWait
@@ -17,8 +17,11 @@ class K8sDriver:
         self.namespace = namespace
         self.minikube = minikube
 
-    def get_service_domain_for(self, app):
-        return ServiceDomainFetcher(self.namespace, self.minikube).fetch(app)
+    def get_service_domain_for(self, app, port_name='tcp-80'):
+        if self.minikube is None:
+            return AWSServiceDomainFetcher(self.namespace).fetch(app, port_name)
+        else:
+            return MinikubeServiceDomainFetcher(self.namespace, self.minikube).fetch(app, port_name)
 
     def verify_app_is_running(self, app):
         BusyWait.execute(self.__pod_running, app.service_name())
@@ -68,44 +71,46 @@ class K8sDriver:
         subprocess.call("kubectl label --overwrite nodes minikube %s=%s" % (name, value), shell=True)
 
 
-class ServiceDomainFetcher:
+class ServiceDomainFetcher(object):
+    def __init__(self, namespace):
+        self._namespace = namespace
 
-    def __init__(self, namespace, minikube=None):
-        self.namespace = namespace
-        self.minikube = minikube
+    def fetch(self, app, port_name):
+        return BusyWait.execute(self.__fetch_helper, app, port_name)
 
-    def fetch(self, app):
-        return BusyWait.execute(self.__get_service_domain_for, app.service_name())
-
-    def __get_service_domain_for(self, service_name):
-        domain = self.__extract_domain_name(service_name)
-        if domain:
-            self.__check_healthy(domain)
-            return domain
-        else:
-            print ('didn\'t found a match, going to sleep and run for another try')
-            time.sleep(1)
+    def __fetch_helper(self, app, port_name):
+        svc_json = json.loads(self.__describe_service(app.service_name()))
+        return self._extract_domain_from(svc_json, port_name)
 
     def __describe_service(self, service_name):
-        return subprocess.check_output("kubectl describe --namespace %s services %s" % (self.namespace, service_name), shell=True)
+        return subprocess.check_output(
+            "kubectl get --namespace %s service %s -o json" % (self._namespace, service_name), shell=True)
 
-    def __extract_domain_name(self, service_name):
-        output = self.__describe_service(service_name)
-        if self.minikube is None:
-            match = re.search(r"LoadBalancer Ingress:\s(.*)", output)
+    def _extract_domain_from(self, svc_json, port_name):
+        return 'not implemented'
+
+
+class AWSServiceDomainFetcher(ServiceDomainFetcher):
+    def __init__(self, namespace):
+        super(self.__class__, self).__init__(namespace)
+
+    def _extract_domain_from(self, svc_json, port_name):
+        ingress = svc_json['status']['loadBalancer']['ingress']
+        if len(ingress) > 0:
+            return ['%s:%s' % (ingress[0]['hostname'], p['port'])
+                    for p in svc_json['spec']['ports']
+                    if p['name'] == port_name][0]
         else:
-            match = re.search(r"NodePort:\s+[a-zA-Z0-9_-]+\s+(\d+)/TCP", output)
+            raise AttributeError('Failed to find domain in: %s' % svc_json)
 
-        if match:
-            domain_name = match.group(1)
-            if self.minikube is not None:
-                domain_name = '%s:%s' % (self.minikube, domain_name)
-        else:
-            raise AttributeError('Failed to find domain in: %s' % output)
 
-        return domain_name
+class MinikubeServiceDomainFetcher(ServiceDomainFetcher):
+    def __init__(self, namespace, minikube_ip):
+        super(self.__class__, self).__init__(namespace)
+        self.minikube = minikube_ip
 
-    def __check_healthy(self, result):
-        o = requests.get('http://' + result + "/health", timeout=1)
-        json_health = json.loads(o.text)
-        assert json_health['status'] == 'UP' or json_health['status']['code'] == 'UP'
+    def _extract_domain_from(self, svc_json, port_name):
+        return [
+            '%s:%s' % (self.minikube, p['nodePort'])
+            for p in svc_json['spec']['ports']
+            if p['name'] == port_name][0]

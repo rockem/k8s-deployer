@@ -4,10 +4,12 @@ pipeline:
     pull: true
     commands:
       - pip install -r requirements.txt
-      - python -m nose test
+      - /opt/login.sh
       - kubectl-conf int --kops
-      - python -m nose test_it
+      - python -m nose
       - behave -D mode=aws features
+    volumes:
+          - /var/run/docker.sock:/var/run/docker.sock
 
   publish:
     image: plugins/docker
