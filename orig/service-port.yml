@@ -1,0 +1,4 @@
+protocol: TCP
+targetPort: {port}
+port: {outPort}
+name: tcp-{port}

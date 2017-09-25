@@ -4,6 +4,7 @@ import requests
 from features.support.app import BusyWait
 from features.support.context import Context
 from features.support.deploy import DeployerDriver
+from features.support.http import http_get
 from features.support.k8s import K8sDriver
 from features.support.repository import ConfigRepository, LocalConfig
 
@@ -46,5 +47,4 @@ def jobs_were_invoked_on_service(context, service, version):
 
 
 def _validate_job_was_invoked(domain):
-    service_response = requests.get('http://%s/verify' % domain)
-    assert service_response.status_code == 200
+    assert http_get('http://%s/verify' % domain).status_code == 200

@@ -9,7 +9,7 @@ class BusyWait:
         for i in range(BusyWait.NUM_ITER):
             try:
                 return run_func(*args)
-            except Exception :
-                 pass
+            except Exception:
+                pass
             time.sleep(1)
         raise Exception
