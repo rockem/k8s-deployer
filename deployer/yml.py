@@ -113,12 +113,15 @@ class YmlReader(object):
         self.path_or_content = path_or_content
 
     def read(self):
-        content = self.path_or_content
         try:
             content = open(self.path_or_content, "r")
+            return yaml.load(content)
         except IOError as err:
             logger.warn("Could not load yml path '%s' with the error: '%s'. Will try to read it as a raw string." % (self.path_or_content, err.strerror))
-        return yaml.load(content)
+            if self.path_or_content != '':
+                return yaml.load(self.path_or_content)
+            else:
+                return {}
 
     def read_lines(self):
         with open(str(self.path_or_content), "r+") as f:

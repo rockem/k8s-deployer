@@ -1,10 +1,16 @@
+import os
+
 import yaml
-from deployer.yml import YmlCreator, NodeNotFoundError, ByPath, YmlReaderError
+
+from deployer.log import DeployerLogger
+from deployer.yml import YmlCreator, NodeNotFoundError, ByPath
 from nose.tools.nontrivial import raises
 
 from deployer.yml import YmlReader
 
 CONFIGURATION = {"ENV": "test", "KUKU": "12345"}
+
+logger = DeployerLogger('yml').getLogger()
 
 
 class TestYmlCreator(object):
@@ -47,3 +53,5 @@ class TestYmlReader(object):
         assert dictionary['expose'] is False
         assert dictionary['logging'] == 'none'
 
+    def test_read_content_from_empty_string(self):
+        assert YmlReader("").read() == {}
