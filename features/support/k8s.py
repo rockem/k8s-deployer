@@ -68,7 +68,7 @@ class K8sDriver:
 
     @staticmethod
     def add_node_label(name, value):
-        subprocess.call("kubectl label --overwrite nodes minikube %s=%s" % (name, value), shell=True)
+        subprocess.check_output("kubectl label --overwrite nodes minikube %s=%s" % (name, value), shell=True)
 
 
 class ServiceDomainFetcher(object):
