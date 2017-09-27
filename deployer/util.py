@@ -32,6 +32,9 @@ class EnvironmentParser(object):
     def name(self):
         return self.env_variable_fetcher.fetch('TARGET_ENV')
 
+    def domain(self):
+        return self.env_variable_fetcher.fetch('DOMAIN')
+
     def env(self):
         return "{0}:{1}".format(self.name(), self.target_namespace)
 

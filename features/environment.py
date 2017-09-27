@@ -12,6 +12,7 @@ from features.support.k8s import K8sDriver
 from features.support.repository import RecipeRepository, ConfigRepository
 
 TARGET_ENV = 'int'
+DOMAIN = 'heed-dev.io'
 
 logger = DeployerLogger(__name__).getLogger()
 
@@ -30,6 +31,7 @@ APP_BUILDERS = [
 def before_all(context):
     __build_apps(context)
     os.environ['TARGET_ENV'] = TARGET_ENV
+    os.environ['DOMAIN'] = DOMAIN
     if __is_aws_mode(context):
         KopsSync(TARGET_ENV).sync()
         context.aws_uri = "911479539546.dkr.ecr.us-east-1.amazonaws.com/"
