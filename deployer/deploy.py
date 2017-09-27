@@ -98,7 +98,8 @@ class ImageDeployer(object):
             'serviceColor': color,
             'myEnv': EnvironmentParser(self.target).name(),
             'logging': self.recipe.logging(),
-            'ports': self.recipe.ports()
+            'ports': self.recipe.ports(),
+            'domain': EnvironmentParser(self.target).domain()
         }
 
     def __create_props_force(self):
@@ -113,5 +114,6 @@ class ImageDeployer(object):
             'serviceColor': color,
             'myEnv': EnvironmentParser(self.target).name(),
             'logging': self.recipe.logging(),
-            'ports': self.recipe.ports()
+            'ports': self.recipe.ports(),
+            'domain': EnvironmentParser(self.target).domain()
         }
