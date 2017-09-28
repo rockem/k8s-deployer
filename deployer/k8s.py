@@ -112,15 +112,19 @@ class K8sConnector(object):
         os.popen("kubectl create namespace %s" % namespace)
 
     def check_pods_health(self, pod_name, container_name):
-        self.__run("kubectl --namespace %s exec -p %s -c %s wget http://localhost:8080/health" % (self.namespace, pod_name, container_name))
-        output = self.__run("kubectl --namespace %s exec -p %s cat health" % (self.namespace, pod_name))
+        self.__exec_on(pod_name, container_name, 'wget http://localhost:8080/health')
+        output = self.__exec_on(pod_name, container_name, 'cat health')
         logger.debug(output)
         try:
-            self.__run("kubectl --namespace %s exec -p %s rm health" % (self.namespace, pod_name))
+            self.__exec_on(pod_name, container_name, 'rm health')
         except subprocess.CalledProcessError as e:
-            print e
+            print 'Failed to delete health file with error: %s' % e.message
 
         return output
+
+    def __exec_on(self, pod_name, container_name, command):
+        return self.__run(
+            "kubectl --namespace %s exec -p %s -c %s %s" % (self.namespace, pod_name, container_name, command))
 
     def describe_pod(self, pod_name):
         return self.__run("kubectl --namespace %s describe pods %s" % (self.namespace, pod_name))
