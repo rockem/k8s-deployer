@@ -25,7 +25,7 @@ def deploy_service_successfully(context, name, version):
 
 def __deploy_service(context, name, version, status):
     app = Context(context).get_app_for(name, version)
-    DeployerDriver(RecipeRepository.GIT_REPO_URL, Context(context).default_namespace()).deploy(app, status == 'fail')
+    DeployerDriver(RecipeRepository.GIT_REPO_URL, Context(context).default_namespace(),context.domain).deploy(app, status == 'fail')
     Context(context).set_last_deployed_app(app)
 
 

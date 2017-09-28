@@ -46,7 +46,7 @@ spec:
            - name: MY_ENV
              value: {myEnv}
        nodeSelector:
-         beta.kubernetes.io/instance-type: m3.large
+         type: node
        volumes:
          - name: shared-logs
            emptyDir: {{}}

@@ -12,9 +12,10 @@ class DeployDriverError(Exception):
 
 
 class DeployerDriver:
-    def __init__(self, git_repo, target):
+    def __init__(self, git_repo, target,domain):
         self.git_repo = git_repo
         self.target = target
+        self.domain = domain
 
     def deploy(self, app_image, should_fail=False):
         try:
@@ -35,8 +36,8 @@ class DeployerDriver:
 
     def run_deploy_command(self, app_image):
         self.__run(
-            "python %s deploy --image_name %s --target %s --git_repository %s --deploy-timeout=20 %s" % (
-                APP, app_image.image_name(), self.target, self.git_repo,
+            "python %s deploy --image_name %s --target %s --git_repository %s --domain=%s --deploy-timeout=20 %s" % (
+                APP, app_image.image_name(), self.target, self.git_repo, self.domain,
                 self.__get_recipe_option_for(app_image.recipe_path())))
 
     def __get_recipe_option_for(self, path):

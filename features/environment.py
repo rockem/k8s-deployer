@@ -12,6 +12,7 @@ from features.support.k8s import K8sDriver
 from features.support.repository import RecipeRepository, ConfigRepository
 
 TARGET_ENV = 'int'
+DOMAIN = 'heed-dev.io'
 
 logger = DeployerLogger(__name__).getLogger()
 
@@ -35,10 +36,12 @@ def before_all(context):
         context.aws_uri = "911479539546.dkr.ecr.us-east-1.amazonaws.com/"
         context.minikube = None
         __push_apps_aws(Context(context).all_apps())
+        context.domain="heed-dev.io"
     else:
-        K8sDriver.add_node_label('beta.kubernetes.io/instance-type', 'm3.large')
+        K8sDriver.add_node_label('type', 'node')
         context.minikube = subprocess.check_output('minikube ip', shell=True)[:-1]
         context.aws_uri = ''
+        context.domain="minikube"
 
 
 def __build_apps(context):
