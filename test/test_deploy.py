@@ -48,13 +48,16 @@ class ConnectorStub(object):
 
 
 class TestImageDeployer(object):
+
+    DOMAIN = 'heed'
+
     @raises(DeployError)
     def test_should_fail_given_sick_service(self):
         self.__deploy(False, {'image_name': 'kuku:123'})
 
     def __deploy(self, healthy, properties):
         self.connector = ConnectorStub(healthy)
-        deployer = ImageDeployer('test_target', self.connector, RecipeBuilder().ingredients(
+        deployer = ImageDeployer('test_target', self.DOMAIN, self.connector, RecipeBuilder().ingredients(
             properties).build(), 1)
         deployer.deploy()
 
@@ -62,6 +65,10 @@ class TestImageDeployer(object):
         self.__deploy(True, {'image_name': 'no_color:123'})
         assert self.connector.applied_descriptors['service']['serviceColor'] == 'green'
         assert self.connector.applied_descriptors['deployment']['serviceColor'] == 'green'
+
+    def test_should_update_service_domain(self):
+        self.__deploy(True, {'image_name': 'image:123'})
+        assert self.connector.applied_descriptors['service']['domain'] == self.DOMAIN
 
     def test_skip_validation_and_deploy_when_not_exposed(self):
         self.__deploy(False, {'image_name': 'not_exposed:123', 'expose': False})

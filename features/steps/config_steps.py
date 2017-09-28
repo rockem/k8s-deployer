@@ -30,7 +30,7 @@ def clear_namespace(context, namespace):
 @when("configuring(?: \"(.+)\")?")
 def executing(context, namespace=None):
     DeployerDriver(ConfigRepository.GIT_REPO_URL,
-                   Context(context).default_namespace() if namespace is None else namespace).configure()
+                   Context(context).default_namespace() if namespace is None else namespace,context.domain).configure()
 
 
 @then("config \"(.*)\" uploaded(?: to \"(.+)\" namespace)?")
