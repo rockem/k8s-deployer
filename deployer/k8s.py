@@ -2,6 +2,7 @@ import glob
 import os
 import re
 import subprocess
+from time import sleep
 
 from flask import json
 
@@ -112,15 +113,18 @@ class K8sConnector(object):
         os.popen("kubectl create namespace %s" % namespace)
 
     def check_pods_health(self, pod_name, container_name):
+        self.__delete_health_file(container_name, pod_name)
         self.__exec_on(pod_name, container_name, 'wget http://localhost:8080/health')
         output = self.__exec_on(pod_name, container_name, 'cat health')
         logger.debug(output)
+        return output
+
+    def __delete_health_file(self, container_name, pod_name):
         try:
             self.__exec_on(pod_name, container_name, 'rm health')
+            sleep(2)
         except subprocess.CalledProcessError as e:
             print 'Failed to delete health file with error: %s' % e.message
-
-        return output
 
     def __exec_on(self, pod_name, container_name, command):
         return self.__run(
