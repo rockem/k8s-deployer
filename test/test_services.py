@@ -58,3 +58,11 @@ class TestConfigUploader:
         config_uploader = ConfigUploader(self.connector)
         config_uploader.upload_jobs(None)
         assert len(self.connector.expected_job) == 0
+
+    def test_dont_upload_jobs_on_empty_file(self):
+        config_uploader = ConfigUploader(self.connector)
+        empty_jobs_yml = './input_jobs.yml'
+        self.__generate_jobs_file(empty_jobs_yml, [])
+        config_uploader.upload_jobs(empty_jobs_yml)
+
+        assert len(self.connector.expected_job) == 0

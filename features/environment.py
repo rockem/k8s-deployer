@@ -31,16 +31,17 @@ APP_BUILDERS = [
 def before_all(context):
     __build_apps(context)
     os.environ['TARGET_ENV'] = TARGET_ENV
-    os.environ['DOMAIN'] = DOMAIN
     if __is_aws_mode(context):
         KopsSync(TARGET_ENV).sync()
         context.aws_uri = "911479539546.dkr.ecr.us-east-1.amazonaws.com/"
         context.minikube = None
         __push_apps_aws(Context(context).all_apps())
+        context.domain="heed-dev.io"
     else:
         K8sDriver.add_node_label('type', 'node')
         context.minikube = subprocess.check_output('minikube ip', shell=True)[:-1]
         context.aws_uri = ''
+        context.domain="minikube"
 
 
 def __build_apps(context):

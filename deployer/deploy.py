@@ -26,8 +26,9 @@ class ColorDecider(object):
 
 
 class ImageDeployer(object):
-    def __init__(self, target, connector, recipe, timeout):
+    def __init__(self, target, domain, connector, recipe, timeout):
         self.target = target
+        self.domain = domain
         self.configuration = {}
         self.connector = connector
         self.health_checker = PodHealthChecker(connector)
@@ -99,7 +100,7 @@ class ImageDeployer(object):
             'myEnv': EnvironmentParser(self.target).name(),
             'logging': self.recipe.logging(),
             'ports': self.recipe.ports(),
-            'domain': EnvironmentParser(self.target).domain()
+            'domain': self.domain
         }
 
     def __create_props_force(self):
@@ -115,5 +116,5 @@ class ImageDeployer(object):
             'myEnv': EnvironmentParser(self.target).name(),
             'logging': self.recipe.logging(),
             'ports': self.recipe.ports(),
-            'domain': EnvironmentParser(self.target).domain()
+            'domain': self.domain
         }
