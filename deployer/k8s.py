@@ -18,9 +18,9 @@ class PodHealthChecker(object):
         self.connector = connector
 
     def health_check(self, pod_name):
-        pod_name = self.__extract_pod_name(pod_name).strip()
-        logger.debug('pod name after extraction! %s' % pod_name)
-        return 'UP' in self.connector.check_pods_health(pod_name)
+        concrete_pod_name = self.__extract_pod_name(pod_name).strip()
+        logger.debug('pod name after extraction! %s' % concrete_pod_name)
+        return 'UP' in self.connector.check_pods_health(concrete_pod_name, pod_name)
 
     def __extract_pod_name(self, pod_name):
         match = re.search(r"Name:\s(.*)", self.connector.describe_pod(pod_name))
@@ -111,8 +111,8 @@ class K8sConnector(object):
     def __create_namespace_if_needed(self, namespace):
         os.popen("kubectl create namespace %s" % namespace)
 
-    def check_pods_health(self, pod_name):
-        self.__run("kubectl --namespace %s exec -p %s wget http://localhost:8080/health" % (self.namespace, pod_name))
+    def check_pods_health(self, pod_name, container_name):
+        self.__run("kubectl --namespace %s exec -p %s -c %s wget http://localhost:8080/health" % (self.namespace, pod_name, container_name))
         output = self.__run("kubectl --namespace %s exec -p %s cat health" % (self.namespace, pod_name))
         logger.debug(output)
         try:

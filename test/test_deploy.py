@@ -37,7 +37,7 @@ class ConnectorStub(object):
     def describe_pod(self, name):
         return "Name: %s" % name
 
-    def check_pods_health(self, name):
+    def check_pods_health(self, pod_name, container_name):
         return 'UP' if self.healthy else 'DOWN'
 
     def get_service_as_json(self, service_name):
