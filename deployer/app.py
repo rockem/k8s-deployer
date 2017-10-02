@@ -1,3 +1,4 @@
+import subprocess
 import sys
 
 import click
@@ -9,7 +10,7 @@ from k8s import K8sConnector
 from log import DeployerLogger
 from recipe import Recipe
 from services import ServiceVersionWriter, RecipesReader, ConfigUploader, GlobalConfigFetcher
-from util import EnvironmentParser
+from util import EnvironmentParser, EnvironmentVariablesFetcher
 
 logger = DeployerLogger('deployer').getLogger()
 
@@ -68,8 +69,21 @@ class ConfigureCommand(object):
             fetcher.fetch_jobs_for(self.target))
 
 
+class SwaggerCommand(object):
+    REST_API_ID="REST_API_ID"
+    def __init__(self,swagger_yml_path):
+        self.swagger_yml_path = swagger_yml_path
+
+    def run(self):
+        rest_api_id = EnvironmentVariablesFetcher().fetch(self.REST_API_ID)
+        target_env= EnvironmentVariablesFetcher().fetch("TARGET_ENV")
+        body = subprocess.check_output(" git show  "+self.swagger_yml_path,shell=True)
+        subprocess.check_output("aws apigateway put-rest-api --rest-api-id %s --body %s" % (rest_api_id , body), shell=True, stderr=subprocess.STDOUT)
+        subprocess.check_output("aws apigateway create-deployment --rest-api-id %s --stage-name %s" % (rest_api_id , target_env), shell=True, stderr=subprocess.STDOUT)
+
+
 class ActionRunner:
-    def __init__(self, image_name, source, target, git_repository, domain, recipe_path, timeout):
+    def __init__(self, image_name, source, target, git_repository, domain, recipe_path, timeout,swagger_yml_path):
         self.image_name = image_name
         self.source = source
         self.target = target
@@ -77,6 +91,7 @@ class ActionRunner:
         self.domain = domain
         self.recipe_path = recipe_path
         self.timeout = timeout
+        self.swagger_yml_path = swagger_yml_path
 
     def run(self, action):
         connector = K8sConnector(EnvironmentParser(self.target).namespace())
@@ -87,9 +102,11 @@ class ActionRunner:
             PromoteCommand(self.source, self.target, self.git_repository, self.domain, connector, self.timeout).run()
         elif action == 'configure':
             ConfigureCommand(self.target, self.git_repository, connector).run()
+        elif action == 'swagger':
+            SwaggerCommand(self.swagger_yml_path).run()
 
 @click.command()
-@click.argument('action', type=click.Choice(['deploy', 'promote', 'configure']))
+@click.argument('action', type=click.Choice(['deploy', 'promote', 'configure','swagger']))
 @click.option('--image_name', default=False)
 @click.option('--source', default=False)
 @click.option('--target')
@@ -97,8 +114,10 @@ class ActionRunner:
 @click.option('--domain', default="")
 @click.option('--recipe', default="")
 @click.option('--deploy-timeout', default=120)
-def main(action, image_name, source, target, git_repository, domain, recipe, deploy_timeout):
-    ActionRunner(image_name, source, target, git_repository, domain, recipe, deploy_timeout).run(action)
+@click.option('--swagger_yml_path', default="")
+
+def main(action, image_name, source, target, git_repository, domain, recipe, deploy_timeout,swagger_yml_path):
+    ActionRunner(image_name, source, target, git_repository, domain, recipe, deploy_timeout,swagger_yml_path).run(action)
 
 
 

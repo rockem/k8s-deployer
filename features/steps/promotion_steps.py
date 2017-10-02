@@ -16,8 +16,7 @@ def write_service_to_int_git(context, name, version, env):
 
 @when("promoting")
 def promote(context):
-    DeployerDriver(RecipeRepository.GIT_REPO_URL, Context(context).default_namespace(), context.domain,
-                   Context(context).get_swagger_path()).promote()
+    DeployerDriver(RecipeRepository.GIT_REPO_URL, Context(context).default_namespace(),context.domain).promote()
 
 
 @then("it should be logged in git")

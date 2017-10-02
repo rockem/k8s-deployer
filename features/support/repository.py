@@ -6,8 +6,6 @@ import git
 import yaml
 
 
-
-
 class GitRepository(object):
     def __init__(self, repo_name, checkout_dir):
         self._repo_name = repo_name
