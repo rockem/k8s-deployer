@@ -9,7 +9,7 @@ from deployer.log import DeployerLogger
 from features.support.context import Context
 from features.support.docker import AppImageBuilder, JavaAppBuilder, AWSImagePusher
 from features.support.k8s import K8sDriver
-from features.support.repository import RecipeRepository, ConfigRepository
+from features.support.repository import RecipeRepository, ConfigRepository, SwaggerRepository
 
 TARGET_ENV = 'int'
 DOMAIN = 'heed-dev.io'
@@ -31,6 +31,8 @@ APP_BUILDERS = [
 def before_all(context):
     __build_apps(context)
     os.environ['TARGET_ENV'] = TARGET_ENV
+    os.environ['REST_API_ID'] = 'y404vvoq21'
+
     if __is_aws_mode(context):
         KopsSync(TARGET_ENV).sync()
         context.aws_uri = "911479539546.dkr.ecr.us-east-1.amazonaws.com/"
@@ -66,6 +68,7 @@ def before_scenario(context, scenario):
     __create_namespace(context)
     RecipeRepository().create()
     ConfigRepository().create()
+    SwaggerRepository().create()
 
 
 def __create_namespace(context):

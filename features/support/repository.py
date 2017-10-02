@@ -6,6 +6,8 @@ import git
 import yaml
 
 
+
+
 class GitRepository(object):
     def __init__(self, repo_name, checkout_dir):
         self._repo_name = repo_name
@@ -24,6 +26,42 @@ class GitRepository(object):
 
     def __git_url_for(self, repo_name):
         return "file://" + os.getcwd() + '/' + repo_name
+
+class SwaggerRepository(GitRepository):
+
+    SWAGGER_YML_PATH = "swagger_co/int/swagger.yml"
+
+    def __init__(self):
+        super(SwaggerRepository, self).__init__("swagger_repo", "swagger_co/int")
+
+    def push_swagger_with(self, response):
+        repo = super(SwaggerRepository, self)._checkout_repo()
+        shutil.copy('features/config/swagger.yml', "swagger_co/int/")
+        self.update_swagger_with(response)
+        repo.git.add('--all')
+        repo.index.commit("swagger deployment")
+        last_commit = repo.head.object.hexsha
+        return last_commit
+
+    def update_swagger_with(self, response):
+        with open(self.SWAGGER_YML_PATH, 'r') as file :
+            filedata = file.read().replace('hello',response)
+        with open(self.SWAGGER_YML_PATH, 'w') as f:
+            f.write(filedata)
+
+    def get_git_revision_hash(self):
+        return os.subprocess.check_output(['git', 'rev-parse', 'HEAD'])
+
+    def delete_from(self, path):
+        try:
+            os.remove(path)
+        except OSError:
+            print 'recipe path not found'
+
+    def get_path(self, last_commit):
+        return "%s:%s"%(last_commit,self.SWAGGER_YML_PATH)
+
+
 
 
 class RecipeRepository(GitRepository):

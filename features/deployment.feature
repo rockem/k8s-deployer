@@ -1,5 +1,10 @@
 Feature: deploy service on k8s
 
+  Scenario: deploy swagger to apigateway
+    Given swagger committed
+    When deployed to apigateway
+    Then apigateway should running
+
   Scenario: deploy simple service
     When deploy "version:healthy" service
     Then "version:healthy" service is serving
@@ -19,3 +24,5 @@ Feature: deploy service on k8s
   Scenario: expose another port
     When deploy "ported:1.0" service
     Then port 5000 is available
+
+

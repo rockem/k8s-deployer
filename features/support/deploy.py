@@ -12,10 +12,12 @@ class DeployDriverError(Exception):
 
 
 class DeployerDriver:
-    def __init__(self, git_repo, target,domain):
+
+    def __init__(self, git_repo, target, domain, swagger_path=''):
         self.git_repo = git_repo
         self.target = target
         self.domain = domain
+        self.swagger_path = swagger_path
 
     def deploy(self, app_image, should_fail=False):
         try:
@@ -54,3 +56,7 @@ class DeployerDriver:
     def promote(self):
         self.__run("python %s promote --source int --target %s --git_repository %s" % (
             APP, self.target, self.git_repo))
+
+    def deploy_swagger(self, path):
+        self.__run(
+            "python %s swagger  --target %s  --swagger_yml_path %s " % (APP,self.target,path))
