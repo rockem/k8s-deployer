@@ -2,6 +2,7 @@ import subprocess
 import sys
 
 import click
+from pathlib import Path
 
 from deploy import DeployError
 from deploy import ImageDeployer
@@ -77,7 +78,7 @@ class SwaggerCommand(object):
     def run(self):
         rest_api_id = EnvironmentVariablesFetcher().fetch(self.REST_API_ID)
         target_env= EnvironmentVariablesFetcher().fetch("TARGET_ENV")
-        body = subprocess.check_output(" git show  "+self.swagger_yml_path,shell=True)
+        body = subprocess.check_output( "git show  "+self.swagger_yml_path,shell=True)
         subprocess.check_output("aws apigateway put-rest-api --rest-api-id %s --body %s" % (rest_api_id , body), shell=True, stderr=subprocess.STDOUT)
         subprocess.check_output("aws apigateway create-deployment --rest-api-id %s --stage-name %s" % (rest_api_id , target_env), shell=True, stderr=subprocess.STDOUT)
 
@@ -117,6 +118,7 @@ class ActionRunner:
 @click.option('--swagger_yml_path', default="")
 
 def main(action, image_name, source, target, git_repository, domain, recipe, deploy_timeout,swagger_yml_path):
+
     ActionRunner(image_name, source, target, git_repository, domain, recipe, deploy_timeout,swagger_yml_path).run(action)
 
 

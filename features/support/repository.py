@@ -30,12 +30,19 @@ class SwaggerRepository(GitRepository):
     SWAGGER_YML_PATH = "swagger_co/int/swagger.yml"
 
     def __init__(self):
-        super(SwaggerRepository, self).__init__("swagger_repo", "swagger_co/int")
+        super(SwaggerRepository, self).__init__("swagger_repo", "swagger_co")
 
     def push_swagger_with(self, response):
         repo = super(SwaggerRepository, self)._checkout_repo()
+        if not os.path.exists(os.path.dirname("swagger_co/int/")):
+            try:
+                os.makedirs(os.path.dirname("swagger_co/int/"))
+            except OSError as exc:
+                if exc.errno != errno.EEXIST:
+                    raise
         shutil.copy('features/config/swagger.yml', "swagger_co/int/")
         self.update_swagger_with(response)
+
         repo.git.add('--all')
         repo.index.commit("swagger deployment")
         last_commit = repo.head.object.hexsha
