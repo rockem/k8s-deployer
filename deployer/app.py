@@ -102,6 +102,8 @@ def main(action, image_name, source, target, git_repository, domain, recipe, dep
 
     if os.path.exists("/opt/recipe.yml"):
         print ("exists")
+        f = open('/opt/recipe.yml', 'r')
+        print ("content : "+ f.read())
     ActionRunner(image_name, source, target, git_repository, domain, recipe, deploy_timeout).run(action)
 
 
