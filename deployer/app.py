@@ -99,13 +99,7 @@ class ActionRunner:
 @click.option('--recipe', default="")
 @click.option('--deploy-timeout', default=120)
 def main(action, image_name, source, target, git_repository, domain, recipe, deploy_timeout):
-    file_name="/opt/recipe.yml"
-    if os.path.exists(file_name):
-        logger.info("exists")
-        f = open(file_name, 'r')
-        logger.info("content : "+ f.read())
     ActionRunner(image_name, source, target, git_repository, domain, recipe, deploy_timeout).run(action)
-
 
 
 if __name__ == "__main__":
