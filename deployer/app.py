@@ -1,7 +1,7 @@
 import sys
 
 import click
-from pathlib import Path
+import os
 
 from deploy import DeployError
 from deploy import ImageDeployer
@@ -99,11 +99,9 @@ class ActionRunner:
 @click.option('--recipe', default="")
 @click.option('--deploy-timeout', default=120)
 def main(action, image_name, source, target, git_repository, domain, recipe, deploy_timeout):
-    my_file = Path("/opt/recipe.yml")
-    if my_file.is_file():
-        print("exists")
-    else:
-        print("not exists")
+
+    if os.path.exists("/opt/recipe.yml"):
+        print ("exists")
     ActionRunner(image_name, source, target, git_repository, domain, recipe, deploy_timeout).run(action)
 
 
