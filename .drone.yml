@@ -9,11 +9,13 @@ pipeline:
       - python -m nose
       - behave -D mode=aws features
     volumes:
-          - /var/run/docker.sock:/var/run/docker.sock
+      - /var/run/docker.sock:/var/run/docker.sock
 
   publish:
     image: plugins/docker
-    repo: registry.dnsk.io:5000/agt/k8s-deployer
+    repo: localhost:5000/k8s-deployer
     tags: latest
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
     when:
       branch: develop
