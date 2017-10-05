@@ -1,6 +1,6 @@
 pipeline:
   test:
-    image: registry.dnsk.io:5000/agt/aws-k8s-docker
+    image: localhost:5000/aws-k8s-docker
     pull: true
     commands:
       - pip install -r requirements.txt
@@ -13,9 +13,10 @@ pipeline:
 
   publish:
     image: plugins/docker
-    repo: localhost:5000/k8s-deployer
+    repo: localhost:5000/drone/k8s-deployer
     tags: latest
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     when:
+      event: push
       branch: develop
