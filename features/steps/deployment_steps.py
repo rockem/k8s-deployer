@@ -29,8 +29,7 @@ def step_impl(context):
 @given("swagger generated with random response")
 def swagger_committed(context):
     random = RandomWords().random_word()
-    SwaggerFileCreator().create_yml() #TODO: 1 function
-    SwaggerFileCreator().update_yml_with(random)
+    SwaggerFileCreator().create_yml_with(random)
     Context(context).add_swagger_response(random)
 
 

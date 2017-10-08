@@ -33,10 +33,8 @@ class SwaggerFileCreator(GitRepository):
     def __init__(self):
         super(SwaggerFileCreator, self).__init__("swagger_repo", "swagger_co")
 
-    def create_yml(self):
+    def create_yml_with(self, value):
         FileCreator().create_for(self.SWAGGER_YML_PATH, yaml.load(open(os.path.join('features/config/swagger.yml'),"r")))
-
-    def update_yml_with(self, value):
         self.__update_with(self.__read_content().replace('hello', value))
 
     def __update_with(self, content):
