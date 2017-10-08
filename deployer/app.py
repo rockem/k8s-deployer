@@ -1,17 +1,17 @@
-import subprocess
 import sys
 
 import click
-import os
 
 from deploy import DeployError
 from deploy import ImageDeployer
+from deployer.aws import AWSConnector
+
 from k8s import K8sConnector
 from log import DeployerLogger
 from recipe import Recipe
 from services import ServiceVersionWriter, RecipesReader, ConfigUploader, GlobalConfigFetcher
-from util import EnvironmentParser, EnvironmentVariablesFetcher
-from yml import YmlReader, SwaggerFileCreator
+from util import EnvironmentParser
+from yml import YmlReader
 
 logger = DeployerLogger('deployer').getLogger()
 
@@ -68,30 +68,18 @@ class ConfigureCommand(object):
         ConfigUploader(self.connector).upload_jobs(
             fetcher.fetch_jobs_for(self.target))
 
-class SwaggerCommand(object):
-    REST_API_ID = "REST_API_ID"
 
-    def __init__(self,swagger_yml_path):
-        self.swagger_yml_path = swagger_yml_path
+class SwaggerCommand(object):
+
+    def __init__(self, yml_path):
+        self.yml_path = yml_path
 
     def run(self):
-        self.create_rest_api()
-        self.create_deployment()
-
-    def __get_rest_api(self):
-        return EnvironmentVariablesFetcher().fetch(self.REST_API_ID)
-
-    def create_rest_api(self):
-        subprocess.check_output("aws apigateway put-rest-api --rest-api-id %s --body %s "
-                                   % (self.__get_rest_api(), 'file://'+SwaggerFileCreator(self.swagger_yml_path).create()), shell=True, stderr=subprocess.STDOUT)
-
-    def create_deployment(self):
-        subprocess.check_output("aws apigateway create-deployment --rest-api-id %s --stage-name %s"
-                                   % (self.__get_rest_api(), EnvironmentVariablesFetcher().fetch("TARGET_ENV")), shell=True, stderr=subprocess.STDOUT)
+        AWSConnector().upload_swagger(self.yml_path)
 
 
 class ActionRunner:
-    def __init__(self, image_name, source, target, git_repository, domain, recipe_path, timeout,swagger_yml_path):
+    def __init__(self, image_name, source, target, git_repository, domain, recipe_path, timeout, yml_path):
         self.image_name = image_name
         self.source = source
         self.target = target
@@ -99,7 +87,7 @@ class ActionRunner:
         self.domain = domain
         self.recipe_path = recipe_path
         self.timeout = timeout
-        self.swagger_yml_path = swagger_yml_path
+        self.yml_path = yml_path
 
     def run(self, action):
         connector = K8sConnector(EnvironmentParser(self.target).namespace())
@@ -111,10 +99,11 @@ class ActionRunner:
         elif action == 'configure':
             ConfigureCommand(self.target, self.git_repository, connector).run()
         elif action == 'swagger':
-            SwaggerCommand(self.swagger_yml_path).run()
+            SwaggerCommand(self.yml_path).run()
+
 
 @click.command()
-@click.argument('action', type=click.Choice(['deploy', 'promote', 'configure','swagger']))
+@click.argument('action', type=click.Choice(['deploy', 'promote', 'configure', 'swagger']))
 @click.option('--image_name', default=False)
 @click.option('--source', default=False)
 @click.option('--target')
@@ -122,12 +111,10 @@ class ActionRunner:
 @click.option('--domain', default="")
 @click.option('--recipe', default="")
 @click.option('--deploy-timeout', default=120)
-@click.option('--swagger_yml_path', default="")
-
-def main(action, image_name, source, target, git_repository, domain, recipe, deploy_timeout,swagger_yml_path):
-
-    ActionRunner(image_name, source, target, git_repository, domain, recipe, deploy_timeout,swagger_yml_path).run(action)
-
+@click.option('--yml_path', default="")
+def main(action, image_name, source, target, git_repository, domain, recipe, deploy_timeout, yml_path):
+    ActionRunner(image_name, source, target, git_repository, domain, recipe, deploy_timeout, yml_path).run(
+        action)
 
 
 if __name__ == "__main__":
