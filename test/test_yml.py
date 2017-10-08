@@ -1,11 +1,8 @@
-import os
-
 import yaml
-
-from deployer.log import DeployerLogger
-from deployer.yml import YmlCreator, NodeNotFoundError, ByPath, SwaggerFileCreator
 from nose.tools.nontrivial import raises
 
+from deployer.log import DeployerLogger
+from deployer.yml import YmlCreator, NodeNotFoundError, ByPath
 from deployer.yml import YmlReader
 
 CONFIGURATION = {"ENV": "test", "KUKU": "12345"}
