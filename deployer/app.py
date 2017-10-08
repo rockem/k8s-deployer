@@ -4,7 +4,7 @@ import click
 
 from deploy import DeployError
 from deploy import ImageDeployer
-from deployer.aws import AWSConnector
+from deployer.aws import ApiGatewayConnector
 
 from k8s import K8sConnector
 from log import DeployerLogger
@@ -75,7 +75,7 @@ class SwaggerCommand(object):
         self.yml_path = yml_path
 
     def run(self):
-        AWSConnector().upload_swagger(self.yml_path)
+        ApiGatewayConnector().upload_swagger(self.yml_path)
 
 
 class ActionRunner:

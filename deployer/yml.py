@@ -76,16 +76,7 @@ class SwaggerFileReader(object):
         return subprocess.check_output(" curl -H 'Authorization: token '" + EnvironmentVariablesFetcher().fetch("TOKEN_ID")+ " " + self.sw_yml_path, shell=True)
 
 
-class SwaggerFileCreator(object):
-    def __init__(self, swagger_yml_path):
-        self.sw_file_reader = SwaggerFileReader(swagger_yml_path)
 
-    def create(self):
-        dest_file_path = os.getcwd() + '/out/swagger.yml'
-        sw_content = self.sw_file_reader.read()
-        with open(dest_file_path, 'w') as sw:
-            yaml.dump(yaml.load(sw_content), sw, default_flow_style=False)
-        return dest_file_path
 
 class FileYmlCreator:
     def __init__(self, yml_dir, base_yml):
