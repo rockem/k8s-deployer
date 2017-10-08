@@ -26,20 +26,21 @@ def step_impl(context):
     assert http_get('http://%s/greet' % domain).text == "Hello Ported"
 
 
-@given("swagger committed")
+@given("swagger generated with random response")
 def swagger_committed(context):
     random = RandomWords().random_word()
-    SwaggerFileCreator().create_yml()
+    SwaggerFileCreator().create_yml() #TODO: 1 function
     SwaggerFileCreator().update_yml_with(random)
     Context(context).add_swagger_response(random)
 
 
-@when("deployed to apigateway")
+@when("deploying swagger")
 def apiGateway(context):
-    DeployerDriver("", Context(context).default_namespace(), context.domain, SwaggerFileCreator.SWAGGER_YML_URL).deploy_swagger(SwaggerFileCreator.SWAGGER_YML_URL)
+    DeployerDriver("", Context(context).default_namespace(), context.domain, SwaggerFileCreator.SWAGGER_YML_URL)\
+        .deploy_swagger(SwaggerFileCreator.SWAGGER_YML_URL)
 
 
-@then("api gateway should running")
+@then("swagger uploaded correctly to api gw")
 def step_impl(context):
     BusyWait.execute(__validate_api_gateway_updated, Context(context).get_swagger_response())
 
