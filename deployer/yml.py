@@ -3,6 +3,7 @@ import subprocess
 import os
 import yaml
 
+from deployer.util import EnvironmentVariablesFetcher
 from log import DeployerLogger
 
 logger = DeployerLogger('yml').getLogger()
@@ -67,13 +68,12 @@ class ByPath:
 
 
 class SwaggerFileReader(object):
-    TOKEN_ID = "7a3bc65ace9ba7ccff72e36244630fb1cb969b72"
 
     def __init__(self,swagger_yml_path):
         self.sw_yml_path = swagger_yml_path
 
     def read(self):
-        return subprocess.check_output(" curl -H 'Authorization: token '" + self.TOKEN_ID + " " + self.sw_yml_path, shell=True)
+        return subprocess.check_output(" curl -H 'Authorization: token '" + EnvironmentVariablesFetcher().fetch("TOKEN_ID")+ " " + self.sw_yml_path, shell=True)
 
 
 class SwaggerFileCreator(object):
