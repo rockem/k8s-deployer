@@ -63,7 +63,6 @@ class ConfigureCommand(object):
     def run(self):
         fetcher = GlobalConfigFetcher(self.git_repository)
         fetcher.checkout()
-
         ConfigUploader(self.connector).upload_config(
             fetcher.fetch_global_configuration_for(self.target))
         ConfigUploader(self.connector).upload_jobs(
@@ -83,7 +82,6 @@ class SwaggerCommand(object):
         return EnvironmentVariablesFetcher().fetch(self.REST_API_ID)
 
     def create_rest_api(self):
-
         subprocess.check_output("aws apigateway put-rest-api --rest-api-id %s --body %s "
                                    % (self.__get_rest_api(), 'file://'+SwaggerFileCreator(self.swagger_yml_path).create()), shell=True, stderr=subprocess.STDOUT)
 
