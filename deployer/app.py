@@ -4,7 +4,7 @@ import click
 
 from deploy import DeployError
 from deploy import ImageDeployer
-from deployer.aws import ApiGatewayConnector
+from aws import ApiGatewayConnector
 
 from k8s import K8sConnector
 from log import DeployerLogger
