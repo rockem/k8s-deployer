@@ -32,7 +32,7 @@ def before_all(context):
     __build_apps(context)
     os.environ['TARGET_ENV'] = TARGET_ENV
     os.environ['REST_API_ID'] = 'y404vvoq21'
-
+    os.environ['TOKEN_ID'] = ''
     if __is_aws_mode(context):
         KopsSync(TARGET_ENV).sync()
         context.aws_uri = "911479539546.dkr.ecr.us-east-1.amazonaws.com/"
