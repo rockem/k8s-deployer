@@ -2,16 +2,16 @@ import subprocess
 import sys
 
 import click
-from pathlib import Path
+import os
 
 from deploy import DeployError
 from deploy import ImageDeployer
-from yml import YmlReader
 from k8s import K8sConnector
 from log import DeployerLogger
 from recipe import Recipe
 from services import ServiceVersionWriter, RecipesReader, ConfigUploader, GlobalConfigFetcher
 from util import EnvironmentParser, EnvironmentVariablesFetcher
+from yml import YmlReader, SwaggerFileCreator
 
 logger = DeployerLogger('deployer').getLogger()
 
@@ -69,18 +69,27 @@ class ConfigureCommand(object):
         ConfigUploader(self.connector).upload_jobs(
             fetcher.fetch_jobs_for(self.target))
 
-
 class SwaggerCommand(object):
-    REST_API_ID="REST_API_ID"
+    REST_API_ID = "REST_API_ID"
+
     def __init__(self,swagger_yml_path):
         self.swagger_yml_path = swagger_yml_path
 
     def run(self):
-        rest_api_id = EnvironmentVariablesFetcher().fetch(self.REST_API_ID)
-        target_env= EnvironmentVariablesFetcher().fetch("TARGET_ENV")
-        body = subprocess.check_output( "git show  "+self.swagger_yml_path,shell=True)
-        subprocess.check_output("aws apigateway put-rest-api --rest-api-id %s --body %s" % (rest_api_id , body), shell=True, stderr=subprocess.STDOUT)
-        subprocess.check_output("aws apigateway create-deployment --rest-api-id %s --stage-name %s" % (rest_api_id , target_env), shell=True, stderr=subprocess.STDOUT)
+        self.create_rest_api()
+        self.create_deployment()
+
+    def __get_rest_api(self):
+        return EnvironmentVariablesFetcher().fetch(self.REST_API_ID)
+
+    def create_rest_api(self):
+
+        subprocess.check_output("aws apigateway put-rest-api --rest-api-id %s --body %s "
+                                   % (self.__get_rest_api(), 'file://'+SwaggerFileCreator(self.swagger_yml_path).create()), shell=True, stderr=subprocess.STDOUT)
+
+    def create_deployment(self):
+        subprocess.check_output("aws apigateway create-deployment --rest-api-id %s --stage-name %s"
+                                   % (self.__get_rest_api(), EnvironmentVariablesFetcher().fetch("TARGET_ENV")), shell=True, stderr=subprocess.STDOUT)
 
 
 class ActionRunner:

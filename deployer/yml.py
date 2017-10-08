@@ -1,5 +1,6 @@
-import os
+import subprocess
 
+import os
 import yaml
 
 from log import DeployerLogger
@@ -64,6 +65,27 @@ class ByPath:
     def locate(self, data):
         return find_node(self.path, data)
 
+
+class SwaggerFileReader(object):
+    TOKEN_ID = "7a3bc65ace9ba7ccff72e36244630fb1cb969b72"
+
+    def __init__(self,swagger_yml_path):
+        self.sw_yml_path = swagger_yml_path
+
+    def read(self):
+        return subprocess.check_output(" curl -H 'Authorization: token '" + self.TOKEN_ID + " " + self.sw_yml_path, shell=True)
+
+
+class SwaggerFileCreator(object):
+    def __init__(self, swagger_yml_path):
+        self.sw_file_reader = SwaggerFileReader(swagger_yml_path)
+
+    def create(self):
+        dest_file_path = os.getcwd() + '/out/swagger.yml'
+        sw_content = self.sw_file_reader.read()
+        with open(dest_file_path, 'w') as sw:
+            yaml.dump(yaml.load(sw_content), sw, default_flow_style=False)
+        return dest_file_path
 
 class FileYmlCreator:
     def __init__(self, yml_dir, base_yml):

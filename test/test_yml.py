@@ -3,7 +3,7 @@ import os
 import yaml
 
 from deployer.log import DeployerLogger
-from deployer.yml import YmlCreator, NodeNotFoundError, ByPath
+from deployer.yml import YmlCreator, NodeNotFoundError, ByPath, SwaggerFileCreator
 from nose.tools.nontrivial import raises
 
 from deployer.yml import YmlReader
@@ -45,6 +45,15 @@ class TestYmlCreator(object):
         assert kukus[0]['name'] == 'popov'
         assert kukus[1]['name'] == 'rozman'
 
+class SwaggerFileReaderDump(object):
+    def read(self):
+        return "aaa:111"
+
+class TestSwaggerFileCreator(object):
+    def test_create_yml_with_content(self):
+        file_creator = SwaggerFileCreator("")
+        file_creator.sw_file_reader = SwaggerFileReaderDump()
+        assert yaml.load( file_creator.create()) == SwaggerFileReaderDump().read()
 
 class TestYmlReader(object):
     def test_read_content_from_raw_string(self):
