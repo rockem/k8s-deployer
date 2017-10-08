@@ -1,7 +1,6 @@
 import errno
 import os
 import shutil
-
 import git
 import yaml
 
@@ -25,44 +24,29 @@ class GitRepository(object):
     def __git_url_for(self, repo_name):
         return "file://" + os.getcwd() + '/' + repo_name
 
-class SwaggerRepository(GitRepository):
 
-    SWAGGER_YML_PATH = "swagger_co/int/swagger.yml"
-    SWAGGER_YML_URL = "file://" + os.getcwd() + '/' + SWAGGER_YML_PATH
+class SwaggerFileCreator(GitRepository):
+
+    SWAGGER_YML_PATH = "out/swagger.yml"
+    SWAGGER_YML_URL = "file://" + os.getcwd() + '/'+SWAGGER_YML_PATH
 
     def __init__(self):
-        super(SwaggerRepository, self).__init__("swagger_repo", "swagger_co")
+        super(SwaggerFileCreator, self).__init__("swagger_repo", "swagger_co")
 
-    def push_swagger(self):
-        repo = super(SwaggerRepository, self)._checkout_repo()
-        if not os.path.exists(os.path.dirname("swagger_co/int/")):
-            try:
-                os.makedirs(os.path.dirname("swagger_co/int/"))
-            except OSError as exc:
-                if exc.errno != errno.EEXIST:
-                    raise
-        shutil.copy('features/config/swagger.yml', "swagger_co/int/")
-        repo.git.add('--all')
-        repo.index.commit("swagger deployment")
+    def create_yml(self):
+        FileCreator().create_for(self.SWAGGER_YML_PATH, yaml.load(open(os.path.join('features/config/swagger.yml'),"r")))
 
-    def update_swagger_with(self, response):
-        with open(self.SWAGGER_YML_PATH, 'r') as file :
-            filedata = file.read().replace('hello',response)
+    def update_yml_with(self, value):
+        self.__update_with(self.__read_content().replace('hello', value))
+
+    def __update_with(self, content):
         with open(self.SWAGGER_YML_PATH, 'w') as f:
-            f.write(filedata)
+            f.write(content)
 
-    def get_git_revision_hash(self):
-        return os.subprocess.check_output(['git', 'rev-parse', 'HEAD'])
-
-    def delete_from(self, path):
-        try:
-            os.remove(path)
-        except OSError:
-            print 'recipe path not found'
-
-    def get_path(self, last_commit):
-        return "%s:%s"%(last_commit,self.SWAGGER_YML_PATH)
-
+    def __read_content(self):
+        with open(self.SWAGGER_YML_PATH, 'r') as file:
+            file_data = file.read()
+        return file_data
 
 
 
@@ -91,10 +75,10 @@ class RecipeRepository(GitRepository):
         self.__delete_recipe()
 
     def __delete_recipe(self):
-        RecipeFileCreator().delete_from(self.RECIPE_PATH)
+        FileCreator.delete_from(self.RECIPE_PATH)
 
     def __create_recipe(self, app):
-        RecipeFileCreator().create_for(self.RECIPE_PATH, {'image_name': app.image_name(), 'logging': 'none'})
+        FileCreator.create_for(self.RECIPE_PATH, {'image_name': app.image_name(), 'logging': 'none'})
 
     def verify_recipe_is_logged_for(self, app):
         super(RecipeRepository, self)._checkout_repo()
@@ -104,11 +88,10 @@ class RecipeRepository(GitRepository):
             assert recipe[k] == source_recipe[k]
 
 
-class RecipeFileCreator():
-    RECIPE = './recipe.yml'
+class FileCreator():
 
-    def create_for(self, path, data):
-
+    @staticmethod
+    def create_for(path, data):
         if not os.path.exists(os.path.dirname(path)):
             try:
                 os.makedirs(os.path.dirname(path))
@@ -119,15 +102,10 @@ class RecipeFileCreator():
         with open(path, 'w') as outfile:
             yaml.dump(data, outfile, default_flow_style=False)
 
-    def delete_from(self, path):
+    @staticmethod
+    def delete_from(path):
         try:
             os.remove(path)
-        except OSError:
-            print 'recipe path not found'
-
-    def delete(self):
-        try:
-            os.remove(self.RECIPE)
         except OSError:
             print 'recipe path not found'
 

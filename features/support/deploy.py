@@ -12,7 +12,6 @@ class DeployDriverError(Exception):
 
 
 class DeployerDriver:
-
     def __init__(self, git_repo, target, domain, swagger_path=''):
         self.git_repo = git_repo
         self.target = target

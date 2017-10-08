@@ -3,7 +3,7 @@ Feature: deploy service on k8s
   Scenario: deploy swagger to apigateway
     Given swagger committed
     When deployed to apigateway
-    Then apigateway should running
+    Then api gateway should running
 
   Scenario: deploy simple service
     When deploy "version:healthy" service

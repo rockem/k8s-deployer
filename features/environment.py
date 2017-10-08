@@ -9,7 +9,7 @@ from deployer.log import DeployerLogger
 from features.support.context import Context
 from features.support.docker import AppImageBuilder, JavaAppBuilder, AWSImagePusher
 from features.support.k8s import K8sDriver
-from features.support.repository import RecipeRepository, ConfigRepository, SwaggerRepository
+from features.support.repository import RecipeRepository, ConfigRepository, SwaggerFileCreator
 
 TARGET_ENV = 'int'
 DOMAIN = 'heed-dev.io'
@@ -68,7 +68,7 @@ def before_scenario(context, scenario):
     __create_namespace(context)
     RecipeRepository().create()
     ConfigRepository().create()
-    SwaggerRepository().create()
+    SwaggerFileCreator().create()
 
 
 def __create_namespace(context):

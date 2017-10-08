@@ -16,14 +16,6 @@ class Context:
             self.__user_data()[APPS] = {}
         self.__user_data()[APPS][app.app_key()] = app
 
-    def add_swagger_path(self,path):
-        try:
-            self.__user_data()[SWAGGER_YML_COMMIT_AND_PATH]
-        except KeyError:
-            self.__user_data()[SWAGGER_YML_COMMIT_AND_PATH] = path
-
-    def get_swagger_path(self):
-        return self.__user_data()[SWAGGER_YML_COMMIT_AND_PATH]
 
     def add_swagger_response(self, response):
         try:
