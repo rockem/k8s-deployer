@@ -3,7 +3,7 @@ import subprocess
 import os
 import yaml
 
-from deployer.util import EnvironmentVariablesFetcher
+from util import EnvironmentVariablesFetcher
 from log import DeployerLogger
 
 logger = DeployerLogger('yml').getLogger()
