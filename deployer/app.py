@@ -2,6 +2,7 @@ import os
 import sys
 
 import click
+import os
 
 from aws import ApiGatewayConnector
 from deploy import DeployError
@@ -125,7 +126,6 @@ class ActionRunner:
 def main(action, image_name, source, target, git_repository, domain, recipe, deploy_timeout, yml_path):
     ActionRunner(image_name, source, target, git_repository, domain, recipe, deploy_timeout, yml_path).run(
         action)
-
 
 if __name__ == "__main__":
     main()
