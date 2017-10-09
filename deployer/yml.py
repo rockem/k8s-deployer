@@ -1,10 +1,10 @@
-import subprocess
-
 import os
+from urllib2 import urlopen, Request
+
 import yaml
 
-from util import EnvironmentVariablesFetcher
 from log import DeployerLogger
+from util import EnvironmentVariablesFetcher
 
 logger = DeployerLogger('yml').getLogger()
 
@@ -73,9 +73,9 @@ class SwaggerFileReader(object):
         self.sw_yml_path = swagger_yml_path
 
     def read(self):
-        return subprocess.check_output(" curl -H 'Authorization: token '" + EnvironmentVariablesFetcher().fetch("TOKEN_ID")+ " " + self.sw_yml_path, shell=True)
-
-
+        request = Request(self.sw_yml_path)
+        request.add_header('Authorization', 'token %s'%EnvironmentVariablesFetcher().fetch("TOKEN_ID"))
+        return urlopen(request).read()
 
 
 class FileYmlCreator:
