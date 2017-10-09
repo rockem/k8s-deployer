@@ -2,11 +2,11 @@ import os
 
 import yaml
 
-from deployer.git_util import GitClient
-from deployer.recipe import Recipe
-from deployer.services import logger, SERVICES_FOLDER
-from deployer.util import create_directory
-from deployer.yml import YmlReader
+from git_util import GitClient
+from recipe import Recipe
+from services import logger, SERVICES_FOLDER
+from util import create_directory
+from yml import YmlReader
 
 
 class DeployLogRepository:
