@@ -10,7 +10,7 @@ from k8s import K8sConnector
 from log import DeployerLogger
 from recipe import Recipe
 from services import ConfigUploader, GlobalConfigFetcher
-from deployer.repository import DeployLogRepository
+from repository import DeployLogRepository
 from util import EnvironmentParser, ImageNameParser
 from yml import YmlReader
 
