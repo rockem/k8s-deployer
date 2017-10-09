@@ -22,6 +22,8 @@ build/
 .gradle
 config_repo
 recipe_repo
+env_repo
+env_co
 config_co
 recipe_co
 out
