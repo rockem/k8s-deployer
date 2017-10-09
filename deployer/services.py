@@ -3,31 +3,32 @@ import os
 import yaml
 
 from git_util import GitClient
-from yml import YmlReader
 from log import DeployerLogger
 from recipe import Recipe
-from util import create_directory, EnvironmentParser, ImageNameParser
+from util import create_directory, EnvironmentParser
+from yml import YmlReader
 
 logger = DeployerLogger(__name__).getLogger()
 
 SERVICES_FOLDER = 'services'
 
 
-class ServiceVersionWriter:
+class LoggingWriter:
+
     def __init__(self, git_repository):
         self.git_client = GitClient(git_repository)
 
-    def write(self, target, recipe):
+    def write(self, path, data):
         self.git_client.checkout()
         logger.debug("git url for push! %s")
-        file_name = os.path.join(target, SERVICES_FOLDER, "%s.yml" % ImageNameParser(recipe.image()).name())
-        self.__write_service_file(file_name, recipe)
+        LoggingWriter.__write_service_file(path, data)
         self.git_client.check_in()
 
-    def __write_service_file(self, file_name, recipe):
-        create_directory(os.path.join(GitClient.CHECKOUT_DIR, os.path.dirname(file_name)))
-        with(open(os.path.join(GitClient.CHECKOUT_DIR, file_name), 'w')) as service_file:
-            yaml.dump(recipe.ingredients, service_file, default_flow_style=False, allow_unicode=False)
+    @staticmethod
+    def __write_service_file(path, data):
+        create_directory(os.path.join(GitClient.CHECKOUT_DIR, os.path.dirname(path)))
+        with(open(os.path.join(GitClient.CHECKOUT_DIR, path), 'w')) as service_file:
+            yaml.dump(data, service_file, default_flow_style=False, allow_unicode=False)
 
 
 class RecipesReader:

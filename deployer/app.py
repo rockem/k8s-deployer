@@ -1,16 +1,16 @@
+import os
 import sys
 
 import click
 
+from aws import ApiGatewayConnector
 from deploy import DeployError
 from deploy import ImageDeployer
-from aws import ApiGatewayConnector
-
 from k8s import K8sConnector
 from log import DeployerLogger
 from recipe import Recipe
-from services import ServiceVersionWriter, RecipesReader, ConfigUploader, GlobalConfigFetcher
-from util import EnvironmentParser
+from services import RecipesReader, ConfigUploader, GlobalConfigFetcher, LoggingWriter
+from util import EnvironmentParser, ImageNameParser
 from yml import YmlReader
 
 logger = DeployerLogger('deployer').getLogger()
@@ -27,8 +27,12 @@ class DeployCommand(object):
         logger.debug('is exposed %s ' % self.recipe.expose())
         self.__validate_image_contains_tag()
         self.image_deployer.deploy()
-        ServiceVersionWriter(self.git_repository).write(EnvironmentParser(self.target).name(), self.recipe)
+        LoggingWriter(self.git_repository).write(self.__recipe_location(), self.recipe.ingredients)
         logger.debug("finished deploying image:%s" % self.recipe.image())
+
+    def __recipe_location(self):
+        return os.path.join(EnvironmentParser(self.target).name(), "services",
+                            "%s.yml" % ImageNameParser(self.recipe.image()).name())
 
     def __validate_image_contains_tag(self):
         if ':' not in self.recipe.image():
@@ -71,11 +75,16 @@ class ConfigureCommand(object):
 
 class SwaggerCommand(object):
 
-    def __init__(self, yml_path):
+    def __init__(self, yml_path, git_repository):
         self.yml_path = yml_path
+        self.git_repository = git_repository
 
     def run(self):
         ApiGatewayConnector().upload_swagger(self.yml_path)
+        LoggingWriter(self.git_repository).write(self.__swagger_location(), {'url': self.yml_path})
+
+    def __swagger_location(self):
+        return os.path.join(EnvironmentParser("").name(), "api", "swagger.yml")
 
 
 class ActionRunner:
@@ -99,7 +108,7 @@ class ActionRunner:
         elif action == 'configure':
             ConfigureCommand(self.target, self.git_repository, connector).run()
         elif action == 'swagger':
-            SwaggerCommand(self.yml_path).run()
+            SwaggerCommand(self.yml_path,self.git_repository).run()
 
 
 @click.command()

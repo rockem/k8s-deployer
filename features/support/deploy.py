@@ -55,4 +55,4 @@ class DeployerDriver:
             APP, self.target, self.git_repo))
 
     def deploy_swagger(self, path):
-        self.__run("%s swagger --yml_path %s" % (APP,  path))
+        self.__run("%s swagger --git_repository %s --yml_path %s" % (APP,self.git_repo,  path))

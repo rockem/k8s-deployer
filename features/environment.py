@@ -9,7 +9,7 @@ from deployer.log import DeployerLogger
 from features.support.context import Context
 from features.support.docker import AppImageBuilder, JavaAppBuilder, AWSImagePusher
 from features.support.k8s import K8sDriver
-from features.support.repository import RecipeRepository, ConfigRepository, SwaggerFileCreator
+from features.support.repository import LoggingRepository, ConfigRepository, SwaggerFileCreator
 
 TARGET_ENV = 'int'
 DOMAIN = 'heed-dev.io'
@@ -66,9 +66,9 @@ def __push_apps_aws(apps):
 
 def before_scenario(context, scenario):
     __create_namespace(context)
-    RecipeRepository().create()
+    LoggingRepository().create()
     ConfigRepository().create()
-    SwaggerFileCreator().create()
+
 
 
 def __create_namespace(context):
