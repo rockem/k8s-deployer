@@ -1,8 +1,10 @@
 import os
+from urllib2 import urlopen, Request
 
 import yaml
 
 from log import DeployerLogger
+from util import EnvironmentVariablesFetcher
 
 logger = DeployerLogger('yml').getLogger()
 
@@ -63,6 +65,17 @@ class ByPath:
 
     def locate(self, data):
         return find_node(self.path, data)
+
+
+class SwaggerFileReader(object):
+
+    def __init__(self,swagger_yml_path):
+        self.sw_yml_path = swagger_yml_path
+
+    def read(self):
+        request = Request(self.sw_yml_path)
+        request.add_header('Authorization', 'token %s'%EnvironmentVariablesFetcher().fetch("TOKEN_ID"))
+        return urlopen(request).read()
 
 
 class FileYmlCreator:

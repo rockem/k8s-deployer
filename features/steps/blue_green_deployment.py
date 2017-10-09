@@ -8,7 +8,7 @@ from features.support.context import Context
 from features.support.deploy import DeployerDriver
 from features.support.http import http_get
 from features.support.k8s import K8sDriver
-from features.support.repository import RecipeRepository
+from features.support.repository import LoggingRepository
 
 use_step_matcher("re")
 
@@ -25,7 +25,7 @@ def deploy_service_successfully(context, name, version):
 
 def __deploy_service(context, name, version, status):
     app = Context(context).get_app_for(name, version)
-    DeployerDriver(RecipeRepository.GIT_REPO_URL, Context(context).default_namespace(),context.domain).deploy(app, status == 'fail')
+    DeployerDriver(LoggingRepository.GIT_REPO_URL, Context(context).default_namespace(), context.domain).deploy(app, status == 'fail')
     Context(context).set_last_deployed_app(app)
 
 
