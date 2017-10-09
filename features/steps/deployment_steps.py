@@ -36,15 +36,21 @@ def swagger_committed(context):
 
 @when("deploying swagger")
 def deploy_swagger(context):
-    DeployerDriver(LoggingRepository.GIT_REPO_URL, Context(context).default_namespace(), context.domain, SwaggerFileCreator.SWAGGER_YML_URL)\
+    DeployerDriver(LoggingRepository.GIT_REPO_URL, Context(context).default_namespace(), context.domain,
+                   SwaggerFileCreator.SWAGGER_YML_URL) \
         .deploy_swagger(SwaggerFileCreator.SWAGGER_YML_URL)
 
 
-@then("swagger logged in git and uploaded to api gw")
+@then("uploaded to api gw")
 def verify_swagger_uploaded(context):
-    LoggingRepository().verify_swagger_is_logged()
     BusyWait.execute(__validate_api_gateway_updated, Context(context).get_swagger_response())
 
 
+@then("swagger logged in git ")
+def verify_swagger_uploaded(context):
+    LoggingRepository().verify_swagger_is_logged()
+
+
 def __validate_api_gateway_updated(response):
-    assert yaml.load(http_get("https://"+os.environ['REST_API_ID']+".execute-api.us-east-1.amazonaws.com/int/v1/random").text) == response
+    assert yaml.load(http_get(
+        "https://" + os.environ['REST_API_ID'] + ".execute-api.us-east-1.amazonaws.com/int/v1/random").text) == response

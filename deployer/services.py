@@ -13,7 +13,7 @@ logger = DeployerLogger(__name__).getLogger()
 SERVICES_FOLDER = 'services'
 
 
-class LoggingWriter:
+class DeployLogRepository:
 
     def __init__(self, git_repository):
         self.git_client = GitClient(git_repository)
@@ -21,7 +21,7 @@ class LoggingWriter:
     def write(self, path, data):
         self.git_client.checkout()
         logger.debug("git url for push! %s")
-        LoggingWriter.__write_service_file(path, data)
+        DeployLogRepository.__write_service_file(path, data)
         self.git_client.check_in()
 
     @staticmethod
@@ -29,11 +29,6 @@ class LoggingWriter:
         create_directory(os.path.join(GitClient.CHECKOUT_DIR, os.path.dirname(path)))
         with(open(os.path.join(GitClient.CHECKOUT_DIR, path), 'w')) as service_file:
             yaml.dump(data, service_file, default_flow_style=False, allow_unicode=False)
-
-
-class RecipesReader:
-    def __init__(self, git_repository):
-        self.git_client = GitClient(git_repository)
 
     def read(self, from_env):
         self.git_client.checkout()
@@ -46,7 +41,6 @@ class RecipesReader:
             recipes.append(
                 Recipe.builder().ingredients(YmlReader(os.path.join(services_path, dir)).read()).build())
         return recipes
-
 
 class ConfigUploader:
     def __init__(self, connector):

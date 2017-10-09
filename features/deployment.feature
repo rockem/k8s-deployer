@@ -23,5 +23,6 @@ Feature: deploy service on k8s
   Scenario: deploy swagger to apigateway
     Given swagger generated with random response
     When deploying swagger
-    Then swagger logged in git and uploaded to api gw
+    Then uploaded to api gw
+    And swagger logged in git
 

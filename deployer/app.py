@@ -9,7 +9,7 @@ from deploy import ImageDeployer
 from k8s import K8sConnector
 from log import DeployerLogger
 from recipe import Recipe
-from services import RecipesReader, ConfigUploader, GlobalConfigFetcher, LoggingWriter
+from services import ConfigUploader, GlobalConfigFetcher, DeployLogRepository
 from util import EnvironmentParser, ImageNameParser
 from yml import YmlReader
 
@@ -27,7 +27,7 @@ class DeployCommand(object):
         logger.debug('is exposed %s ' % self.recipe.expose())
         self.__validate_image_contains_tag()
         self.image_deployer.deploy()
-        LoggingWriter(self.git_repository).write(self.__recipe_location(), self.recipe.ingredients)
+        DeployLogRepository(self.git_repository).write(self.__recipe_location(), self.recipe.ingredients)
         logger.debug("finished deploying image:%s" % self.recipe.image())
 
     def __recipe_location(self):
@@ -50,7 +50,7 @@ class PromoteCommand(object):
         self.timeout = timeout
 
     def run(self):
-        recipes = RecipesReader(self.git_repository).read(self.from_env)
+        recipes = DeployLogRepository(self.git_repository).read(self.from_env)
         for recipe in recipes:
             try:
                 DeployCommand(self.to_env, self.git_repository, self.domain, self.connector, recipe, self.timeout).run()
@@ -81,7 +81,7 @@ class SwaggerCommand(object):
 
     def run(self):
         ApiGatewayConnector().upload_swagger(self.yml_path)
-        LoggingWriter(self.git_repository).write(self.__swagger_location(), {'url': self.yml_path})
+        DeployLogRepository(self.git_repository).write(self.__swagger_location(), {'url': self.yml_path})
 
     def __swagger_location(self):
         return os.path.join(EnvironmentParser("").name(), "api", "swagger.yml")
