@@ -41,8 +41,12 @@ Commands:
 * `--target                Target Namespace for the target ENV`
 * `--git_repository        Repo for services to apply (git.dnsk.io/platform-k8s-config/k8s-services-envs.gi)`
 
+>
 
-'swagger'    - deploy swagger yml from yml_path to api gateway.Where yml_path is url to swagger yml
+'swagger'       - deploy swagger yml to api gateway 
+>
+* `--yml_path              url to swagger yml`
+* `--git_repository        Repo for services to apply (git.dnsk.io/platform-k8s-config/k8s-services-envs.gi)`
 
 
 
