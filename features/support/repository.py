@@ -26,49 +26,73 @@ class GitRepository(object):
         return "file://" + os.getcwd() + '/' + repo_name
 
 
-class RecipeRepository(GitRepository):
-    REPO_NAME = 'recipe_repo'
-    GIT_REPO_URL = "file://" + os.getcwd() + '/' + REPO_NAME
-    CHECKOUT_DIR = 'recipe_co'
-    RECIPE_PATH = CHECKOUT_DIR + "/int/services/recipe.yml"
+class SwaggerFileCreator(GitRepository):
+    SWAGGER_YML_PATH = "out/swagger.yml"
+    SWAGGER_YML_URL = "file://" + os.getcwd() + '/' + SWAGGER_YML_PATH
 
     def __init__(self):
-        super(RecipeRepository, self).__init__(self.REPO_NAME, self.CHECKOUT_DIR)
+        super(SwaggerFileCreator, self).__init__("swagger_repo", "swagger_co")
+
+    def create_yml_with(self, value):
+        FileCreator().create_for(self.SWAGGER_YML_PATH, yaml.load(open('features/config/swagger.yml', "r")))
+        self.__update_with(self.__read_content().replace('hello', value))
+
+    def __update_with(self, content):
+        with open(self.SWAGGER_YML_PATH, 'w') as f:
+            f.write(content)
+
+    def __read_content(self):
+        with open(self.SWAGGER_YML_PATH, 'r') as file:
+            file_data = file.read()
+        return file_data
+
+
+class LoggingRepository(GitRepository):
+    REPO_NAME = 'env_repo'
+    GIT_REPO_URL = "file://" + os.getcwd() + '/' + REPO_NAME
+    CHECKOUT_DIR = 'env_co'
+    SWAGGER_YML_PATH = CHECKOUT_DIR + "/int/api/swagger.yml"
+    RECIPE_YML_PATH = CHECKOUT_DIR + "/int/services/recipe.yml"
+
+    def __init__(self):
+        super(LoggingRepository, self).__init__(self.REPO_NAME, self.CHECKOUT_DIR)
 
     def verify_app_is_logged(self, app):
-        super(RecipeRepository, self)._checkout_repo()
+        super(LoggingRepository, self)._checkout_repo()
         assert self.get_recipe_for(app)['image_name'] == app.image_name()
 
     def get_recipe_for(self, app):
         return yaml.load(open(os.path.join(self.CHECKOUT_DIR, 'int', 'services', '%s.yml' % app.service_name()), "r"))
 
     def log_app(self, app):
-        repo = super(RecipeRepository, self)._checkout_repo()
+        repo = super(LoggingRepository, self)._checkout_repo()
         self.__create_recipe(app)
         repo.git.add('--all')
         repo.index.commit("updated by tests")
         repo.remote().push()
         self.__delete_recipe()
 
+    def verify_swagger_is_logged(self):
+        super(LoggingRepository, self)._checkout_repo()
+        assert yaml.load(open(self.SWAGGER_YML_PATH, "r"))['url'] == yaml.load(SwaggerFileCreator.SWAGGER_YML_URL)
+
     def __delete_recipe(self):
-        RecipeFileCreator().delete_from(self.RECIPE_PATH)
+        FileCreator.delete_from(self.RECIPE_YML_PATH)
 
     def __create_recipe(self, app):
-        RecipeFileCreator().create_for(self.RECIPE_PATH, {'image_name': app.image_name(), 'logging': 'none'})
+        FileCreator.create_for(self.RECIPE_YML_PATH, {'image_name': app.image_name(), 'logging': 'none'})
 
     def verify_recipe_is_logged_for(self, app):
-        super(RecipeRepository, self)._checkout_repo()
+        super(LoggingRepository, self)._checkout_repo()
         source_recipe = yaml.load(open(app.recipe_path(), "r"))
         recipe = self.get_recipe_for(app)
         for k in source_recipe.keys():
             assert recipe[k] == source_recipe[k]
 
 
-class RecipeFileCreator():
-    RECIPE = './recipe.yml'
-
-    def create_for(self, path, data):
-
+class FileCreator():
+    @staticmethod
+    def create_for(path, data):
         if not os.path.exists(os.path.dirname(path)):
             try:
                 os.makedirs(os.path.dirname(path))
@@ -79,15 +103,10 @@ class RecipeFileCreator():
         with open(path, 'w') as outfile:
             yaml.dump(data, outfile, default_flow_style=False)
 
-    def delete_from(self, path):
+    @staticmethod
+    def delete_from(path):
         try:
             os.remove(path)
-        except OSError:
-            print 'recipe path not found'
-
-    def delete(self):
-        try:
-            os.remove(self.RECIPE)
         except OSError:
             print 'recipe path not found'
 

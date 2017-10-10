@@ -1,0 +1,37 @@
+---
+swagger: '2.0'
+info:
+  description: Your first API with Amazon API Gateway. This is a sample API that integrates
+    via HTTP with our demo Pet Store endpoints
+  title: DeployerTest
+schemes:
+- https
+paths:
+  "/v1/random":
+    get:
+      tags:
+      - test
+      description: PetStore HTML web page containing API usage information
+      consumes:
+      - application/json
+      produces:
+      - text/html
+      responses:
+        '200':
+          description: Successful operation
+          headers:
+            Content-Type:
+              type: string
+              description: Media type of request
+      x-amazon-apigateway-integration:
+        responses:
+          default:
+            statusCode: '200'
+            responseParameters:
+              method.response.header.Content-Type: "'text/html'"
+            responseTemplates:
+              text/html: hello
+        passthroughBehavior: when_no_match
+        requestTemplates:
+          application/json: '{"statusCode": 200}'
+        type: mock
