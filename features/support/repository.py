@@ -84,7 +84,7 @@ class LoggingRepository(GitRepository):
 
     def verify_swagger_is_logged(self):
         super(LoggingRepository, self)._checkout_repo()
-        assert yaml.load(open(self.recipe_location("int"), "r"))['url'] == yaml.load(SwaggerFileCreator.SWAGGER_YML_URL)
+        assert yaml.load(open(self.swagger_location("int"), "r"))['url'] == yaml.load(SwaggerFileCreator.SWAGGER_YML_URL)
 
     def verify_recipe_is_logged_for(self, app):
         super(LoggingRepository, self)._checkout_repo()
