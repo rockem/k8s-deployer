@@ -51,8 +51,7 @@ class LoggingRepository(GitRepository):
     REPO_NAME = 'env_repo'
     GIT_REPO_URL = "file://" + os.getcwd() + '/' + REPO_NAME
     CHECKOUT_DIR = 'env_co'
-    SWAGGER_YML_PATH = CHECKOUT_DIR + "/int/api/swagger.yml"
-    RECIPE_YML_PATH = CHECKOUT_DIR + "/int/services/recipe.yml"
+    SWAGGER_CONTENT = {'url': SwaggerFileCreator.SWAGGER_YML_URL}
 
     def __init__(self):
         super(LoggingRepository, self).__init__(self.REPO_NAME, self.CHECKOUT_DIR)
@@ -64,23 +63,28 @@ class LoggingRepository(GitRepository):
     def get_recipe_for(self, app):
         return yaml.load(open(os.path.join(self.CHECKOUT_DIR, 'int', 'services', '%s.yml' % app.service_name()), "r"))
 
-    def log_app(self, app):
+    @staticmethod
+    def recipe_content(app):
+        return {'image_name': app.image_name(), 'logging': 'none'}
+
+    @staticmethod
+    def recipe_location(env):
+        return os.path.join(LoggingRepository.CHECKOUT_DIR, env, "services/recipe.yml")
+
+    @staticmethod
+    def swagger_location(env):
+        return os.path.join(LoggingRepository.CHECKOUT_DIR, env, "api/swagger.yml")
+
+    def log(self, path, data):
         repo = super(LoggingRepository, self)._checkout_repo()
-        self.__create_recipe(app)
+        FileCreator.create_for(path, data)
         repo.git.add('--all')
         repo.index.commit("updated by tests")
         repo.remote().push()
-        self.__delete_recipe()
 
     def verify_swagger_is_logged(self):
         super(LoggingRepository, self)._checkout_repo()
-        assert yaml.load(open(self.SWAGGER_YML_PATH, "r"))['url'] == yaml.load(SwaggerFileCreator.SWAGGER_YML_URL)
-
-    def __delete_recipe(self):
-        FileCreator.delete_from(self.RECIPE_YML_PATH)
-
-    def __create_recipe(self, app):
-        FileCreator.create_for(self.RECIPE_YML_PATH, {'image_name': app.image_name(), 'logging': 'none'})
+        assert yaml.load(open(self.recipe_location("int"), "r"))['url'] == yaml.load(SwaggerFileCreator.SWAGGER_YML_URL)
 
     def verify_recipe_is_logged_for(self, app):
         super(LoggingRepository, self)._checkout_repo()
@@ -88,7 +92,6 @@ class LoggingRepository(GitRepository):
         recipe = self.get_recipe_for(app)
         for k in source_recipe.keys():
             assert recipe[k] == source_recipe[k]
-
 
 class FileCreator():
     @staticmethod

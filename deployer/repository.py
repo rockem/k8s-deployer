@@ -37,3 +37,6 @@ class DeployLogRepository:
             recipes.append(
                 Recipe.builder().ingredients(YmlReader(os.path.join(services_path, dir)).read()).build())
         return recipes
+
+    def read_swagger(self, from_env):
+        return YmlReader(os.path.join(GitClient.CHECKOUT_DIR, from_env, "api","swagger.yml")).read()

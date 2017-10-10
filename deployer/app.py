@@ -58,6 +58,9 @@ class PromoteCommand(object):
                 DeployCommand(self.to_env, self.git_repository, self.domain, self.connector, recipe, self.timeout).run()
             except DeployError as e:
                 logger.warn("Failed to deploy %s with error: %s" % (recipe.image(), e.message))
+        swagger = DeployLogRepository(self.git_repository).read_swagger(self.from_env)
+        SwaggerCommand(swagger['url'],self.git_repository).run()
+
 
 
 class ConfigureCommand(object):
@@ -76,17 +79,15 @@ class ConfigureCommand(object):
 
 
 class SwaggerCommand(object):
-
+    SWAGGER_LOCATION=os.path.join(EnvironmentParser("").name(), "api", "swagger.yml")
     def __init__(self, yml_path, git_repository):
         self.yml_path = yml_path
         self.git_repository = git_repository
 
     def run(self):
         ApiGatewayConnector().upload_swagger(self.yml_path)
-        DeployLogRepository(self.git_repository).write(self.__swagger_location(), {'url': self.yml_path})
+        DeployLogRepository(self.git_repository).write(self.SWAGGER_LOCATION, {'url': self.yml_path})
 
-    def __swagger_location(self):
-        return os.path.join(EnvironmentParser("").name(), "api", "swagger.yml")
 
 
 class ActionRunner:
