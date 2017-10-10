@@ -13,3 +13,4 @@ Feature: promote service on k8s
     When promoting from kuku environment to int
     Then uploaded to api gw
     And swagger logged in git
+    
