@@ -5,7 +5,6 @@ Feature: promote service on k8s
     And swagger is defined in kuku environment
     When promoting from kuku environment to int
     Then it should be running
-    And uploaded to api gw
     And it should be logged in git
 
   Scenario: swagger is promoted according to git content of source environment
