@@ -28,14 +28,14 @@ class ApiGatewayConnector(object):
 
     def __busy_wait(self, run_func, *args):
         result = False
-        for _ in range(20):
-            logger.debug('try # %s' % _)
+        for i in range(20):
+            logger.debug('try # %s' % i)
             try:
                 if run_func(args[0]):
                     result = True
                     break
             except Exception:
                 pass
-            time.sleep(1)
+            time.sleep(20*i+10)
 
         return result
