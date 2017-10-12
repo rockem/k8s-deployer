@@ -76,8 +76,7 @@ def verify_swagger_uploaded(context):
 def verify_swagger_uploaded(context):
     LoggingRepository().verify_swagger_is_logged()
 
-
 def __validate_api_gateway_updated(response):
-    assert http_get( "https://" + os.environ['REST_API_ID'] + ".execute-api.us-east-1.amazonaws.com/int/v1/random").text == response
+    assert http_get( "http://" + os.environ['REST_API_ID'] + ".execute-api.us-east-1.amazonaws.com/int/v1/random").text == response
 
 
