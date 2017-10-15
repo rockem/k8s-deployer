@@ -2,7 +2,7 @@ import time
 
 
 class BusyWait:
-    NUM_ITER = 260
+    NUM_ITER = 120
 
     @staticmethod
     def execute(run_func, *args):

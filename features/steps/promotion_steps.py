@@ -37,8 +37,8 @@ def step_impl(context, env):
     random = RandomWords().random_word()
     SwaggerFileCreator().create_yml_with(random)
     LoggingRepository().log(LoggingRepository.swagger_location(env),LoggingRepository.SWAGGER_CONTENT)
-    Context(context).add_swagger_response(random)
-    print ("after update context : %s"%Context(context).get_swagger_response())
+    context.response=random
+    print ("after update context : %s \n"%context.response)
 
 
 

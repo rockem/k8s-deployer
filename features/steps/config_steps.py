@@ -55,12 +55,6 @@ def _validate_job_was_invoked(domain):
     assert http_get('http://%s/verify' % domain).status_code == 200
 
 
-@given("swagger generated with random response")
-def swagger_committed(context):
-    random = RandomWords().random_word()
-    SwaggerFileCreator().create_yml_with(random)
-    Context(context).add_swagger_response(random)
-
 
 @when("deploying swagger")
 def deploy_swagger(context):
@@ -71,7 +65,7 @@ def deploy_swagger(context):
 
 @then("uploaded to api gw")
 def verify_swagger_uploaded(context):
-    BusyWait.execute(__validate_api_gateway_updated, Context(context).get_swagger_response())
+    BusyWait.execute(__validate_api_gateway_updated, context.response)
 
 @then("swagger logged in git")
 def verify_swagger_uploaded(context):
@@ -81,5 +75,4 @@ def __validate_api_gateway_updated(response):
     print ("response actual: %s "%http_get( "http://" + os.environ['REST_API_ID'] + ".execute-api.us-east-1.amazonaws.com/int/v1/random").text)
     print ("response expected : %s"%response)
     assert http_get( "http://" + os.environ['REST_API_ID'] + ".execute-api.us-east-1.amazonaws.com/int/v1/random").text == response
-    # assert subprocess.check_output("curl https://y404vvoq21.execute-api.us-east-1.amazonaws.com/int/v1/random ", shell=True, stderr=subprocess.STDOUT) == response
 
