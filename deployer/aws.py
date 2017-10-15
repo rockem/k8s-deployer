@@ -17,9 +17,6 @@ class ApiGatewayConnector(object):
         self.rest_api_id = EnvironmentVariablesFetcher().fetch("REST_API_ID")
         self.target_env = EnvironmentVariablesFetcher().fetch("TARGET_ENV")
 
-
-
     def upload_swagger(self, yml_path):
         client.put_rest_api(restApiId=self.rest_api_id, mode='overwrite', failOnWarnings=False, body=SwaggerFileReader(yml_path).read())
-        # subprocess.call("aws apigateway create-deployment  --rest-api-id %s --stage-name %s" % (self.rest_api_id, self.target_env), shell=True)
         client.create_deployment(restApiId=self.rest_api_id, stageName=self.target_env, cacheClusterEnabled=False)
