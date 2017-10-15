@@ -1,6 +1,6 @@
 pipeline:
   test:
-    image: localhost:5000/aws-k8s-docker
+    image: 911479539546.dkr.ecr.us-east-1.amazonaws.com/aws-k8s-docker
     pull: true
     commands:
       - pip install -r requirements.txt
