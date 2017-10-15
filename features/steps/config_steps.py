@@ -73,7 +73,6 @@ def deploy_swagger(context):
 def verify_swagger_uploaded(context):
     BusyWait.execute(__validate_api_gateway_updated, Context(context).get_swagger_response())
 
-
 @then("swagger logged in git")
 def verify_swagger_uploaded(context):
     LoggingRepository().verify_swagger_is_logged()
