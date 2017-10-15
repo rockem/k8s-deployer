@@ -7,6 +7,7 @@ import os
 from aws import ApiGatewayConnector
 from deploy import DeployError
 from deploy import ImageDeployer
+from git_util import GitClient
 from k8s import K8sConnector
 from log import DeployerLogger
 from recipe import Recipe
@@ -52,15 +53,20 @@ class PromoteCommand(object):
         self.timeout = timeout
 
     def run(self):
-        recipes = DeployLogRepository(self.git_repository).read(self.from_env)
+        recipes = DeployLogRepository(self.git_repository).read_from(
+            os.path.join(GitClient.CHECKOUT_DIR, self.from_env, "services"))
         for recipe in recipes:
             try:
-                DeployCommand(self.to_env, self.git_repository, self.domain, self.connector, recipe, self.timeout).run()
+                DeployCommand(self.to_env, self.git_repository,
+                              self.domain,
+                              self.connector,
+                              Recipe.builder().ingredients(recipe).build(),
+                              self.timeout).run()
             except DeployError as e:
                 logger.warn("Failed to deploy %s with error: %s" % (recipe.image(), e.message))
-        swagger = DeployLogRepository(self.git_repository).read_swagger(self.from_env)
-        SwaggerCommand(swagger['url'],self.git_repository).run()
-
+        swagger = DeployLogRepository(self.git_repository).read_from(
+            os.path.join(GitClient.CHECKOUT_DIR, self.from_env, "api", "swagger.yml"))
+        SwaggerCommand(swagger['url'], self.git_repository).run()
 
 
 class ConfigureCommand(object):
@@ -79,15 +85,14 @@ class ConfigureCommand(object):
 
 
 class SwaggerCommand(object):
-    SWAGGER_LOCATION=os.path.join(EnvironmentParser("").name(), "api", "swagger.yml")
     def __init__(self, yml_path, git_repository):
         self.yml_path = yml_path
         self.git_repository = git_repository
 
     def run(self):
+        SWAGGER_LOCATION = os.path.join(EnvironmentParser("").name(), "api", "swagger.yml")
         ApiGatewayConnector().upload_swagger(self.yml_path)
-        DeployLogRepository(self.git_repository).write(self.SWAGGER_LOCATION, {'url': self.yml_path})
-
+        DeployLogRepository(self.git_repository).write(SWAGGER_LOCATION, {'url': self.yml_path})
 
 
 class ActionRunner:
@@ -111,7 +116,7 @@ class ActionRunner:
         elif action == 'configure':
             ConfigureCommand(self.target, self.git_repository, connector).run()
         elif action == 'swagger':
-            SwaggerCommand(self.yml_path,self.git_repository).run()
+            SwaggerCommand(self.yml_path, self.git_repository).run()
 
 
 @click.command()
@@ -127,6 +132,7 @@ class ActionRunner:
 def main(action, image_name, source, target, git_repository, domain, recipe, deploy_timeout, yml_path):
     ActionRunner(image_name, source, target, git_repository, domain, recipe, deploy_timeout, yml_path).run(
         action)
+
 
 if __name__ == "__main__":
     main()
