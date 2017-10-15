@@ -1,3 +1,5 @@
+import subprocess
+
 import boto3 as boto3
 
 from util import EnvironmentVariablesFetcher
@@ -13,4 +15,5 @@ class ApiGatewayConnector(object):
 
     def upload_swagger(self, yml_path):
         client.put_rest_api(restApiId=self.rest_api_id, mode='overwrite', failOnWarnings=False, body=SwaggerFileReader(yml_path).read())
-        client.create_deployment(restApiId=self.rest_api_id, stageName=self.target_env, cacheClusterEnabled=False)
+        subprocess.call("aws apigateway create-deployment  --rest-api-id %s --stage-name %s" % (self.rest_api_id, self.target_env), shell=True)
+        # client.create_deployment(restApiId=self.rest_api_id, stageName=self.target_env, cacheClusterEnabled=False)
