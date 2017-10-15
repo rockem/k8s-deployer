@@ -16,6 +16,7 @@ from repository import DeployLogRepository
 from util import EnvironmentParser, ImageNameParser
 from yml import YmlReader
 
+
 logger = DeployerLogger('deployer').getLogger()
 
 
@@ -44,6 +45,7 @@ class DeployCommand(object):
 
 
 class PromoteCommand(object):
+
     def __init__(self, from_env, to_env, git_repository, domain, connector, timeout):
         self.from_env = from_env
         self.to_env = to_env
@@ -53,8 +55,7 @@ class PromoteCommand(object):
         self.timeout = timeout
 
     def run(self):
-        recipes = DeployLogRepository(self.git_repository).read_from(
-            os.path.join(GitClient.CHECKOUT_DIR, self.from_env, "services"))
+        recipes = DeployLogRepository(self.git_repository).read_from(self.__recipe_location())
         for recipe in recipes:
             try:
                 DeployCommand(self.to_env, self.git_repository,
@@ -64,9 +65,16 @@ class PromoteCommand(object):
                               self.timeout).run()
             except DeployError as e:
                 logger.warn("Failed to deploy %s with error: %s" % (recipe.image(), e.message))
-        swagger = DeployLogRepository(self.git_repository).read_from(
-            os.path.join(GitClient.CHECKOUT_DIR, self.from_env, "api", "swagger.yml"))
-        SwaggerCommand(swagger['url'], self.git_repository).run()
+        SwaggerCommand(self.__swagger_url(), self.git_repository).run()
+
+    def __swagger_url(self):
+        return DeployLogRepository(self.git_repository).read_from(self.__swagger_descriptor_location())['url']
+
+    def __recipe_location(self):
+        return os.path.join(GitClient.CHECKOUT_DIR, self.from_env, "services")
+
+    def __swagger_descriptor_location(self):
+        return os.path.join(GitClient.CHECKOUT_DIR, self.from_env, "api", "swagger.yml")
 
 
 class ConfigureCommand(object):
