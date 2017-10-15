@@ -80,6 +80,7 @@ def verify_swagger_uploaded(context):
 
 def __validate_api_gateway_updated(response):
     print (http_get( "http://" + os.environ['REST_API_ID'] + ".execute-api.us-east-1.amazonaws.com/int/v1/random").text)
+    print ("response expected : "%response)
     assert http_get( "http://" + os.environ['REST_API_ID'] + ".execute-api.us-east-1.amazonaws.com/int/v1/random").text == response
     # assert subprocess.check_output("curl https://y404vvoq21.execute-api.us-east-1.amazonaws.com/int/v1/random ", shell=True, stderr=subprocess.STDOUT) == response
 
