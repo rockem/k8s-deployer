@@ -1,4 +1,4 @@
-FROM registry.dnsk.io:5000/agt/aws-k8s-docker
+FROM 911479539546.dkr.ecr.us-east-1.amazonaws.com/aws-k8s-docker
 
 #copy code
 COPY . /opt/deployer
