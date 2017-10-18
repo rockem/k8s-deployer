@@ -16,7 +16,6 @@ RUN python -m nose test
 #define workspace
 WORKDIR /kubebase
 
-
 # login to aws and run script
 ENTRYPOINT ["/opt/deployer/deployer_complete.sh"]
 
