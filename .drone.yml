@@ -9,9 +9,9 @@ pipeline:
       - python -m nose
       - behave -D mode=aws features
     secrets:
-      - source: ecr_access_key
+      - source: aws_dev_access_key_id
         target: access_key_id
-      - source: ecr_secret_key
+      - source: aws_dev_secret_key
         target: secret_key
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
