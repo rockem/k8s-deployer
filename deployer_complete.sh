@@ -4,6 +4,7 @@ aws configure set aws_access_key_id $KEY_ID
 aws configure set aws_secret_access_key $ACCESS_KEY
 aws configure set region us-east-1
 
+
 prefix="${TARGET_ENV%%:*}"
 
 if [ "$prefix" == "kops" ]
