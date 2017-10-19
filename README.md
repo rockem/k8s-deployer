@@ -8,8 +8,6 @@ Note: `docker run --rm -v /var/run/docker.sock:/var/run/docker.sock
                 [command - (deploy/configure/promote)]
                 -e TARGET_ENV=[int/stg/prod]
                 [options]
-                
-        
 
 
 Commands:
