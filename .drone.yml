@@ -7,7 +7,7 @@ pipeline:
       - pip install -r requirements.txt
       - kubectl-conf int --kops
       - python -m nose
-      - behave -D mode=aws features
+#      - behave -D mode=aws features
     secrets:
       - source: aws_dev_access_key_id
         target: access_key_id
