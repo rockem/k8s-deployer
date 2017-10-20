@@ -1,6 +1,8 @@
-# Deoply , Promote, Configure, all with this simple tool
+# Deoply, Promote, Configure, all with this simple tool
 
-Usage:
+[![Build Status](http://drone-io.heed-dev.io/api/badges/heed-dev/deployer/status.svg)](http://drone-io.heed-dev.io/heed-dev/deployer)
+
+## Usage:
 >
 Note: `docker run --rm -v /var/run/docker.sock:/var/run/docker.sock
                 -e KEY_ID=${AWS_ACCESS_KEY_ID} -e ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} 
@@ -12,7 +14,7 @@ Note: `docker run --rm -v /var/run/docker.sock:/var/run/docker.sock
         
 
 
-Commands:
+## Commands:
 >
 
 'deploy'         - deploy to new env
