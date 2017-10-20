@@ -4,11 +4,13 @@
 
 ## Usage:
 
-```docker run --rm -v /var/run/docker.sock:/var/run/docker.sock
-         -e KEY_ID=[AWS_ACCESS_KEY_ID] -e ACCESS_KEY=[AWS_SECRET_ACCESS_KEY]
-         -e TARGET_ENV=[int/stg/prod]         
-         911479539546.dkr.ecr.us-east-1.amazonaws.com/k8s-deployer
-         [command] [options]
+```
+docker run
+       --rm -v /var/run/docker.sock:/var/run/docker.sock
+       -e KEY_ID=[AWS_ACCESS_KEY_ID] -e ACCESS_KEY=[AWS_SECRET_ACCESS_KEY]
+       -e TARGET_ENV=[int/stg/prod]         
+       911479539546.dkr.ecr.us-east-1.amazonaws.com/k8s-deployer
+       [command] [options]
 ```
                 
         
