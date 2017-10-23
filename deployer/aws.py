@@ -1,9 +1,15 @@
-import boto3 as boto3
+import subprocess
 
+import boto3 as boto3
+import time
+
+from log import DeployerLogger
 from util import EnvironmentVariablesFetcher
 from yml import SwaggerFileReader
 
 client = boto3.client('apigateway')
+
+logger = DeployerLogger('deployer').getLogger()
 
 
 class ApiGatewayConnector(object):
