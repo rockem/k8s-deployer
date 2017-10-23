@@ -3,7 +3,7 @@ pipeline:
     image: docker.heed-dev.io/aws-k8s-docker
     pull: true
     commands:
-      - echo "123"
+      - echo "$AWS_ACCESS_KEY_ID"
       - sh /opt/login.sh
       - pip install -r requirements.txt
       - kubectl-conf int --kops
