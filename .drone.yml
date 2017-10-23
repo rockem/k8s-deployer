@@ -8,12 +8,12 @@ pipeline:
       - kubectl-conf int --kops
       - python -m nose
       - behave -D mode=aws features
-
     secrets:
       - source: aws_dev_access_key_id
-        target: access_key_id
+        target: aws_access_key_id
       - source: aws_dev_secret_key
-        target: secret_key
+        target: aws_secret_access_key
+
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
 
