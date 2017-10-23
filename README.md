@@ -1,5 +1,6 @@
 # Deoply, Promote, Configure, all with this simple tool
 
+
 [![Build Status](http://drone-io.heed-dev.io/api/badges/heed-dev/deployer/status.svg)](http://drone-io.heed-dev.io/heed-dev/deployer)
 
 ## Usage:
@@ -14,6 +15,16 @@ docker run
 ```
                 
         
+
+Usage:
+>
+Note: `docker run --rm -v /var/run/docker.sock:/var/run/docker.sock
+                -e KEY_ID=${AWS_ACCESS_KEY_ID} -e ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} 
+                [image (registry.dnsk.io:5000/agt/k8s-deployer:latest)] 
+                [command - (deploy/configure/promote)]
+                -e TARGET_ENV=[int/stg/prod]
+                [options]
+
 
 
 ## Commands:
