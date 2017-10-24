@@ -26,7 +26,6 @@ APP_BUILDERS = [
     AppImageBuilder('ported', '1.0'),
 ]
 
-
 def before_all(context):
     __build_apps(context)
     os.environ['TARGET_ENV'] = TARGET_ENV
