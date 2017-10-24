@@ -8,6 +8,7 @@ Feature: promote service on k8s
     And it should be logged in git
 
 
+
   Scenario: swagger is promoted according to git content of source environment
     Given "version:healthy" service is defined in kuku environment
     And swagger is defined in kuku environment
