@@ -34,3 +34,4 @@ class TestK8sDescriptorFactory:
         with open(factory.service(), 'r') as f:
             ports = yaml.load(f)['spec']['ports']
             assert {'targetPort': 5000, 'port': 50} in ports
+
