@@ -9,3 +9,4 @@ def http_get(url):
                         backoff_factor=0.1)
         s.mount('http://', HTTPAdapter(max_retries=retries))
         return s.get(url)
+
