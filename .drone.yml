@@ -13,7 +13,6 @@ pipeline:
         target: aws_access_key_id
       - source: aws_dev_secret_key
         target: aws_secret_access_key
-
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
 
