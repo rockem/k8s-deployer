@@ -27,3 +27,4 @@ pipeline:
     when:
       event: push
       branch: develop
+
