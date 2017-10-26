@@ -27,6 +27,7 @@ APP_BUILDERS = [
 ]
 
 def before_all(context):
+    # context.config.userdata['mode'] = 'aws'
     __build_apps(context)
     os.environ['TARGET_ENV'] = TARGET_ENV
     os.environ['REST_API_ID'] = 'y404vvoq21'
@@ -77,6 +78,6 @@ def __create_namespace(context):
     k8s.upload_config('default')
 
 
-def after_scenario(context, scenario):
-    for ns in Context(context).pop_namespaces_to_delete():
-        K8sDriver(ns).delete_namespace()
+# def after_scenario(context, scenario):
+#     for ns in Context(context).pop_namespaces_to_delete():
+#         K8sDriver(ns).delete_namespace()
