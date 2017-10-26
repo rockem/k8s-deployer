@@ -22,5 +22,4 @@ Feature: Update k8s configuration
     When deploying swagger
     Then uploaded to api gw
     And swagger logged in git
-
-
+    
