@@ -16,7 +16,7 @@ class DeployLogRepository:
         self.git_client.checkout()
 
     def write(self, path, data):
-        logger.debug("git url for push! %s")
+        logger.debug("git url for push! %s"%path)
         DeployLogRepository.__write_service_file(path, data)
         self.git_client.check_in()
 
