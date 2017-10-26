@@ -20,9 +20,4 @@ Feature: deploy service on k8s
     When deploy "ported:1.0" service
     Then port 5000 is available
 
-  Scenario: deploy swagger to apigateway
-    Given swagger generated with random response
-    When deploying swagger
-    Then uploaded to api gw
-    And swagger logged in git
 

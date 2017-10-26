@@ -50,9 +50,9 @@ class DeployerDriver:
         self.__run(
             "%s configure --target %s --git_repository %s" % (APP, self.target, self.git_repo))
 
-    def promote(self):
-        self.__run("%s promote --source int --target %s --git_repository %s" % (
-            APP, self.target, self.git_repo))
+    def promote(self,source_env):
+        self.__run("%s promote --source %s --target %s --git_repository %s" % (
+            APP,source_env, self.target, self.git_repo))
 
     def deploy_swagger(self, path):
         self.__run("%s swagger --git_repository %s --yml_path %s" % (APP,self.git_repo,  path))

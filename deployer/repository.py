@@ -13,9 +13,9 @@ class DeployLogRepository:
 
     def __init__(self, git_repository):
         self.git_client = GitClient(git_repository)
+        self.git_client.checkout()
 
     def write(self, path, data):
-        self.git_client.checkout()
         logger.debug("git url for push! %s")
         DeployLogRepository.__write_service_file(path, data)
         self.git_client.check_in()
@@ -26,14 +26,17 @@ class DeployLogRepository:
         with(open(os.path.join(GitClient.CHECKOUT_DIR, path), 'w')) as service_file:
             yaml.dump(data, service_file, default_flow_style=False, allow_unicode=False)
 
-    def read(self, from_env):
-        self.git_client.checkout()
-        return self.__gather_recipes(os.path.join(GitClient.CHECKOUT_DIR, from_env, SERVICES_FOLDER))
+    def read_from(self, location):
+        return self.__gather_recipes(location)
 
-    def __gather_recipes(self, services_path):
+    def __gather_recipes(self, location):
         recipes = []
-        for dir in os.listdir(services_path):
-            logger.debug('recipe is %s' % os.path.join(services_path, dir))
-            recipes.append(
-                Recipe.builder().ingredients(YmlReader(os.path.join(services_path, dir)).read()).build())
+
+        if(os.path.isfile(location)):
+            return  YmlReader(location).read()
+
+        for dir in os.listdir(location):
+            logger.debug('recipe is %s' % os.path.join(location, dir))
+            recipes.append(YmlReader(os.path.join(location, dir)).read())
         return recipes
+

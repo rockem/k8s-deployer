@@ -17,3 +17,11 @@ Feature: Update k8s configuration
     When configuring
     Then the job for "stateful:1.0" service was invoked
 
+  Scenario: deploy swagger to apigateway
+    Given swagger is defined in int environment
+    When deploying swagger
+    Then uploaded to api gw
+    And swagger logged in git
+
+
+    

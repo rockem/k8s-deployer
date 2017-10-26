@@ -73,9 +73,7 @@ class SwaggerFileReader(object):
         self.sw_yml_path = swagger_yml_path
 
     def read(self):
-        request = Request(self.sw_yml_path)
-        request.add_header('Authorization', 'token %s'%EnvironmentVariablesFetcher().fetch("TOKEN_ID"))
-        return urlopen(request).read()
+        return urlopen(Request(self.sw_yml_path)).read()
 
 
 class FileYmlCreator:
