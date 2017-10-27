@@ -68,7 +68,6 @@ def before_scenario(context, scenario):
     ConfigRepository().create()
 
 
-
 def __create_namespace(context):
     namespace = getpass.getuser() + "-" + str(int(time.time()))
     print ("namespace:%s" % namespace)
