@@ -69,8 +69,7 @@ def before_scenario(context, scenario):
 
 
 def __create_namespace(context):
-    time.sleep(10)
-    namespace = getpass.getuser() + "-" + str(int(time.time()))+"aaa"
+    namespace = getpass.getuser() + "-" + str(int(time.time()))
     print ("namespace:%s" % namespace)
     k8s = K8sDriver(namespace, context.minikube)
     k8s.create_namespace()
