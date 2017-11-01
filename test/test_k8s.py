@@ -11,17 +11,6 @@ class TestK8sDescriptorFactory:
 
     TEMPLATE_PATH = os.path.join(os.path.dirname(__file__), 'orig')
 
-    def test_add_fluentd_definition(self):
-        factory = K8sDescriptorFactory(self.TEMPLATE_PATH, {'logging': 'log4j', 'name': 'kuku'})
-        with open(factory.deployment(), 'r') as f:
-            assert self.is_fluentd_exists_in(yaml.load(f))
-
-    def is_fluentd_exists_in(self, y):
-        for c in y['spec']['template']['spec']['containers']:
-            if c.has_key('fluentd') and c['fluentd']['image'] == 'fluentd':
-                return True
-        return False
-
     def test_add_port_definition_to_deployment(self):
         factory = K8sDescriptorFactory(self.TEMPLATE_PATH, {'ports': ['50:5000'], 'name': 'kuku'})
         with open(factory.deployment(), 'r') as f:
