@@ -75,13 +75,8 @@ class K8sDescriptorFactory(object):
 
     def deployment(self):
         creator = FileYmlCreator(self.template_path, 'deployment').config(self.configuration)
-        self.__add_logging(creator)
         self.__add_ports(creator, 'deployment-port', ByContainerPorts(self.configuration['name']))
         return creator.create(self.DEST_DIR)
-
-    def __add_logging(self, creator):
-        if self.__is_logging_enabled():
-            creator.append('fluentd', self.CONTAINERS_LOCATION)
 
     def __is_logging_enabled(self):
         return self.configuration.has_key("logging") and self.configuration["logging"] != "none"
