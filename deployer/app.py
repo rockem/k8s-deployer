@@ -57,14 +57,15 @@ class PromoteCommand(object):
     def run(self):
         recipes = DeployLogRepository(self.git_repository).read_from(self.__recipe_location())
         for recipe in recipes:
+            r = Recipe.builder().ingredients(recipe).build()
             try:
                 DeployCommand(self.to_env, self.git_repository,
                               self.domain,
                               self.connector,
-                              Recipe.builder().ingredients(recipe).build(),
+                              r,
                               self.timeout).run()
             except DeployError as e:
-                logger.warn("Failed to deploy %s with error: %s" % (recipe.image_name, e.message))
+                logger.warn("Failed to deploy %s with error: %s" % (r.image(), e.message))
         SwaggerCommand(self.__swagger_url(), self.git_repository).run()
 
     def __swagger_url(self):

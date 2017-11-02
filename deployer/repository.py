@@ -10,13 +10,12 @@ from yml import YmlReader
 
 
 class DeployLogRepository:
-
     def __init__(self, git_repository):
         self.git_client = GitClient(git_repository)
         self.git_client.checkout()
 
     def write(self, path, data):
-        logger.debug("git url for push! %s"%path)
+        logger.debug("git url for push! %s" % path)
         DeployLogRepository.__write_service_file(path, data)
         self.git_client.check_in()
 
@@ -32,11 +31,10 @@ class DeployLogRepository:
     def __gather_recipes(self, location):
         recipes = []
 
-        if(os.path.isfile(location)):
-            return  YmlReader(location).read()
+        if os.path.isfile(location):
+            return YmlReader(location).read()
 
         for dir in os.listdir(location):
             logger.debug('recipe is %s' % os.path.join(location, dir))
             recipes.append(YmlReader(os.path.join(location, dir)).read())
         return recipes
-
