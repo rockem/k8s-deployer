@@ -14,6 +14,7 @@ class RecipeError(Exception):
     def __init(self, message):
         super(RecipeError, self).__init__(message)
 
+
 class RecipeBuilder(object):
     _ingredients = {}
     _image = None
