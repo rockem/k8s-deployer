@@ -64,7 +64,7 @@ class PromoteCommand(object):
                               Recipe.builder().ingredients(recipe).build(),
                               self.timeout).run()
             except DeployError as e:
-                logger.warn("Failed to deploy %s with error: %s" % (recipe.image, e.message))
+                logger.warn("Failed to deploy %s with error: %s" % (recipe.image_name, e.message))
         SwaggerCommand(self.__swagger_url(), self.git_repository).run()
 
     def __swagger_url(self):
