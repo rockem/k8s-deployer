@@ -1,10 +1,9 @@
 import os
-from urllib2 import urlopen, Request
+import subprocess
 
 import yaml
 
 from log import DeployerLogger
-from util import EnvironmentVariablesFetcher
 
 logger = DeployerLogger('yml').getLogger()
 
@@ -68,12 +67,11 @@ class ByPath:
 
 
 class SwaggerFileReader(object):
-
-    def __init__(self,swagger_yml_path):
+    def __init__(self, swagger_yml_path):
         self.sw_yml_path = swagger_yml_path
 
     def read(self):
-        return urlopen(Request(self.sw_yml_path)).read()
+        return subprocess.check_output(" curl " + self.sw_yml_path, shell=True)
 
 
 class FileYmlCreator:
@@ -128,7 +126,8 @@ class YmlReader(object):
             content = open(self.path_or_content, "r")
             return yaml.load(content)
         except IOError as err:
-            logger.warn("Could not load yml path '%s' with the error: '%s'. Will try to read it as a raw string." % (self.path_or_content, err.strerror))
+            logger.warn("Could not load yml path '%s' with the error: '%s'. Will try to read it as a raw string." % (
+            self.path_or_content, err.strerror))
             if self.path_or_content != '':
                 return yaml.load(self.path_or_content)
             else:
