@@ -55,6 +55,7 @@ class PromoteCommand(object):
         self.timeout = timeout
 
     def run(self):
+        logger.debug('Starting Promoting ')
         recipes = DeployLogRepository(self.git_repository).read_from(self.__recipe_location())
         for recipe in recipes:
             r = Recipe.builder().ingredients(recipe).build()
@@ -66,6 +67,7 @@ class PromoteCommand(object):
                               self.timeout).run()
             except DeployError as e:
                 logger.warn("Failed to deploy %s with error: %s" % (r.image(), e.message))
+        logger.debug('After Deploy')
         SwaggerCommand(self.__swagger_url(), self.git_repository).run()
 
     def __swagger_url(self):
