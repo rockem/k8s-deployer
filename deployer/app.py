@@ -55,7 +55,6 @@ class PromoteCommand(object):
         self.timeout = timeout
 
     def run(self):
-        logger.debug('Starting Promoting ')
         recipes = DeployLogRepository(self.git_repository).read_from(self.__recipe_location())
         for recipe in recipes:
             r = Recipe.builder().ingredients(recipe).build()
@@ -101,11 +100,10 @@ class SwaggerCommand(object):
         self.git_repository = git_repository
 
     def run(self):
-        logger.debug("start promote swagger" )
-        SWAGGER_LOCATION = os.path.join(EnvironmentParser("").name(), "api", "swagger.yml")
+        swagger_location = os.path.join(EnvironmentParser("").name(), "api", "swagger.yml")
         ApiGatewayConnector().upload_swagger(self.yml_path)
-        DeployLogRepository(self.git_repository).write(SWAGGER_LOCATION, {'url': self.yml_path})
-        logger.debug("finished promote swagger:%s" % SWAGGER_LOCATION)
+        DeployLogRepository(self.git_repository).write(swagger_location, {'url': self.yml_path})
+        logger.debug("finished promote swagger:%s" % swagger_location)
 
 
 class ActionRunner:
