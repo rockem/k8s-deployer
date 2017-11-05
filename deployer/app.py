@@ -99,9 +99,11 @@ class SwaggerCommand(object):
         self.git_repository = git_repository
 
     def run(self):
+        logger.debug("start promote swagger" )
         SWAGGER_LOCATION = os.path.join(EnvironmentParser("").name(), "api", "swagger.yml")
         ApiGatewayConnector().upload_swagger(self.yml_path)
         DeployLogRepository(self.git_repository).write(SWAGGER_LOCATION, {'url': self.yml_path})
+        logger.debug("finished promote swagger:%s" % SWAGGER_LOCATION)
 
 
 class ActionRunner:
