@@ -80,3 +80,7 @@ class TestImageDeployer(object):
         self.__deploy(True, {'image_name': 'ported:123', 'ports': ports})
         assert self.connector.applied_descriptors['service']['ports'] == ports
         assert self.connector.applied_descriptors['deployment']['ports'] == ports
+
+    def test_delegate_service_type(self):
+        self.__deploy(True, {'image_name': 'image:123', 'service_type' : 'some_type' })
+        assert self.connector.applied_descriptors['service']['serviceType'] == 'some_type'

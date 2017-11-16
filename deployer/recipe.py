@@ -6,6 +6,7 @@ EXPOSE_LABEL = 'expose'
 IMAGE_LABEL = 'image_name'
 LOGGING_LABEL = 'logging'
 PORTS_LABEL = 'ports'
+SERVICE_TYPE = 'service_type'
 
 logger = DeployerLogger(__name__).getLogger()
 
@@ -36,6 +37,9 @@ class RecipeBuilder(object):
 class Recipe(object):
     LOGGING_DEFAULT = 'log4j'
     EXPOSE_DEFAULT = True
+    SERVICE_TYPE_UI = 'ui'
+    SERVICE_TYPE_API = 'api'
+    SERVICE_TYPE_DEFAULT = SERVICE_TYPE_UI
 
     def __init__(self, ingredients):
         self.ingredients = ingredients
@@ -46,6 +50,8 @@ class Recipe(object):
             self.ingredients[LOGGING_LABEL] = self.LOGGING_DEFAULT
         if not self.ingredients.has_key(EXPOSE_LABEL):
             self.ingredients[EXPOSE_LABEL] = self.EXPOSE_DEFAULT
+        if not self.ingredients.has_key(SERVICE_TYPE):
+            self.ingredients[SERVICE_TYPE] = self.SERVICE_TYPE_DEFAULT
         if PORTS_LABEL not in self.ingredients:
             self.ingredients[PORTS_LABEL] = []
 
@@ -64,6 +70,9 @@ class Recipe(object):
         if not isinstance(expose, bool):
             raise RecipeError('%s is not a valid value' % expose)
         return expose
+
+    def service_type(self):
+        return self.ingredients[SERVICE_TYPE]
 
     def ports(self):
         return self.ingredients[PORTS_LABEL]

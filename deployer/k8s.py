@@ -6,13 +6,15 @@ from time import sleep
 
 from flask import json
 
+from recipe import Recipe
 from yml import ByPath
 from log import DeployerLogger
 from yml import FileYmlCreator
 from yml import find_node
 
 logger = DeployerLogger('k8s').getLogger()
-
+CLUSTER_IP_SERVICE = 'ClusterIP'
+LOAD_BALANCER_SERVICE = 'LoadBalancer'
 
 class PodHealthChecker(object):
     def __init__(self, connector):
@@ -52,12 +54,20 @@ class K8sDescriptorFactory(object):
 
     def __init__(self, template_path, configuration):
         self.configuration = configuration
+        self.configuration['serviceType'] = self.__get_service_type(configuration)
         self.template_path = template_path
 
     def service(self):
         creator = FileYmlCreator(self.template_path, 'service').config(self.configuration)
         self.__add_ports(creator, 'service-port', ByPath('spec.ports'))
         return creator.create(self.DEST_DIR)
+
+    def __get_service_type(self, configuration):
+        service_type = LOAD_BALANCER_SERVICE
+        if 'serviceType' in configuration and configuration['serviceType'] == Recipe.SERVICE_TYPE_API:
+            service_type = CLUSTER_IP_SERVICE
+
+        return service_type
 
     def __add_ports(self, creator, yml, locator):
         if 'ports' in self.configuration:

@@ -100,7 +100,8 @@ class ImageDeployer(object):
             'myEnv': EnvironmentParser(self.target).name(),
             'logging': self.recipe.logging(),
             'ports': self.recipe.ports(),
-            'domain': self.domain
+            'domain': self.domain,
+            'serviceType': self.recipe.service_type()
         }
 
     def __create_props_force(self):
@@ -116,5 +117,6 @@ class ImageDeployer(object):
             'myEnv': EnvironmentParser(self.target).name(),
             'logging': self.recipe.logging(),
             'ports': self.recipe.ports(),
-            'domain': self.domain
+            'domain': self.domain,
+            'serviceType': self.recipe.service_type()
         }

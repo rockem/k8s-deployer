@@ -3,3 +3,4 @@ spec:
     color: {serviceColor}
   ports:
     - name: tcp-80
+  type: {serviceType}
