@@ -44,10 +44,10 @@ class ImageDeployer(object):
     def __blue_green_deploy(self):
         self.__dark_deploy()  # create config
         if self.__is_healthy():
-            logger.debug("Lets expose this MF %s" % self.recipe.image())
+            logger.debug("Lets expose this healthy MF %s" % self.recipe.image())
             self.__expose()
         else:
-            raise DeployError('deploy %s failed! Health check failed.' % self.recipe.image())
+            raise DeployError('Deploy %s failed! Health check failed.' % self.recipe.image())
 
     def __exposed(self):
         logger.debug("recipe path is %s" % self.recipe)
@@ -66,12 +66,12 @@ class ImageDeployer(object):
 
     def __is_healthy(self):
         name = "%s" % self.configuration["name"]
+        print("Waiting for %s to be healthy..." % name)
         return self.__busy_wait(self.health_checker.health_check, name)
 
     def __busy_wait(self, run_func, *args):
         result = False
         for _ in range(self.timeout):
-            logger.debug('try # %s' % _)
             try:
                 if run_func(args[0]):
                     result = True

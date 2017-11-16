@@ -16,6 +16,7 @@ logger = DeployerLogger('k8s').getLogger()
 CLUSTER_IP_SERVICE = 'ClusterIP'
 LOAD_BALANCER_SERVICE = 'LoadBalancer'
 
+
 class PodHealthChecker(object):
     def __init__(self, connector):
         self.connector = connector

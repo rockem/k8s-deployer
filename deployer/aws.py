@@ -27,4 +27,3 @@ class ApiGatewayConnector(object):
                 time.sleep(2 * i + 1)
                 if i == 4:
                     raise e
-                pass
