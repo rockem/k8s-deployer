@@ -1,3 +1,4 @@
+import json
 
 import flask
 from flask import Flask, Response
@@ -18,13 +19,11 @@ def run():
     return Response('State was changed to true.', status=200)
 
 
-@app.route('/verify')
-def verify():
+@app.route('/state')
+def state():
     global state
-    status = 500
-    if state:
-        status = 200
-    return Response(status=status)
+    return Response(json.dumps({'state': state}))
+
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=8080)

@@ -1,15 +1,13 @@
-import subprocess
-
+import json
 import os
-import yaml
-from behave import *
+
 import requests
-from random_words import RandomWords
+from behave import *
 
 from features.support.app import BusyWait
 from features.support.context import Context
 from features.support.deploy import DeployerDriver
-from features.support.http import http_get
+from features.support.http import http_get, url_for
 from features.support.k8s import K8sDriver
 from features.support.repository import ConfigRepository, LocalConfig, SwaggerFileCreator, LoggingRepository
 
@@ -35,7 +33,7 @@ def clear_namespace(context, namespace):
 @when("configuring(?: \"(.+)\")?")
 def executing(context, namespace=None):
     DeployerDriver(ConfigRepository.GIT_REPO_URL,
-                   Context(context).default_namespace() if namespace is None else namespace,context.domain).configure()
+                   Context(context).default_namespace() if namespace is None else namespace, context.domain).configure()
 
 
 @then("config \"(.*)\" uploaded(?: to \"(.+)\" namespace)?")
@@ -46,14 +44,14 @@ def validate_config_uploaded(context, config_name, namespace=None):
 
 @then("the job for \"(.*):(.*)\" service was invoked")
 def jobs_were_invoked_on_service(context, service, version):
-    domain = K8sDriver(Context(context).default_namespace(), context.minikube).get_service_domain_for(
-        Context(context).get_app_for(service, version))
-    BusyWait.execute(_validate_job_was_invoked, domain)
+    K8sDriver(Context(context).default_namespace()).verify_get(
+        '%s/state' % url_for(Context(context).get_app_for(service, version)),
+        lambda output: json.loads(output)['state']
+    )
 
 
 def _validate_job_was_invoked(domain):
     assert http_get('http://%s/verify' % domain).status_code == 200
-
 
 
 @when("deploying swagger")
@@ -65,12 +63,14 @@ def deploy_swagger(context):
 
 @then("uploaded to api gw")
 def verify_swagger_uploaded(context):
-    BusyWait.execute(__validate_api_gateway_updated, context.response)
+    BusyWait().execute(__validate_api_gateway_updated, context.response)
+
+
+def __validate_api_gateway_updated(response):
+    assert requests.get(
+        "http://" + os.environ['REST_API_ID'] + ".execute-api.us-east-1.amazonaws.com/int/v1/random").text == response
+
 
 @then("swagger logged in git")
 def verify_swagger_uploaded(context):
     LoggingRepository().verify_swagger_is_logged()
-
-def __validate_api_gateway_updated(response):
-    assert http_get( "http://" + os.environ['REST_API_ID'] + ".execute-api.us-east-1.amazonaws.com/int/v1/random").text == response
-

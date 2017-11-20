@@ -1,11 +1,11 @@
 import json
 import re
 import subprocess
-from time import sleep
 
 import yaml
 
 from features.support.app import BusyWait
+from features.support.http import url_for
 from features.support.repository import LocalConfig
 
 GLOBAL_CONFIG_NAME = 'global-config'
@@ -17,14 +17,21 @@ class K8sDriver:
         self.namespace = namespace
         self.minikube = minikube
 
-    def get_service_domain_for(self, app, port_name='tcp-80'):
-        if self.minikube is None:
-            return AWSServiceDomainFetcher(self.namespace).fetch(app, port_name)
-        else:
-            return MinikubeServiceDomainFetcher(self.namespace, self.minikube).fetch(app, port_name)
+    def wait_to_serve(self, app):
+        BusyWait().execute(self.__app_healthy, app)
+
+    def __app_healthy(self, app):
+        output = self.__get_in_k8s('%s/health' % url_for(app))
+        if json.loads(output)['status']['code'] == 'UP':
+            return True
+        raise Exception('app %s not healthy' % app.name())
+
+    def __get_in_k8s(self, url):
+        return self.__run(
+            "kubectl --namespace %s exec deployer-shell -- wget -t 1 -q -O - %s" % (self.namespace, url))
 
     def verify_app_is_running(self, app):
-        BusyWait.execute(self.__pod_running, app.service_name())
+        BusyWait().execute(self.__pod_running, app.service_name())
 
     def __pod_running(self, image_name):
         pod_name = self.__grab_pod_name(image_name)
@@ -70,13 +77,26 @@ class K8sDriver:
     def add_node_label(name, value):
         subprocess.check_output("kubectl label --overwrite nodes minikube %s=%s" % (name, value), shell=True)
 
+    def verify_get(self, url, verifier):
+        return BusyWait(20).execute(self.__verify_output, url, verifier)
 
+    def __verify_output(self, url, verifier):
+        output = self.__get_in_k8s(url)
+        assert verifier(output), "Failed to verify: %s" % output
+
+    def deploy(self, path):
+        subprocess.check_output(
+            'kubectl create --namespace %s -f %s' % (self.namespace, path),
+            shell=True)
+
+
+@DeprecationWarning
 class ServiceDomainFetcher(object):
     def __init__(self, namespace):
         self._namespace = namespace
 
     def fetch(self, app, port_name):
-        return BusyWait.execute(self.__fetch_helper, app, port_name)
+        return BusyWait().execute(self.__fetch_helper, app, port_name)
 
     def __fetch_helper(self, app, port_name):
         svc_json = json.loads(self.__describe_service(app.service_name()))
@@ -90,6 +110,7 @@ class ServiceDomainFetcher(object):
         return 'not implemented'
 
 
+@DeprecationWarning
 class AWSServiceDomainFetcher(ServiceDomainFetcher):
     def __init__(self, namespace):
         super(self.__class__, self).__init__(namespace)

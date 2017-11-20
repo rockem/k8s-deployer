@@ -1,4 +1,3 @@
-import os
 from behave import given, then, when
 from behave import use_step_matcher
 from random_words import RandomWords

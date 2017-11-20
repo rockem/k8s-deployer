@@ -64,10 +64,9 @@ class K8sDescriptorFactory(object):
         return creator.create(self.DEST_DIR)
 
     def __get_service_type(self, configuration):
-        service_type = LOAD_BALANCER_SERVICE
-        if 'serviceType' in configuration and configuration['serviceType'] == Recipe.SERVICE_TYPE_API:
-            service_type = CLUSTER_IP_SERVICE
-
+        service_type = CLUSTER_IP_SERVICE
+        if 'serviceType' in configuration and configuration['serviceType'] == Recipe.SERVICE_TYPE_UI:
+            service_type = LOAD_BALANCER_SERVICE
         return service_type
 
     def __add_ports(self, creator, yml, locator):

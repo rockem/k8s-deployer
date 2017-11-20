@@ -1,15 +1,21 @@
 import time
 
 
-class BusyWait:
-    NUM_ITER = 120
+class TimeoutError(Exception):
+    pass
 
-    @staticmethod
-    def execute(run_func, *args):
-        for i in range(BusyWait.NUM_ITER):
+
+class BusyWait(object):
+
+    def __init__(self, retries=60):
+        self.retries = retries
+
+    def execute(self, run_func, *args):
+        curr_e = None
+        for i in range(self.retries):
             try:
                 return run_func(*args)
-            except Exception:
-                pass
+            except Exception as e:
+                curr_e = e
             time.sleep(1)
-        raise Exception
+        raise curr_e

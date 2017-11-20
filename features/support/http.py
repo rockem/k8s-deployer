@@ -10,3 +10,6 @@ def http_get(url):
         s.mount('http://', HTTPAdapter(max_retries=retries))
         return s.get(url)
 
+
+def url_for(app, port=80):
+    return 'http://%s:%s' % (app.service_name(), port)

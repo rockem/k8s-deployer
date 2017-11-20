@@ -1,12 +1,9 @@
-import requests
-import time
 from behave import *
 from flask import json
 
-from features.support.app import BusyWait
 from features.support.context import Context
 from features.support.deploy import DeployerDriver
-from features.support.http import http_get
+from features.support.http import url_for
 from features.support.k8s import K8sDriver
 from features.support.repository import LoggingRepository
 
@@ -25,22 +22,19 @@ def deploy_service_successfully(context, name, version):
 
 def __deploy_service(context, name, version, status):
     app = Context(context).get_app_for(name, version)
-    DeployerDriver(LoggingRepository.GIT_REPO_URL, Context(context).default_namespace(), context.domain).deploy(app, status == 'fail')
+    DeployerDriver(LoggingRepository.GIT_REPO_URL,
+                   Context(context).default_namespace(), context.domain).deploy(app, status == 'fail')
     Context(context).set_last_deployed_app(app)
 
 
 @then("\"(.*)\" service is serving")
 def service_is_serving(context, service_name):
-    K8sDriver(Context(context).default_namespace(), context.minikube).get_service_domain_for(
+    K8sDriver(Context(context).default_namespace()).wait_to_serve(
         context.config.userdata['apps'][service_name])
 
 
 @then("service \"(.*)\" updated to version (.*)")
 def service_updated(context, name, version):
-    domain = K8sDriver(Context(context).default_namespace(), context.minikube).get_service_domain_for(
-        Context(context).get_app_for(name, version))
-    BusyWait.execute(__validate_version_updated, domain, version)
-
-def __validate_version_updated(domain, version):
-    result = http_get('http://%s/version' % domain)
-    assert json.loads(result.text)['version'] == str(version)
+    K8sDriver(Context(context).default_namespace()).verify_get(
+        '%s/version' % url_for(Context(context).get_app_for(name, version)),
+        lambda response: json.loads(response)['version'] == version)

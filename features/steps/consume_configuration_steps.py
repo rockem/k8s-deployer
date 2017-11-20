@@ -1,10 +1,9 @@
-import requests
 from behave import then, given
 from behave import use_step_matcher
 
 from deployer.log import DeployerLogger
 from features.support.context import Context
-from features.support.http import http_get
+from features.support.http import http_get, url_for
 from features.support.k8s import K8sDriver
 
 logger = DeployerLogger(__name__).getLogger()
@@ -19,11 +18,6 @@ def upload_config(context, config_name):
 
 @then("the service should get the new configuration")
 def verify_config_was_overriden(context):
-    svc_host = K8sDriver(Context(context).default_namespace(), context.minikube).get_service_domain_for(
-        Context(context).last_deployed_app())
-    assert __get_greeting_of(svc_host) == 'Hello overridden world'
-
-
-def __get_greeting_of(svc_host):
-    url = 'http://%s/greeting' % svc_host
-    return http_get(url).text
+    K8sDriver(Context(context).default_namespace()).verify_get(
+        '%s/greeting' % url_for(Context(context).last_deployed_app()),
+        lambda output: output == 'Hello overridden world')

@@ -38,7 +38,7 @@ class TestK8sDescriptorFactory:
 
     def test_add_default_type_to_service(self):
         service_path = self.__create_service({'serviceColor': 'green'})
-        self.__assert_service_type(service_path, k8s.LOAD_BALANCER_SERVICE)
+        self.__assert_service_type(service_path, k8s.CLUSTER_IP_SERVICE)
 
     def __create_service(self, configuration):
         factory = K8sDescriptorFactory(self.TEMPLATE_PATH, configuration)

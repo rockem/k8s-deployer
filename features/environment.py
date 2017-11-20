@@ -3,13 +3,11 @@ import os
 import subprocess
 import time
 
-from kubectlconf.kops import KopsSync
-
 from deployer.log import DeployerLogger
 from features.support.context import Context
 from features.support.docker import AppImageBuilder, JavaAppBuilder, AWSImagePusher
 from features.support.k8s import K8sDriver
-from features.support.repository import LoggingRepository, ConfigRepository, SwaggerFileCreator
+from features.support.repository import LoggingRepository, ConfigRepository
 
 TARGET_ENV = 'int'
 DOMAIN = 'heed-dev.io'
@@ -19,29 +17,29 @@ APP_BUILDERS = [
     AppImageBuilder('version', 'healthy', ['VERSION=healthy']),
     AppImageBuilder('version', 'sick', ['VERSION=sick']),
     AppImageBuilder('restless', '1.0'),
-    AppImageBuilder('stateful', '1.0'),
+    AppImageBuilder('stateful', '1.1'),
     JavaAppBuilder(AppImageBuilder('java', '1.0')),
     AppImageBuilder('version', '1.0', ['VERSION=1.0']),
     AppImageBuilder('version', '2.0', ['VERSION=2.0']),
     AppImageBuilder('ported', '1.0'),
 ]
 
+
 def before_all(context):
-    #context.config.userdata['mode'] = 'aws'
     __build_apps(context)
     os.environ['TARGET_ENV'] = TARGET_ENV
     os.environ['REST_API_ID'] = 'y404vvoq21'
     if __is_aws_mode(context):
-        KopsSync(TARGET_ENV).sync()
+        # KopsSync(TARGET_ENV, 'default').sync()
         context.aws_uri = "911479539546.dkr.ecr.us-east-1.amazonaws.com/"
         context.minikube = None
         __push_apps_aws(Context(context).all_apps())
-        context.domain="heed-dev.io"
+        context.domain = "heed-dev.io"
     else:
         K8sDriver.add_node_label('type', 'node')
         context.minikube = subprocess.check_output('minikube ip', shell=True)[:-1]
         context.aws_uri = ''
-        context.domain="minikube"
+        context.domain = "minikube"
 
 
 def __build_apps(context):
@@ -75,6 +73,7 @@ def __create_namespace(context):
     k8s.create_namespace()
     Context(context).set_default_namespace(namespace)
     k8s.upload_config('default')
+    k8s.deploy('features/support/deployer-shell.yml')
 
 
 def after_scenario(context, scenario):
