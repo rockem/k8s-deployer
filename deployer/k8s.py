@@ -1,3 +1,4 @@
+import copy
 import glob
 import os
 import re
@@ -52,22 +53,28 @@ class K8sDescriptorFactory(object):
     DEST_DIR = './out/'
     CONTAINERS_LOCATION = 'spec.template.spec.containers'
     DEPLOYMENT_PORTS_LOCATION = 'spec.template.spec.containers'
+    service_type_map = {
+        Recipe.SERVICE_TYPE_UI: LOAD_BALANCER_SERVICE,
+        Recipe.SERVICE_TYPE_API: CLUSTER_IP_SERVICE
+    }
 
     def __init__(self, template_path, configuration):
         self.configuration = configuration
-        self.configuration['serviceType'] = self.__get_service_type(configuration)
         self.template_path = template_path
 
     def service(self):
-        creator = FileYmlCreator(self.template_path, 'service').config(self.configuration)
+        config = self.__convert_service_type()
+        creator = FileYmlCreator(self.template_path, 'service').config(config)
         self.__add_ports(creator, 'service-port', ByPath('spec.ports'))
         return creator.create(self.DEST_DIR)
 
+    def __convert_service_type(self):
+        config = copy.deepcopy(self.configuration)
+        config['serviceType'] = self.__get_service_type(config)
+        return config
+
     def __get_service_type(self, configuration):
-        service_type = CLUSTER_IP_SERVICE
-        if 'serviceType' in configuration and configuration['serviceType'] == Recipe.SERVICE_TYPE_UI:
-            service_type = LOAD_BALANCER_SERVICE
-        return service_type
+        return self.service_type_map[configuration['serviceType']]
 
     def __add_ports(self, creator, yml, locator):
         if 'ports' in self.configuration:

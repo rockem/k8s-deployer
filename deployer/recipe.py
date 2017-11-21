@@ -39,7 +39,6 @@ class Recipe(object):
     EXPOSE_DEFAULT = True
     SERVICE_TYPE_UI = 'ui'
     SERVICE_TYPE_API = 'api'
-    SERVICE_TYPE_DEFAULT = SERVICE_TYPE_UI
 
     def __init__(self, ingredients):
         self.ingredients = ingredients
@@ -51,7 +50,7 @@ class Recipe(object):
         if not self.ingredients.has_key(EXPOSE_LABEL):
             self.ingredients[EXPOSE_LABEL] = self.EXPOSE_DEFAULT
         if not self.ingredients.has_key(SERVICE_TYPE):
-            self.ingredients[SERVICE_TYPE] = self.SERVICE_TYPE_DEFAULT
+            self.ingredients[SERVICE_TYPE] = self.SERVICE_TYPE_API
         if PORTS_LABEL not in self.ingredients:
             self.ingredients[PORTS_LABEL] = []
 

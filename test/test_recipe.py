@@ -23,12 +23,12 @@ class TestRecipe(object):
         assert recipe.expose() is False
 
     def test_service_type_should_be_delegated_from_ingredients(self):
-        recipe = Recipe.builder().ingredients({'service_type':'api'}).build()
-        assert recipe.service_type() is 'api'
+        recipe = Recipe.builder().ingredients({'service_type': Recipe.SERVICE_TYPE_UI}).build()
+        assert recipe.service_type() is Recipe.SERVICE_TYPE_UI
 
-    def test_service_type_should_be_default_when_not_in_ingredients(self):
+    def test_service_type_should_be_api_by_default(self):
         recipe = Recipe.builder().ingredients({}).build()
-        assert recipe.service_type() is 'ui'
+        assert recipe.service_type() is Recipe.SERVICE_TYPE_API
 
     def test_ports_should_delegate_from_ingredients(self):
         recipe = Recipe.builder().ingredients({'ports': [{'name': 'kuku'}]}).build()
