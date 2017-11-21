@@ -156,12 +156,12 @@ class K8sConnector(object):
             "kubectl --namespace %s apply --validate=false --record -f %s" % (self.namespace, source_to_deploy))
 
     def apply_service(self, properties):
-        return self.__run(
+        self.__run(
             "kubectl --namespace %s apply --validate=false --record -f %s" %
             (self.namespace, K8sDescriptorFactory(self.TEMPLATE_PATH, properties).service()))
 
     def apply_deployment(self, properties):
-        return self.__run(
+        self.__run(
             "kubectl --namespace %s apply --validate=false --record -f %s" %
             (self.namespace, K8sDescriptorFactory(self.TEMPLATE_PATH, properties).deployment()))
 
