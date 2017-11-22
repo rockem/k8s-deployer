@@ -13,9 +13,6 @@ WORKDIR /opt/deployer
 #run service unit tests
 RUN python -m nose test
 
-#define workspace
-WORKDIR /opt/deployer
-
 # login to aws and run script
-ENTRYPOINT deployer_complete.sh
+ENTRYPOINT ./deployer_complete.sh
 
