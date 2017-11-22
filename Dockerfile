@@ -14,6 +14,5 @@ WORKDIR /opt/deployer
 RUN python -m nose test
 
 # login to aws and run script
-ENTRYPOINT ./deployer_complete.sh
-CMD []
+ENTRYPOINT ["./deployer_complete.sh"]
 
