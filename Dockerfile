@@ -15,4 +15,5 @@ RUN python -m nose test
 
 # login to aws and run script
 ENTRYPOINT ./deployer_complete.sh
+CMD []
 
