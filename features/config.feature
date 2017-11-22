@@ -11,11 +11,12 @@ Feature: Update k8s configuration
     When configuring "non-existing-namespace"
     Then config "kuku" uploaded to "non-existing-namespace" namespace
 
+  @eli
   Scenario: Upload job from git to specific namespace
-    Given "stateful:1.1" service was deployed successfully
+    Given "stateful:2.0" service was deployed successfully
     And job "jobs" was pushed to git
     When configuring
-    Then the job for "stateful:1.1" service was invoked
+    Then the job for "stateful:2.0" service was invoked
 
   Scenario: deploy swagger to apigateway
     Given swagger is defined in int environment

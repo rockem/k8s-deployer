@@ -24,7 +24,6 @@ class PodHealthChecker(object):
 
     def health_check(self, pod_name):
         concrete_pod_name = self.__extract_pod_name(pod_name).strip()
-        logger.debug('pod name after extraction! %s' % concrete_pod_name)
         return 'UP' in self.connector.check_pods_health(concrete_pod_name, pod_name)
 
     def __extract_pod_name(self, pod_name):
@@ -125,10 +124,10 @@ class K8sConnector(object):
         os.popen("kubectl create namespace %s" % namespace)
 
     def check_pods_health(self, pod_name, container_name):
-        self.__delete_health_file(container_name, pod_name)
-        self.__exec_on(pod_name, container_name, 'wget http://localhost:8080/health')
-        output = self.__exec_on(pod_name, container_name, 'cat health')
-        logger.debug(output)
+        # self.__delete_health_file(container_name, pod_name)
+        output = self.__exec_on(pod_name, container_name, '-- wget -t 1 -q -O - http://localhost:8080/health')
+        # output = self.__exec_on(pod_name, container_name, 'cat health')
+        # logger.debug(output)
         return output
 
     def __delete_health_file(self, container_name, pod_name):
@@ -140,7 +139,7 @@ class K8sConnector(object):
 
     def __exec_on(self, pod_name, container_name, command):
         return self.__run(
-            "kubectl --namespace %s exec -p %s -c %s %s" % (self.namespace, pod_name, container_name, command))
+            "kubectl --namespace %s exec %s -c %s %s" % (self.namespace, pod_name, container_name, command))
 
     def describe_pod(self, pod_name):
         return self.__run("kubectl --namespace %s describe pods %s" % (self.namespace, pod_name))

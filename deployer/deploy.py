@@ -1,3 +1,4 @@
+from __future__ import print_function
 import time
 
 from k8s import PodHealthChecker, ServiceExplorer
@@ -56,11 +57,11 @@ class ImageDeployer(object):
     def __deploy(self):
         self.configuration = self.__create_props_force()
         self.connector.apply_deployment(self.configuration)
-        print "going to force deploy with this config {}".format(self.configuration)
+        print("going to force deploy with this config {}".format(self.configuration))
 
     def __dark_deploy(self):
         self.configuration = self.__create_props_blue_green()
-        print "going to dark deploy with this config {}".format(self.configuration)
+        print("going to dark deploy with this config {}".format(self.configuration))
         self.connector.apply_deployment(self.configuration)
         self.connector.apply_service(self.configuration)
 
@@ -70,8 +71,10 @@ class ImageDeployer(object):
         return self.__busy_wait(self.health_checker.health_check, name)
 
     def __busy_wait(self, run_func, *args):
+        print('')
         result = False
         for _ in range(self.timeout):
+            print('.', end='')
             try:
                 if run_func(args[0]):
                     result = True
@@ -79,7 +82,7 @@ class ImageDeployer(object):
             except Exception:
                 pass
             time.sleep(1)
-
+        print('')
         return result
 
     def __expose(self):
@@ -88,7 +91,7 @@ class ImageDeployer(object):
 
     def __create_props_blue_green(self):
         name = ImageNameParser(self.recipe.image()).name()
-        print "Name is: %s" % name
+        print("Name is: %s" % name)
         color = ServiceExplorer(self.connector).get_color(name)
         return {
             'env': EnvironmentParser(self.target).env(),

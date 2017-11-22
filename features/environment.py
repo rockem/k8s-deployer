@@ -17,7 +17,7 @@ APP_BUILDERS = [
     AppImageBuilder('version', 'healthy', ['VERSION=healthy']),
     AppImageBuilder('version', 'sick', ['VERSION=sick']),
     AppImageBuilder('restless', '1.0'),
-    AppImageBuilder('stateful', '1.1'),
+    AppImageBuilder('stateful', '2.0'),
     JavaAppBuilder(AppImageBuilder('java', '1.0')),
     AppImageBuilder('version', '1.0', ['VERSION=1.0']),
     AppImageBuilder('version', '2.0', ['VERSION=2.0']),

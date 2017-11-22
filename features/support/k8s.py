@@ -78,7 +78,7 @@ class K8sDriver:
         subprocess.check_output("kubectl label --overwrite nodes minikube %s=%s" % (name, value), shell=True)
 
     def verify_get(self, url, verifier):
-        return BusyWait(20).execute(self.__verify_output, url, verifier)
+        return BusyWait(60).execute(self.__verify_output, url, verifier)
 
     def __verify_output(self, url, verifier):
         output = self.__get_in_k8s(url)

@@ -1,10 +1,8 @@
-import json
-
 import flask
 from flask import Flask, Response
 
 app = Flask(__name__)
-state = False
+_state = False
 
 
 @app.route('/health')
@@ -14,15 +12,15 @@ def api_health():
 
 @app.route('/run')
 def run():
-    global state
-    state = True
+    global _state
+    _state = True
     return Response('State was changed to true.', status=200)
 
 
 @app.route('/state')
 def state():
-    global state
-    return Response(json.dumps({'state': state}))
+    global _state
+    return flask.jsonify({'state': _state})
 
 
 if __name__ == '__main__':
