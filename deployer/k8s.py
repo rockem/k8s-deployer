@@ -156,9 +156,34 @@ class K8sConnector(object):
             "kubectl --namespace %s apply --validate=false --record -f %s" % (self.namespace, source_to_deploy))
 
     def apply_service(self, properties):
+        self.__delete_service_upon_type_change(properties)
+
         self.__run(
             "kubectl --namespace %s apply --validate=false --record -f %s" %
             (self.namespace, K8sDescriptorFactory(self.TEMPLATE_PATH, properties).service()))
+
+    def __delete_service_upon_type_change(self, properties):
+        service_name = properties['name']
+        service_type = properties['serviceType']
+        if self.__service_exists(service_name):
+            if self.__fetch_service_type(service_name) != \
+                    K8sDescriptorFactory.service_type_map[service_type]:
+                self.__delete_service(service_name)
+
+    def __fetch_service_type(self, service_name):
+        return json.loads(self.get_service_as_json(service_name))['spec']['type']
+
+    def __service_exists(self, service_name):
+        service_exist = True
+        try:
+            self.get_service_as_json(service_name)
+        except subprocess.CalledProcessError as e:
+            service_exist = False
+
+        return service_exist
+
+    def __delete_service(self, service_name):
+        self.__run('kubectl --namespace %s delete service %s' % (self.namespace, service_name))
 
     def apply_deployment(self, properties):
         self.__run(
