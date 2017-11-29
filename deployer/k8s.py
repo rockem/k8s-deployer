@@ -163,7 +163,7 @@ class K8sConnector(object):
             (self.namespace, K8sDescriptorFactory(self.TEMPLATE_PATH, properties).service()))
 
     def __delete_service_when_type_changed(self, properties):
-        service_name = properties['name']
+        service_name = properties['serviceName']
         service_type = properties['serviceType']
         if self.__service_exists(service_name):
             logger.info("Service %s exists, fetch its type and recreate it if its current type: \'%s\' was changed." % (service_name, K8sDescriptorFactory.service_type_map[service_type]))
