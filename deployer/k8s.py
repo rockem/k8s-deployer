@@ -166,11 +166,13 @@ class K8sConnector(object):
         service_name = properties['name']
         service_type = properties['serviceType']
         if self.__service_exists(service_name):
+            logger.info("Service %s exists, fetch its type and recreate it if its current type: \'%s\' was changed." % (service_name, K8sDescriptorFactory.service_type_map[service_type]))
             if self.__fetch_service_type(service_name) != K8sDescriptorFactory.service_type_map[service_type]:
                 self.__delete_service(service_name)
 
     def __fetch_service_type(self, service_name):
-        return json.loads(self.get_service_as_json(service_name))['spec']['type']
+        service_type = json.loads(self.get_service_as_json(service_name))['spec']['type']
+        logger.info("service type is: %s " %service_type)
 
     def __service_exists(self, service_name):
         service_exist = True
