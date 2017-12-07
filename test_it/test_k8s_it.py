@@ -61,24 +61,22 @@ class TestConnectorIt:
 
 
     def test_modify_service_type(self):
-        service_name = 'dummy-service'
+        assert self._created_service_with_type(Recipe.SERVICE_TYPE_UI) == k8s.LOAD_BALANCER_SERVICE
+        assert self._created_service_with_type(Recipe.SERVICE_TYPE_API) == k8s.CLUSTER_IP_SERVICE
 
-        assert self.__service_created_type(service_name, Recipe.SERVICE_TYPE_UI) == k8s.LOAD_BALANCER_SERVICE
-        assert self.__service_created_type(service_name, Recipe.SERVICE_TYPE_API) == k8s.CLUSTER_IP_SERVICE
-
-    def __service_created_type(self, service_name, service_type):
-        properties = self.__create_properties_with(service_name, service_type)
+    def _created_service_with_type(self, service_type):
+        properties = self.__create_properties_with(service_type)
         self.__connector.apply_service(properties)
-        return self.__service_type(service_name)
+        return self.__service_type(properties['serviceName'])
 
     def __service_type(self, service_name):
         return json.loads(self.__connector.get_service_as_json(service_name))['spec']['type']
 
-    def __create_properties_with(self, service_name, service_type):
+    def __create_properties_with(self, service_type):
         recipe = RecipeBuilder().image("dummy-image").ingredients({'service_type':service_type}).build()
         return {
             'env': 'int',
-            'name': service_name,
+            'name': 'dummy-deployment',
             'serviceName': 'dummy-service',
             'image': 'dummy-image',
             'podColor': 'green',
@@ -89,3 +87,16 @@ class TestConnectorIt:
             'domain': 'heed-dev.io',
             'serviceType': recipe.service_type()
         }
+
+    def test_scale_deployment(self):
+        properties = self.__create_properties_with(Recipe.SERVICE_TYPE_API)
+        self.__connector.apply_deployment(properties)
+
+        deployment_name = properties['name']
+        self.__connector.scale_deployment(deployment_name, 0)
+        assert self._deployment_scale(deployment_name) == 0
+
+    def _deployment_scale(self, deployment_name):
+        deployment = subprocess.check_output("kubectl --namespace %s get deployment %s -o json"
+                                             % (self.__namespace, deployment_name), shell=True)
+        return json.loads(deployment)['spec']['replicas']

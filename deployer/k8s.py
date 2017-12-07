@@ -151,6 +151,9 @@ class K8sConnector(object):
     def cluster_info(self):
         return self.__run("kubectl cluster-info")
 
+    def scale_deployment(self, deployment_name, scale):
+        self.__run_ignore_error('kubectl --namespace %s scale deployment %s --replicas=%d' % (self.namespace, deployment_name, scale))
+
     def apply(self, source_to_deploy):
         return self.__run(
             "kubectl --namespace %s apply --validate=false --record -f %s" % (self.namespace, source_to_deploy))
@@ -192,7 +195,7 @@ class K8sConnector(object):
             (self.namespace, K8sDescriptorFactory(self.TEMPLATE_PATH, properties).deployment()))
 
     def upload_config_map(self, config_file_path):
-        os.system("kubectl --namespace %s delete configmap global-config" % self.namespace)
+        self.__run_ignore_error("kubectl --namespace %s delete configmap global-config" % self.namespace)
         return self.__run(
             "kubectl --namespace %s create configmap global-config --from-file=%s" % (self.namespace, config_file_path))
 
@@ -205,8 +208,11 @@ class K8sConnector(object):
                 {"job_name": job['name'], "cron": job['schedule'], "url": job['url']}).job()))
 
     def delete_job(self, job_name):
-        os.system("kubectl --namespace %s delete jobs %s" % (self.namespace, job_name))
-        os.system("kubectl --namespace %s delete cronjob %s" % (self.namespace, job_name))
+        self.__run_ignore_error("kubectl --namespace %s delete jobs %s" % (self.namespace, job_name))
+        self.__run_ignore_error("kubectl --namespace %s delete cronjob %s" % (self.namespace, job_name))
 
     def __run(self, command):
         return subprocess.check_output(command, shell=True)
+
+    def __run_ignore_error(self, command):
+        os.system(command)

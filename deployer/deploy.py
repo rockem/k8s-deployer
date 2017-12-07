@@ -86,8 +86,14 @@ class ImageDeployer(object):
         return result
 
     def __expose(self):
-        self.configuration['serviceColor'] = ColorDecider().invert_color(self.configuration.get("serviceColor"))
+        color = self.configuration.get("serviceColor")
+        self.configuration['serviceColor'] = ColorDecider().invert_color(color)
         self.connector.apply_service(self.configuration)
+        self.__scale_down_inactive_deployment_with_color(color)
+
+    def __scale_down_inactive_deployment_with_color(self, color):
+        name = ImageNameParser(self.recipe.image()).name()
+        self.connector.scale_deployment(name + '-' + color, 0)
 
     def __create_props_blue_green(self):
         name = ImageNameParser(self.recipe.image()).name()
@@ -123,3 +129,4 @@ class ImageDeployer(object):
             'domain': self.domain,
             'serviceType': self.recipe.service_type()
         }
+

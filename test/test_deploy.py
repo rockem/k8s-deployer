@@ -1,6 +1,6 @@
 from nose.tools import raises
 
-from deployer.deploy import DeployError, ImageDeployer
+from deployer.deploy import DeployError, ImageDeployer, ColorDecider
 from deployer.recipe import RecipeBuilder
 
 
@@ -27,6 +27,7 @@ class ConnectorStub(object):
     def __init__(self, healthy=True):
         self.healthy = healthy
         self.applied_descriptors = {}
+        self.applied_scale = {}
 
     def apply_service(self, desc):
         self.applied_descriptors['service'] = desc
@@ -36,6 +37,9 @@ class ConnectorStub(object):
 
     def describe_pod(self, name):
         return "Name: %s" % name
+
+    def scale_deployment(self, deployment_name, scale):
+        self.applied_scale[deployment_name] = scale
 
     def check_pods_health(self, pod_name, container_name):
         return 'UP' if self.healthy else 'DOWN'
@@ -48,7 +52,6 @@ class ConnectorStub(object):
 
 
 class TestImageDeployer(object):
-
     DOMAIN = 'heed'
 
     @raises(DeployError)
@@ -82,5 +85,10 @@ class TestImageDeployer(object):
         assert self.connector.applied_descriptors['deployment']['ports'] == ports
 
     def test_delegate_service_type(self):
-        self.__deploy(True, {'image_name': 'image:123', 'service_type' : 'some_type' })
+        self.__deploy(True, {'image_name': 'image:123', 'service_type': 'some_type'})
         assert self.connector.applied_descriptors['service']['serviceType'] == 'some_type'
+
+    def test_scale_down_background_deployment(self):
+        self.__deploy(True, {'image_name': 'image:123', 'service_type': 'some_type'})
+        color = self.connector.applied_descriptors['deployment']['serviceColor']
+        assert self.connector.applied_scale['image-' + ColorDecider().invert_color(color)] == 0
