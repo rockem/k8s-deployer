@@ -25,6 +25,8 @@ spec:
              mountPath: /opt/log/
            - name: config-volume
              mountPath: /opt/service/config
+           - name: log-config-volume
+             mountPath: /opt/config
          ports:
            - name: liveness-port
              containerPort: 8080
@@ -50,6 +52,12 @@ spec:
        volumes:
          - name: shared-logs
            emptyDir: {{}}
+         - name: log-config-volume
+           configMap:
+             name: log4j
+             items:
+             - key: log4j2.xml
+               path: log4j2.xml
          - name: config-volume
            configMap:
              name: global-config

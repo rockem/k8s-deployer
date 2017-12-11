@@ -84,7 +84,8 @@ class LoggingRepository(GitRepository):
 
     def verify_swagger_is_logged(self):
         super(LoggingRepository, self)._checkout_repo()
-        assert yaml.load(open(self.swagger_location("int"), "r"))['url'] == yaml.load(SwaggerFileCreator.SWAGGER_YML_URL)
+        assert yaml.load(open(self.swagger_location("int"), "r"))['url'] == yaml.load(
+            SwaggerFileCreator.SWAGGER_YML_URL)
 
     def verify_recipe_is_logged_for(self, app):
         super(LoggingRepository, self)._checkout_repo()
@@ -92,6 +93,7 @@ class LoggingRepository(GitRepository):
         recipe = self.get_recipe_for(app)
         for k in source_recipe.keys():
             assert recipe[k] == source_recipe[k]
+
 
 class FileCreator():
     @staticmethod
@@ -126,12 +128,12 @@ class ConfigRepository(GitRepository):
 
     def push_job(self, job_config):
         config_dict = {job_config: self.JOBS_PATH,
-                       "default": self.GLOBAL_CONFIG_PATH}
+                       "default.yml": self.GLOBAL_CONFIG_PATH}
         self.__push(config_dict)
 
     def push_config(self, config_name):
         config_dict = {config_name: self.GLOBAL_CONFIG_PATH,
-                       "jobs_default": self.JOBS_PATH}
+                       "jobs_default.yml": self.JOBS_PATH}
         self.__push(config_dict)
 
     def __push(self, config_dict):
@@ -161,7 +163,7 @@ class LocalConfig:
         return open(self.__get_config_path(), 'rb').read()
 
     def __get_config_path(self):
-        return 'features/config/%s.yml' % self.name
+        return 'features/config/%s' % self.name
 
     def get_path(self):
         return self.__get_config_path()

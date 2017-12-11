@@ -30,7 +30,6 @@ def before_all(context):
     os.environ['TARGET_ENV'] = TARGET_ENV
     os.environ['REST_API_ID'] = 'y404vvoq21'
     if __is_aws_mode(context):
-        # KopsSync(TARGET_ENV, 'default').sync()
         context.aws_uri = "911479539546.dkr.ecr.us-east-1.amazonaws.com/"
         context.minikube = None
         __push_apps_aws(Context(context).all_apps())
@@ -72,7 +71,8 @@ def __create_namespace(context):
     k8s = K8sDriver(namespace, context.minikube)
     k8s.create_namespace()
     Context(context).set_default_namespace(namespace)
-    k8s.upload_config('default')
+    k8s.upload_config('default.yml')
+    k8s.upload_config('log4j.xml', 'log4j', 'log4j2.xml')
     k8s.deploy('features/support/deployer-shell.yml')
 
 

@@ -68,10 +68,10 @@ class K8sDriver:
     def create_namespace(self):
         self.__run("kubectl create namespace %s" % self.namespace)
 
-    def upload_config(self, config_name):
-        subprocess.call("kubectl delete configmap global-config --namespace=%s" % self.namespace, shell=True)
-        self.__run("kubectl create configmap global-config --from-file=global.yml=%s --namespace=%s" % (
-            LocalConfig(config_name).get_path(), self.namespace))
+    def upload_config(self, path, config="global-config", target_name="global.yml"):
+        subprocess.call(("kubectl delete configmap " + config + " --namespace=%s") % self.namespace, shell=True)
+        self.__run("kubectl create configmap %s --from-file=%s=%s --namespace=%s" % (
+            config, target_name, LocalConfig(path).get_path(), self.namespace))
 
     @staticmethod
     def add_node_label(name, value):
