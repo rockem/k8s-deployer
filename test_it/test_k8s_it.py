@@ -59,15 +59,28 @@ class TestConnectorIt:
     def __extract_job_url_from(self, job_as_josn):
         return job_as_josn['spec']['jobTemplate']['spec']['template']['spec']['containers'][0]['args'][1]
 
+    def test_service_should_not_recreated_when_same_type(self):
+        properties = self._create_service(Recipe.SERVICE_TYPE_UI)
+        uuid = self.__service_uuid(properties['serviceName'])
+        self._create_service(Recipe.SERVICE_TYPE_UI)
+        assert self.__service_uuid(properties['serviceName']) == uuid
 
     def test_modify_service_type(self):
         assert self._created_service_with_type(Recipe.SERVICE_TYPE_UI) == k8s.LOAD_BALANCER_SERVICE
         assert self._created_service_with_type(Recipe.SERVICE_TYPE_API) == k8s.CLUSTER_IP_SERVICE
 
     def _created_service_with_type(self, service_type):
+        properties = self._create_service(service_type)
+        return self.__service_type(properties['serviceName'])
+
+    def _create_service(self, service_type):
         properties = self.__create_properties_with(service_type)
         self.__connector.apply_service(properties)
-        return self.__service_type(properties['serviceName'])
+        return properties
+
+    def __service_uuid(self, service_name):
+        loads = json.loads(self.__connector.get_service_as_json(service_name))
+        return loads['metadata']['uid']
 
     def __service_type(self, service_name):
         return json.loads(self.__connector.get_service_as_json(service_name))['spec']['type']

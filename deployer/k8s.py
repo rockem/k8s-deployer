@@ -176,6 +176,8 @@ class K8sConnector(object):
     def __fetch_service_type(self, service_name):
         service_type = json.loads(self.get_service_as_json(service_name))['spec']['type']
         logger.info("service type is: %s " %service_type)
+        return service_type
+
 
     def __service_exists(self, service_name):
         service_exist = True
