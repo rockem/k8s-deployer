@@ -6,7 +6,6 @@ metadata:
        name: {name}
 spec:
    replicas: 1
-   revisionHistoryLimit: 5
    selector:
      matchLabels:
        name: {name}
@@ -47,6 +46,13 @@ spec:
                  fieldPath: metadata.namespace
            - name: MY_ENV
              value: {myEnv}
+         resources:
+           requests:
+             memory: "1Gi"
+             cpu: "250m"
+           limits:
+             memory: "4Gi"
+             cpu: "2000m"
        nodeSelector:
          type: node
        volumes:
