@@ -68,6 +68,9 @@ class K8sDriver:
     def create_namespace(self):
         self.__run("kubectl create namespace %s" % self.namespace)
 
+    def create_secret(self, filename, namespace):
+        self.__run("kubectl create -f %s --namespace=%s" % (filename, namespace))
+
     def upload_config(self, path, config="global-config", target_name="global.yml"):
         subprocess.call(("kubectl delete configmap " + config + " --namespace=%s") % self.namespace, shell=True)
         self.__run("kubectl create configmap %s --from-file=%s=%s --namespace=%s" % (
