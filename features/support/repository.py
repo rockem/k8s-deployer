@@ -120,7 +120,7 @@ class ConfigRepository(GitRepository):
     REPO_NAME = 'config_repo'
     GIT_REPO_URL = "file://" + os.getcwd() + '/' + REPO_NAME
     CHECKOUT_DIR = 'config_co'
-    GLOBAL_CONFIG_PATH = CHECKOUT_DIR + '/int/global.yml'
+    GLOBAL_CONFIG_PATH = CHECKOUT_DIR + '/int/global-configs/global.yml'
     JOBS_PATH = CHECKOUT_DIR + '/int/jobs.yml'
 
     def __init__(self):

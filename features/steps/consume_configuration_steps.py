@@ -13,7 +13,7 @@ use_step_matcher("re")
 
 @given("config \"(.*)\" was uploaded")
 def upload_config(context, config_name):
-    K8sDriver(Context(context).default_namespace(), context.minikube).upload_config(config_name)
+    K8sDriver(Context(context).default_namespace(), context.minikube).upload_config_explict(config_name)
 
 
 @then("the service should get the new configuration")

@@ -147,6 +147,3 @@ def main(action, image_name, source, target, git_repository, domain, recipe, dep
 
 if __name__ == "__main__":
     main()
-    # ActionRunner(" 911479539546.dkr.ecr.us-east-1.amazonaws.com/deployer-test-version:healthy"
-    #              , False, " mborinsky-1514975537", " file:///Users/mborinsky/dev/deployer/env_repo"
-    #              , "heed-dev.io", "", 20, "").run('deploy')

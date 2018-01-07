@@ -69,3 +69,5 @@ spec:
              items:
              - key: global.yml
                path: application.yml
+             - key: bootstrap.yml
+               path: bootstrap.yml
