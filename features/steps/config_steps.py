@@ -19,6 +19,10 @@ def push_config(context, config_name):
     ConfigRepository().push_config(config_name)
 
 
+@given("folder \"(.*)\" was pushed to git")
+def push_config(context, config_name):
+    ConfigRepository().push_config_folder(config_name)
+
 @given("job \"(.*)\" was pushed to git")
 def push_config(context, job_name):
     ConfigRepository().push_job(job_name)
@@ -40,6 +44,12 @@ def executing(context, namespace=None):
 def validate_config_uploaded(context, config_name, namespace=None):
     ns = Context(context).default_namespace() if namespace is None else namespace
     K8sDriver(ns, context.minikube).verify_config_is(LocalConfig(config_name).content())
+
+
+@then("folder \"(.*)\" uploaded(?: to \"(.+)\" namespace)?")
+def validate_config_uploaded(context, config_folder, namespace=None):
+    ns = Context(context).default_namespace() if namespace is None else namespace
+    K8sDriver(ns, context.minikube).verify_all_configs_in_folder(LocalConfig(config_folder).get_path())
 
 
 @then("the job for \"(.*):(.*)\" service was invoked")

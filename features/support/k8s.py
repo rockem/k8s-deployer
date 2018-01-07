@@ -1,8 +1,9 @@
 import json
 import re
 import subprocess
-
 import yaml
+import os
+from os import listdir
 
 from features.support.app import BusyWait
 from features.support.http import url_for
@@ -54,13 +55,20 @@ class K8sDriver:
     def __run(self, command):
         return subprocess.check_output(command, shell=True)
 
-    def verify_config_is(self, expected_config):
-        assert expected_config == self.__get_k8s_config()
+    def verify_config_is(self, expected_config, conf_entry = "global.yml"):
+        assert expected_config == self.__get_k8s_config(conf_entry)
 
-    def __get_k8s_config(self):
+    def verify_all_configs_in_folder(self, folder):
+        for file in listdir(folder):
+            self.verify_config_is(open(os.path.join(folder, file), 'rb').read(), file)
+
+
+
+
+    def __get_k8s_config(self, config_name = "global.yml"):
         k8s_config_map = self.__run(
             "kubectl get configmap %s --namespace=%s -o yaml" % (GLOBAL_CONFIG_NAME, self.namespace))
-        return yaml.load(k8s_config_map)['data'][CONFIG_FILE_NAME]
+        return yaml.load(k8s_config_map)['data'][config_name]
 
     def delete_namespace(self):
         subprocess.call("kubectl delete namespace %s" % self.namespace, shell=True)
