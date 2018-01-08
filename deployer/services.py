@@ -44,7 +44,7 @@ class GlobalConfigFetcher:
         self.git_client.checkout()
 
     def fetch_global_configuration_for(self, target):
-        return self.__fetch_for(target, 'global.yml')
+        return self.__fetch_for(target, 'global-configs')
 
     def fetch_jobs_for(self, target):
         return self.__fetch_for(target, 'jobs.yml')

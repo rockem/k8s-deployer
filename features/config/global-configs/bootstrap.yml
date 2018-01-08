@@ -1,0 +1,20 @@
+spring:
+    application:
+        name: dummy-service
+    profiles:
+      active: int
+    cloud:
+        vault:
+            authentication: TOKEN
+            token: ${VAULT_TOKEN}
+            scheme: https
+            uri: https://vault.com
+            host: vault.com
+            port: 80
+            generic:
+              enabled: true
+              backend: secret
+              profile-separator: '/'
+              default-context: application
+              application-name: dummy-service
+            fail-fast: true
