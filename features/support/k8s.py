@@ -84,7 +84,7 @@ class K8sDriver:
         self.__run("kubectl create configmap %s --from-file=%s=%s --namespace=%s" % (
             config, target_name, LocalConfig(path).get_path(), self.namespace))
 
-    def upload_config_explict(self, path, config="global-config"):
+    def upload_config_folder_support(self, path, config="global-config"):
         self.delete_config(config)
         self.__run("kubectl create configmap %s --from-file=%s --namespace=%s" % (
             config, LocalConfig(path).get_path(), self.namespace))
