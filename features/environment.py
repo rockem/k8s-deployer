@@ -71,9 +71,11 @@ def __create_namespace(context):
     k8s = K8sDriver(namespace, context.minikube)
     k8s.create_namespace()
     Context(context).set_default_namespace(namespace)
-    k8s.upload_config('default.yml')
+    k8s.upload_config_folder('global-configs')
     k8s.upload_config('log4j.xml', 'log4j', 'log4j2.xml')
+    k8s.create_secret('features/config/secret.yml', namespace)
     k8s.deploy('features/support/deployer-shell.yml')
+
 
 
 def after_scenario(context, scenario):

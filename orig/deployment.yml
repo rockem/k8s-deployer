@@ -44,6 +44,11 @@ spec:
              valueFrom:
                fieldRef:
                  fieldPath: metadata.namespace
+           - name: VAULT_TOKEN
+             valueFrom:
+               secretKeyRef:
+                 name: vault
+                 key: vault_token
            - name: MY_ENV
              value: {myEnv}
          resources:
@@ -70,3 +75,5 @@ spec:
              items:
              - key: global.yml
                path: application.yml
+             - key: bootstrap.yml
+               path: bootstrap.yml
