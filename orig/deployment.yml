@@ -58,6 +58,8 @@ spec:
            limits:
              memory: "4Gi"
              cpu: "2000m"
+         securityContext:
+            privileged: true
        nodeSelector:
          type: node
        volumes:
