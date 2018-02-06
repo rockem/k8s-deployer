@@ -1,5 +1,5 @@
 from nose.tools import raises
-
+import json
 from deployer.deploy import DeployError, ImageDeployer, ColorDecider
 from deployer.recipe import RecipeBuilder
 
@@ -28,27 +28,43 @@ class ConnectorStub(object):
         self.healthy = healthy
         self.applied_descriptors = {}
         self.applied_scale = {}
+        self.applied_services = {}
+        self.applied_deployments = {}
 
     def apply_service(self, desc):
         self.applied_descriptors['service'] = desc
+        self.applied_services[desc['serviceName']] = desc
 
     def apply_deployment(self, desc):
         self.applied_descriptors['deployment'] = desc
+        self.applied_deployments[desc['name']] = desc
 
     def describe_pod(self, name):
         return "Name: %s" % name
 
     def scale_deployment(self, deployment_name, scale):
         self.applied_scale[deployment_name] = scale
+        if deployment_name in self.applied_deployments:
+            self.applied_deployments[deployment_name]['scale'] = scale
 
     def check_pods_health(self, pod_name, container_name):
         return 'UP' if self.healthy else 'DOWN'
 
-    def get_service_as_json(self, service_name):
-        if service_name == 'no_color':
-            return str('{"spec": {"selector": {"no_color": "no"}}}')
+    def describe_service(self, service_name):
+        if service_name in self.applied_services:
+            service = self.applied_services[service_name]
+            return {'spec': {'selector': {'color': service['serviceColor'],
+                                                     'name': service['name']}}}
         else:
-            return str('{"spec": {"selector": {"color": "green"}}}')
+            return {}
+
+    def describe_deployment(self, deployment_name):
+        if deployment_name in self.applied_deployments:
+            deployment = self.applied_deployments[deployment_name]
+            return {'spec': {'replicas': deployment['scale']}}
+
+        else:
+            return {}
 
 
 class TestImageDeployer(object):
@@ -56,39 +72,54 @@ class TestImageDeployer(object):
 
     @raises(DeployError)
     def test_should_fail_given_sick_service(self):
-        self.__deploy(False, {'image_name': 'kuku:123'})
+        self.__deploy({'image_name': 'kuku:123'}, ConnectorStub(False))
 
-    def __deploy(self, healthy, properties):
-        self.connector = ConnectorStub(healthy)
-        deployer = ImageDeployer('test_target', self.DOMAIN, self.connector, RecipeBuilder().ingredients(
+    def __deploy(self, properties, connector):
+        deployer = ImageDeployer('test_target', self.DOMAIN, connector, RecipeBuilder().ingredients(
             properties).build(), 1)
         deployer.deploy()
 
     def test_should_update_service_color_given_colorless_service(self):
-        self.__deploy(True, {'image_name': 'no_color:123'})
-        assert self.connector.applied_descriptors['service']['serviceColor'] == 'green'
-        assert self.connector.applied_descriptors['deployment']['serviceColor'] == 'green'
+        connector = ConnectorStub(True)
+        self.__deploy({'image_name': 'no_color:123'}, connector)
+        assert connector.applied_descriptors['service']['serviceColor'] == 'green'
+        assert connector.applied_descriptors['deployment']['serviceColor'] == 'green'
 
     def test_should_update_service_domain(self):
-        self.__deploy(True, {'image_name': 'image:123'})
-        assert self.connector.applied_descriptors['service']['domain'] == self.DOMAIN
+        connector = ConnectorStub(True)
+        self.__deploy({'image_name': 'image:123'}, connector)
+        assert connector.applied_descriptors['service']['domain'] == self.DOMAIN
 
     def test_skip_validation_and_deploy_when_not_exposed(self):
-        self.__deploy(False, {'image_name': 'not_exposed:123', 'expose': False})
-        assert self.connector.applied_descriptors.has_key('service') is False
-        assert self.connector.applied_descriptors.has_key('deployment') is True
+        connector = ConnectorStub(False)
+        self.__deploy({'image_name': 'not_exposed:123', 'expose': False}, connector)
+        assert connector.applied_descriptors.has_key('service') is False
+        assert connector.applied_descriptors.has_key('deployment') is True
 
     def test_delegate_ports_details(self):
         ports = ['50:5000']
-        self.__deploy(True, {'image_name': 'ported:123', 'ports': ports})
-        assert self.connector.applied_descriptors['service']['ports'] == ports
-        assert self.connector.applied_descriptors['deployment']['ports'] == ports
+        connector = ConnectorStub(True)
+        self.__deploy({'image_name': 'ported:123', 'ports': ports}, connector)
+        assert connector.applied_descriptors['service']['ports'] == ports
+        assert connector.applied_descriptors['deployment']['ports'] == ports
 
     def test_delegate_service_type(self):
-        self.__deploy(True, {'image_name': 'image:123', 'service_type': 'some_type'})
-        assert self.connector.applied_descriptors['service']['serviceType'] == 'some_type'
+        connector = ConnectorStub(True)
+        self.__deploy({'image_name': 'image:123', 'service_type': 'some_type'}, connector)
+        assert connector.applied_descriptors['service']['serviceType'] == 'some_type'
 
     def test_scale_down_background_deployment(self):
-        self.__deploy(True, {'image_name': 'image:123', 'service_type': 'some_type'})
-        color = self.connector.applied_descriptors['deployment']['serviceColor']
-        assert self.connector.applied_scale['image-' + ColorDecider().invert_color(color)] == 0
+        connector = ConnectorStub(True)
+        self.__deploy({'image_name': 'image:123', 'service_type': 'some_type'}, connector)
+        color = connector.applied_descriptors['deployment']['serviceColor']
+        assert connector.applied_scale['image-' + ColorDecider().invert_color(color)] == 0
+
+    def test_scale_perseverance(self):
+        connector = ConnectorStub(True)
+        self.__deploy({'image_name': 'magnificent:123', 'service_type': 'some_type'}, connector)
+        connector.scale_deployment(connector.applied_descriptors['service']['name'], 2)
+        self.__deploy({'image_name': 'magnificent:456', 'service_type': 'some_type'}, connector)
+        deployment = connector.describe_deployment(connector.applied_descriptors['service']['name'])
+        assert deployment['spec']['replicas'] == 2
+
+

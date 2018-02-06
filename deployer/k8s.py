@@ -34,18 +34,29 @@ class PodHealthChecker(object):
             raise Exception('service %s has no pod!' % pod_name)
 
 
-class ServiceExplorer(object):
+class AppExplorer(object):
     def __init__(self, connector):
         self.connector = connector
 
     def get_color(self, service_name, default_color='blue'):
         try:
-            return json.loads(self.connector.get_service_as_json(service_name))['spec']['selector']['color']
+            return self.connector.describe_service(service_name)['spec']['selector']['color']
         except subprocess.CalledProcessError as e:
             if e.returncode is not 0:
                 return default_color
         except KeyError as e:
             return default_color
+
+    def get_deployment_scale(self, service_name, default_scale=1):
+        deployment_name = self.get_deployment_name(service_name)
+        return default_scale if deployment_name == '' else \
+            self.connector.describe_deployment(deployment_name)['spec']['replicas']
+
+    def get_deployment_name(self, service_name):
+        try:
+            return self.connector.describe_service(service_name)['spec']['selector']['name']
+        except (subprocess.CalledProcessError, KeyError, ValueError) as e:
+            return ''
 
 
 class K8sDescriptorFactory(object):
@@ -145,14 +156,19 @@ class K8sConnector(object):
     def describe_pod(self, pod_name):
         return self.__run("kubectl --namespace %s describe pods %s" % (self.namespace, pod_name))
 
-    def get_service_as_json(self, service_name):
-        return self.__run("kubectl --namespace %s get svc %s -o json" % (self.namespace, service_name))
+    def describe_deployment(self, app):
+        return json.loads(subprocess.check_output(
+            "kubectl get --namespace %s deployment %s -o json" % (self.namespace, app), shell=True))
+
+    def describe_service(self, service_name):
+        return json.loads(self.__run("kubectl --namespace %s get svc %s -o json" % (self.namespace, service_name)))
 
     def cluster_info(self):
         return self.__run("kubectl cluster-info")
 
     def scale_deployment(self, deployment_name, scale):
-        self.__run_ignore_error('kubectl --namespace %s scale deployment %s --replicas=%d' % (self.namespace, deployment_name, scale))
+        self.__run_ignore_error(
+            'kubectl --namespace %s scale deployment %s --replicas=%d' % (self.namespace, deployment_name, scale))
 
     def apply(self, source_to_deploy):
         return self.__run(
@@ -169,20 +185,20 @@ class K8sConnector(object):
         service_name = properties['serviceName']
         service_type = properties['serviceType']
         if self.__service_exists(service_name):
-            logger.info("Service %s exists, fetch its type and recreate it if its current type: \'%s\' was changed." % (service_name, K8sDescriptorFactory.service_type_map[service_type]))
+            logger.info("Service %s exists, fetch its type and recreate it if its current type: \'%s\' was changed." % (
+            service_name, K8sDescriptorFactory.service_type_map[service_type]))
             if self.__fetch_service_type(service_name) != K8sDescriptorFactory.service_type_map[service_type]:
                 self.__delete_service(service_name)
 
     def __fetch_service_type(self, service_name):
-        service_type = json.loads(self.get_service_as_json(service_name))['spec']['type']
-        logger.info("service type is: %s " %service_type)
+        service_type = self.describe_service(service_name)['spec']['type']
+        logger.info("service type is: %s " % service_type)
         return service_type
-
 
     def __service_exists(self, service_name):
         service_exist = True
         try:
-            self.get_service_as_json(service_name)
+            self.describe_service(service_name)
         except subprocess.CalledProcessError as e:
             service_exist = False
 

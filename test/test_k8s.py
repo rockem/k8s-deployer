@@ -1,10 +1,19 @@
 import os
-
+import json
 import yaml
 
 from deployer import k8s
-from deployer.k8s import K8sDescriptorFactory
+from deployer.k8s import K8sDescriptorFactory, AppExplorer
 from deployer.recipe import Recipe
+
+
+class ConnectorStub(object):
+    def __init__(self):
+        pass
+
+    def describe_service(self, service_name):
+        json.loads('Error from server (NotFound): services.extensions %s not found' % service_name)
+
 
 
 class TestK8sDescriptorFactory:
@@ -44,3 +53,9 @@ class TestK8sDescriptorFactory:
     def __create_service(self, configuration):
         factory = K8sDescriptorFactory(self.TEMPLATE_PATH, configuration)
         return factory.service()
+
+    def test_should_return_one_as_default_scale(self):
+        assert AppExplorer(ConnectorStub()).get_deployment_scale("not_existing_service") == 1
+
+    def test_should_return_desired_default_scale(self):
+        assert AppExplorer(ConnectorStub()).get_deployment_scale("not_existing_service", 10) == 10

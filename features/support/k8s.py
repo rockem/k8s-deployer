@@ -34,6 +34,9 @@ class K8sDriver:
     def verify_app_is_running(self, app):
         BusyWait().execute(self.__pod_running, app.service_name())
 
+    def describe_service(self, service_name):
+        return json.loads(self.__run("kubectl --namespace %s get svc %s -o json" % (self.namespace, service_name)))
+
     def __pod_running(self, image_name):
         pod_name = self.__grab_pod_name(image_name)
         match = re.search(r"Status:\s(.*)", self.__describe_pod(pod_name))
@@ -44,6 +47,10 @@ class K8sDriver:
 
     def __describe_pod(self, pod_name):
         return self.__run("kubectl --namespace %s describe pods %s" % (self.namespace, pod_name))
+
+    def describe_deployment(self, app):
+        return json.loads(subprocess.check_output(
+            "kubectl get --namespace %s deployment %s -o json" % (self.namespace, app), shell=True))
 
     def __grab_pod_name(self, pod_name):
         output = self.__run("kubectl --namespace %s get pods" % (self.namespace))
@@ -61,9 +68,6 @@ class K8sDriver:
     def verify_all_configs_in_folder(self, folder):
         for file in listdir(folder):
             self.verify_config_is(open(os.path.join(folder, file), 'rb').read(), file)
-
-
-
 
     def __get_k8s_config(self, config_name = "global.yml"):
         k8s_config_map = self.__run(
@@ -91,6 +95,10 @@ class K8sDriver:
 
     def delete_config(self, config="global-config"):
         subprocess.call(("kubectl delete configmap " + config + " --namespace=%s") % self.namespace, shell=True)
+
+    def scale_deployment(self, deployment, replicas):
+        self.__run("kubectl scale --replicas=%s  deployment/%s --namespace=%s" % (
+            replicas, deployment, self.namespace))
 
     @staticmethod
     def add_node_label(name, value):

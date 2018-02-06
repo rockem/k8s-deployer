@@ -79,17 +79,18 @@ class TestConnectorIt:
         return properties
 
     def __service_uuid(self, service_name):
-        loads = json.loads(self.__connector.get_service_as_json(service_name))
+        loads = self.__connector.describe_service(service_name)
         return loads['metadata']['uid']
 
     def __service_type(self, service_name):
-        return json.loads(self.__connector.get_service_as_json(service_name))['spec']['type']
+        return self.__connector.describe_service(service_name)['spec']['type']
 
     def __create_properties_with(self, service_type):
         recipe = RecipeBuilder().image("dummy-image").ingredients({'service_type':service_type}).build()
         return {
             'env': 'int',
             'name': 'dummy-deployment',
+            'scale': 1,
             'serviceName': 'dummy-service',
             'image': 'dummy-image',
             'podColor': 'green',
@@ -102,12 +103,24 @@ class TestConnectorIt:
         }
 
     def test_scale_deployment(self):
-        properties = self.__create_properties_with(Recipe.SERVICE_TYPE_API)
-        self.__connector.apply_deployment(properties)
+        properties = self.create_api_type_deployment()
 
         deployment_name = properties['name']
         self.__connector.scale_deployment(deployment_name, 0)
         assert self._deployment_scale(deployment_name) == 0
+
+    def test_describe_deployment(self):
+        properties = self.create_api_type_deployment()
+
+        deployment_name = properties['name']
+        deployment_description = self.__connector.describe_deployment(deployment_name)
+        assert deployment_description['metadata']['name'] == deployment_name
+
+    def create_api_type_deployment(self):
+        properties = self.__create_properties_with(Recipe.SERVICE_TYPE_API)
+        self.__connector.apply_deployment(properties)
+        return properties
+
 
     def _deployment_scale(self, deployment_name):
         deployment = subprocess.check_output("kubectl --namespace %s get deployment %s -o json"

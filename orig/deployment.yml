@@ -5,7 +5,7 @@ metadata:
    labels:
        name: {name}
 spec:
-   replicas: 1
+   replicas: {scale}
    selector:
      matchLabels:
        name: {name}
