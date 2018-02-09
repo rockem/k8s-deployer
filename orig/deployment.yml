@@ -53,7 +53,7 @@ spec:
              value: {myEnv}
          resources:
            requests:
-             memory: "1Gi"
+             memory: "600Mi"
              cpu: "250m"
            limits:
              memory: "4Gi"
