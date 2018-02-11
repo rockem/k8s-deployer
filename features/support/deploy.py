@@ -2,6 +2,7 @@ import os
 
 import subprocess
 
+
 APP = " python deployer/app.py"
 
 
@@ -10,11 +11,11 @@ class DeployDriverError(Exception):
 
 
 class DeployerDriver:
-    def __init__(self, git_repo, target, domain, swagger_path=''):
+    def __init__(self, git_repo, target, domain):
         self.git_repo = git_repo
         self.target = target
         self.domain = domain
-        self.swagger_path = swagger_path
+
 
     def deploy(self, app_image, should_fail=False):
         try:
@@ -46,13 +47,19 @@ class DeployerDriver:
             recipe = "\"logging: none\""
         return '--recipe %s' % recipe
 
+
     def configure(self):
         self.__run(
             "%s configure --target %s --git_repository %s" % (APP, self.target, self.git_repo))
 
-    def promote(self,source_env):
+    def promote(self, source_env):
         self.__run("%s promote --source %s --target %s --git_repository %s" % (
             APP,source_env, self.target, self.git_repo))
 
     def deploy_swagger(self, path):
-        self.__run("%s swagger --git_repository %s --yml_path %s" % (APP,self.git_repo,  path))
+        self.__run("%s swagger --git_repository %s --yml_path %s" % (APP, self.git_repo, path))
+
+    def rollback(self, service_name):
+            self.__run(
+                "%s rollback --target %s --git_repository %s --domain=%s --deploy-timeout=20 --service_name=%s" % (
+                    APP, self.target, self.git_repo, self.domain, service_name))

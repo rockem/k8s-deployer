@@ -12,6 +12,7 @@ class ImageNameParser(object):
         return re.search(self.SERVICE_NAME_PATTERN, self.image_name).group(2)
 
 
+
 class EnvironmentVariablesFetcher(object):
     def fetch(self, key):
         return os.environ.get(key)

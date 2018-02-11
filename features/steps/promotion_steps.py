@@ -17,7 +17,7 @@ def write_service_to_int_git(context, name, version, env):
 
 
 @when("promoting from (.*) environment to int")
-def promote(context,env):
+def promote(context, env):
     DeployerDriver(LoggingRepository.GIT_REPO_URL, Context(context).default_namespace(), context.domain).promote(env)
 
 
@@ -35,10 +35,5 @@ def check_expose_in_git(context):
 def step_impl(context, env):
     random = RandomWords().random_word()
     SwaggerFileCreator().create_yml_with(random)
-    LoggingRepository().log(LoggingRepository.swagger_location(env),LoggingRepository.SWAGGER_CONTENT)
+    LoggingRepository().log(LoggingRepository.swagger_location(env), LoggingRepository.SWAGGER_CONTENT)
     context.response = random
-    print (" api gateway response expected: %s \n"%context.response)
-
-
-
-

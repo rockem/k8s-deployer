@@ -59,15 +59,13 @@ def jobs_were_invoked_on_service(context, service, version):
         lambda output: json.loads(output)['state']
     )
 
-
 def _validate_job_was_invoked(domain):
     assert http_get('http://%s/verify' % domain).status_code == 200
 
 
 @when("deploying swagger")
 def deploy_swagger(context):
-    DeployerDriver(LoggingRepository.GIT_REPO_URL, Context(context).default_namespace(), context.domain,
-                   SwaggerFileCreator.SWAGGER_YML_URL) \
+    DeployerDriver(LoggingRepository.GIT_REPO_URL, Context(context).default_namespace(), context.domain) \
         .deploy_swagger(SwaggerFileCreator.SWAGGER_YML_URL)
 
 

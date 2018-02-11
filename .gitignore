@@ -11,7 +11,6 @@ thrift
 .idea
 deployer/produce
 feature_tmp/
-tmp/
 behave_repo/
 *.class
 *.bin
@@ -28,11 +27,12 @@ config_co
 recipe_co
 out
 deployermain.py
-Would skip repository env_co/
-env_repo/
-Would skip repository envs_co/
+env_repo
+envs_co
 envs_repo/
 git_commit_id
 swagger.yml
-test/input_jobs.yml
+input_jobs.yml
 venv
+rollback_repo
+tmp
