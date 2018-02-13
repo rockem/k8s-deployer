@@ -14,7 +14,6 @@ class GitRepositoryClient(object):
     def __init__(self, repo_name):
         self._repo_name = repo_name
         self.git_url = self.__git_url_for(repo_name)
-        k= os.getcwd()
 
     def create(self):
         if os.path.exists(self._repo_name):
@@ -85,6 +84,7 @@ class TestDeployLogRepository(object):
                     raise
         with open(output_path, 'w') as outfile:
             yaml.dump(data, outfile, default_flow_style=False)
+
 
 
 
