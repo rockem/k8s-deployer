@@ -1,7 +1,5 @@
 import os
-
 import yaml
-
 from git_util import GitClient
 from services import logger
 from util import create_directory
@@ -9,10 +7,10 @@ from yml import YmlReader
 
 
 class DeployLogRepository:
-    def __init__(self, git_repository, target):
+    def __init__(self, git_repository, env=None):
         self.git_client = GitClient(git_repository)
         self.git_client.checkout()
-        self.target = target
+        self.env = env
 
     def write(self, path, data):
         logger.debug("git url for push! %s" % path)
@@ -26,7 +24,7 @@ class DeployLogRepository:
             yaml.dump(data, service_file, default_flow_style=False, allow_unicode=False)
 
     def get_all_recipes(self):
-        return self.__gather_recipes(os.path.join(GitClient.CHECKOUT_DIR, self.target, "services"))
+        return self.__gather_recipes(os.path.join(GitClient.CHECKOUT_DIR, self.env, "services"))
 
     @staticmethod
     def __gather_recipes(location):
@@ -43,9 +41,9 @@ class DeployLogRepository:
         return recipes
 
     def get_previous_recipe(self, file_name):
-        path = os.path.join(self.target, 'services', file_name + '.yml')
+        path = os.path.join(self.env, 'services', file_name + '.yml')
         return yaml.load(self.git_client.retrieve_previous_commit_file(path))
 
     def get_swagger(self):
-        path = os.path.join(GitClient.CHECKOUT_DIR, self.target, 'api', 'swagger.yml')
+        path = os.path.join(GitClient.CHECKOUT_DIR, self.env, 'api', 'swagger.yml')
         return YmlReader(path).read()

@@ -36,3 +36,5 @@ input_jobs.yml
 venv
 rollback_repo
 tmp
+it_repo
+.DS_Store

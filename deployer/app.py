@@ -17,6 +17,29 @@ from yml import YmlReader
 logger = DeployerLogger('deployer').getLogger()
 
 
+def recipe_location(env, recipe):
+    return os.path.join(EnvironmentParser(env).name(), "services",
+                        "%s.yml" % ImageNameParser(recipe.image()).name())
+
+
+class WriteToLogCommand(object):
+    def __init__(self, git_repository, env, recipe, command):
+        self.git_repository = git_repository
+        self.env = env
+        self.recipe = recipe
+        self.command = command
+
+    def run(self):
+        self.run_pre_command()
+        DeployLogRepository(self.git_repository).write(recipe_location(self.env, self.recipe), self.recipe
+                                                       .ingredients)
+
+    def run_pre_command(self):
+        try:
+            self.command.run()
+        except Exception as e:
+            raise e
+
 
 class DeployCommand(object):
     def __init__(self, target, git_repository, domain, connector, recipe, timeout):
@@ -29,7 +52,6 @@ class DeployCommand(object):
         logger.debug('is exposed %s ' % self.recipe.expose())
         self.__validate_image_contains_tag()
         self.image_deployer.deploy()
-        DeployLogRepository(self.git_repository, self.target).write(self.__recipe_location(), self.recipe.ingredients)
         logger.debug("finished deploying image:%s" % self.recipe.image())
 
     def __validate_image_contains_tag(self):
@@ -37,9 +59,6 @@ class DeployCommand(object):
             logger.error('image_name should contain the tag')
             sys.exit(1)
 
-    def __recipe_location(self):
-        return os.path.join(EnvironmentParser(self.target).name(), "services",
-                            "%s.yml" % ImageNameParser(self.recipe.image()).name())
 
 class PromoteCommand(object):
     def __init__(self, from_env, to_env, git_repository, domain, connector, timeout):
@@ -54,14 +73,14 @@ class PromoteCommand(object):
         recipes = DeployLogRepository(self.git_repository, self.from_env).get_all_recipes()
         for recipe in recipes:
             r = Recipe.builder().ingredients(recipe).build()
-            try:
-                DeployCommand(self.to_env, self.git_repository,
-                              self.domain,
-                              self.connector,
-                              r,
-                              self.timeout).run()
-            except DeployError as e:
-                logger.warn("Failed to deploy %s with error: %s" % (r.image(), e.message))
+            WriteToLogCommand(self.git_repository, self.to_env, r,
+                                  DeployCommand(self.to_env, self.git_repository,
+                                                self.domain,
+                                                self.connector,
+                                                r,
+                                                self.timeout)).run()
+
+
         logger.debug('After Deploy')
         SwaggerCommand(self.__swagger_url(), self.git_repository).run()
 
@@ -109,12 +128,15 @@ class RollbackCommand(object):
     def run(self):
         logger.info("going to rollback target = %s, service_name = %s" % (self.target, self.service_name))
         recipe = self.deploy_log.get_previous_recipe(self.service_name)
-        DeployCommand(self.target,
-                      self.git_repository,
-                      self.domain,
-                      self.connector,
-                      Recipe.builder().ingredients(recipe).build(),
-                      self.timeout).run()
+        r = Recipe.builder().ingredients(recipe).build()
+        WriteToLogCommand(self.git_repository, EnvironmentParser(self.target).name(), r,
+                          DeployCommand(self.target,
+                                        self.git_repository,
+                                        self.domain,
+                                        self.connector,
+                                        Recipe.builder().ingredients(recipe).build(),
+                                        self.timeout)).run()
+
 
 
 class ActionRunner:
@@ -134,7 +156,9 @@ class ActionRunner:
         connector = K8sConnector(EnvironmentParser(self.target).namespace())
         if action == 'deploy':
             recipe = Recipe.builder().ingredients(YmlReader(self.recipe_path).read()).image(self.image_name).build()
-            DeployCommand(self.target, self.git_repository, self.domain, connector, recipe, self.timeout).run()
+            WriteToLogCommand(self.git_repository, EnvironmentParser(self.target).name(), recipe,
+                           DeployCommand(self.target, self.git_repository, self.domain, connector, recipe, self.timeout)).run()
+
         elif action == 'promote':
             PromoteCommand(self.source, self.target, self.git_repository, self.domain, connector, self.timeout).run()
         elif action == 'configure':
