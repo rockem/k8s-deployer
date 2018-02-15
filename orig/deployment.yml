@@ -16,6 +16,7 @@ spec:
          type: {name}
          color: {podColor}
      spec:
+       serviceAccountName: {name}
        containers:
        - image: {image}
          name: {name}
