@@ -80,6 +80,10 @@ class K8sDriver:
     def create_namespace(self):
         self.__run("kubectl create namespace %s" % self.namespace)
 
+    def create_service_account(self, service_account_name, namespace):
+        self.__run("kubectl create serviceAccount %s --namespace=%s" % (service_account_name, namespace))
+
+
     def create_secret(self, filename, namespace):
         self.__run("kubectl create -f %s --namespace=%s" % (filename, namespace))
 
