@@ -30,11 +30,17 @@ class ConnectorStub(object):
         self.applied_scale = {}
         self.activated_deployments = []
         self.applied_services = {}
+        self.applied_service_accounts = []
         self.applied_deployments = {}
+
 
     def apply_service(self, desc):
         self.applied_descriptors['service'] = desc
         self.applied_services[desc['serviceName']] = desc
+
+    def apply_service_account(self, desc):
+        self.applied_service_accounts.append(desc)
+
 
     def apply_deployment(self, desc):
         self.applied_descriptors['deployment'] = desc
@@ -127,4 +133,7 @@ class TestImageDeployer(object):
         deployment = connector.describe_deployment(connector.applied_descriptors['service']['name'])
         assert deployment['spec']['replicas'] == 2
 
-
+    def test_called_applied_service_account(self):
+        connector = ConnectorStub(True)
+        self.__deploy({'image_name': 'magnificent:123', 'service_type': 'some_type'}, connector)
+        assert len(connector.applied_service_accounts) > 0

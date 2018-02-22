@@ -105,6 +105,10 @@ class K8sDescriptorFactory(object):
         self.__add_ports(creator, 'deployment-port', ByContainerPorts(self.configuration['name']))
         return creator.create(self.DEST_DIR)
 
+    def service_account(self):
+        creator = FileYmlCreator(self.template_path, 'serviceAccount').config(self.configuration)
+        return creator.create(self.DEST_DIR)
+
     def __is_logging_enabled(self):
         return self.configuration.has_key("logging") and self.configuration["logging"] != "none"
 
@@ -163,6 +167,10 @@ class K8sConnector(object):
     def describe_service(self, service_name):
         return json.loads(self.__run("kubectl --namespace %s get svc %s -o json" % (self.namespace, service_name)))
 
+    def describe_service_account(self, service_account_name):
+        return json.loads(self.__run("kubectl --namespace %s get sa %s -o json" % (self.namespace, service_account_name)))
+
+
     def cluster_info(self):
         return self.__run("kubectl cluster-info")
 
@@ -211,6 +219,13 @@ class K8sConnector(object):
         self.__run(
             "kubectl --namespace %s apply --validate=false --record -f %s" %
             (self.namespace, K8sDescriptorFactory(self.TEMPLATE_PATH, properties).deployment()))
+
+
+    def apply_service_account(self, properties):
+        self.__run(
+            "kubectl --namespace %s apply --validate=false --record -f %s" %
+            (self.namespace, K8sDescriptorFactory(self.TEMPLATE_PATH, properties).service_account()))
+
 
     def upload_config_map(self, config_file_path):
         self.__run_ignore_error("kubectl --namespace %s delete configmap global-config" % self.namespace)
