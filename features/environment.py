@@ -66,8 +66,7 @@ def before_scenario(context, scenario):
 
 
 def __create_namespace(context):
-    namespace = getpass.getuser() + "-" + str(int(time.time()))
-    namespace = namespace.lower()
+    namespace = __create_namespace_name().lower()
     print ("namespace:%s" % namespace)
     k8s = K8sDriver(namespace, context.minikube)
     k8s.create_namespace()
@@ -77,6 +76,12 @@ def __create_namespace(context):
     k8s.create_secret('features/config/secret.yml', namespace)
     k8s.deploy('features/support/deployer-shell.yml')
 
+def __create_namespace_name():
+    return getpass.getuser() + "-" + __create_time()
+
+
+def __create_time():
+    return str(int(time.time()))
 
 
 def after_scenario(context, scenario):
