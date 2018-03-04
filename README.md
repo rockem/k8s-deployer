@@ -1,6 +1,4 @@
 # Deoply, Promote, Configure, all with this simple tool
-
-
 [![Build Status](http://drone-io.heed-dev.io/api/badges/heed-dev/deployer/status.svg)](http://drone-io.heed-dev.io/heed-dev/deployer)
 
 ## Usage:
@@ -14,18 +12,22 @@ docker run
        [command] [options]
 ```
                 
+## Testing locally
+
+make sure the deployer/orig/deployment.yml file doesnt contain:
+
+    resources:
+           requests:
+             memory: "1Gi"
+             cpu: "250m"
+           limits:
+             memory: "4Gi"
+             cpu: "2000m"
+         securityContext:
+            privileged: true
+
+if it does, remove it for the test time.it limits the resources being used by k8s. for local minikube it fails the tests.
         
-
-Usage:
->
-Note: `docker run --rm -v /var/run/docker.sock:/var/run/docker.sock
-                -e KEY_ID=${AWS_ACCESS_KEY_ID} -e ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} 
-                [image (registry.dnsk.io:5000/agt/k8s-deployer:latest)] 
-                [command - (deploy/configure/promote)]
-                -e TARGET_ENV=[int/stg/prod]
-                [options]
-
-
 
 ## Commands:
 >
@@ -35,7 +37,7 @@ Note: `docker run --rm -v /var/run/docker.sock:/var/run/docker.sock
 * `--image_name            image to deploy, to be used only with command 'deploy' (default=False)`
 >
 * `--target                Target Namespace for the target ENV`
-* `--git_repository        Repo for services to apply (git.dnsk.io/platform-k8s-config/k8s-services-envs.gi)`
+* `--git_repository        Repo for services to apply (git.dnsk.io/platform-k8s-config/k8s-services-envs.git)`
 * `--recipe                recipe path (default="")`
 * `--deploy-timeout        Deploy timeout, (default=120)`
 
@@ -63,6 +65,9 @@ Note: `docker run --rm -v /var/run/docker.sock:/var/run/docker.sock
 * `--yml_path              url to swagger yml`
 * `--git_repository        Repo for services to apply (git.dnsk.io/platform-k8s-config/k8s-services-envs.gi)`
 
-
-
-
+'rollback'         - rollback to previous version
+>
+* `--target                Target Namespace for the target ENV`
+* `--git_repository        Repo for services to apply (git.dnsk.io/platform-k8s-config/k8s-services-envs.git)`
+* `--deploy-timeout        Deploy timeout, (default=120)`
+* `--service_name                service name we wish to rollback (default="")`

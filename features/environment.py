@@ -7,6 +7,7 @@ from deployer.log import DeployerLogger
 from features.support.context import Context
 from features.support.docker import AppImageBuilder, JavaAppBuilder, AWSImagePusher
 from features.support.k8s import K8sDriver
+from features.support.mongo import MongoDriver
 from features.support.repository import LoggingRepository, ConfigRepository
 
 TARGET_ENV = 'int'
@@ -26,6 +27,8 @@ APP_BUILDERS = [
 
 
 def before_all(context):
+    mongo_uri = 'mongodb://{0}:27017/deployer'.format(os.getenv("MONGO_HOST", 'localhost'))
+    Context(context).set_mongo_uri(mongo_uri)
     __build_apps(context)
     os.environ['TARGET_ENV'] = TARGET_ENV
     os.environ['REST_API_ID'] = 'y404vvoq21'
@@ -61,8 +64,13 @@ def __push_apps_aws(apps):
 
 def before_scenario(context, scenario):
     __create_namespace(context)
+    __clean_mongo(context)
     LoggingRepository().create()
     ConfigRepository().create()
+
+
+def __clean_mongo(context):
+    MongoDriver(Context(context).get_mongo_uri()).clean()
 
 
 def __create_namespace(context):

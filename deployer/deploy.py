@@ -90,11 +90,11 @@ class ImageDeployer(object):
         color = self.configuration.get("serviceColor")
         self.configuration['serviceColor'] = ColorDecider().invert_color(color)
         self.connector.apply_service(self.configuration)
-        self.__scale_down_inactive_deployment_with_color(color)
+        self.__scale_deployment_with_color(color, 0)
 
-    def __scale_down_inactive_deployment_with_color(self, color):
+    def __scale_deployment_with_color(self, color, new_scale):
         name = ImageNameParser(self.recipe.image()).name()
-        self.connector.scale_deployment(name + '-' + color, 0)
+        self.connector.scale_deployment(name + '-' + color, new_scale)
 
     def __create_props(self, force):
         name = ImageNameParser(self.recipe.image()).name()

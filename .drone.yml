@@ -1,6 +1,8 @@
 pipeline:
   test:
     image: docker.heed-dev.io/aws-k8s-docker
+    environment:
+      - MONGO_HOST=mongo
     pull: true
     commands:
       - sh /opt/login.sh
@@ -20,10 +22,13 @@ pipeline:
     image: plugins/ecr
     repo: 911479539546.dkr.ecr.us-east-1.amazonaws.com/k8s-deployer
     secrets: [ecr_secret_key,ecr_access_key]
-    tags: latest
+    tags: 1.1
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     when:
       event: push
       branch: develop
 
+services:
+  mongo:
+    image: mongo

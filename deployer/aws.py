@@ -1,5 +1,6 @@
-import boto3 as boto3
 import time
+
+import boto3 as boto3
 
 from log import DeployerLogger
 from util import EnvironmentVariablesFetcher

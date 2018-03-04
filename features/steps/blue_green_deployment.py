@@ -23,7 +23,7 @@ def deploy_service_successfully(context, name, version):
 def __deploy_service(context, name, version, status):
     app = Context(context).get_app_for(name, version)
     DeployerDriver(LoggingRepository.GIT_REPO_URL,
-                   Context(context).default_namespace(), context.domain).deploy(app, status == 'fail')
+                   Context(context).default_namespace(), context.domain, Context(context).get_mongo_uri()).deploy(app, status == 'fail')
     Context(context).set_last_deployed_app(app)
 
 
@@ -38,3 +38,11 @@ def service_updated(context, name, version):
     K8sDriver(Context(context).default_namespace()).verify_get(
         '%s/version' % url_for(Context(context).get_app_for(name, version)),
         lambda response: json.loads(response)['version'] == version)
+
+
+@when("rollback \"(.*):(.*)\" service")
+def rollback_current_service(context, name, version):
+    DeployerDriver(LoggingRepository.GIT_REPO_URL,
+                   Context(context).default_namespace(), context.domain, Context(context).get_mongo_uri()).rollback(Context(context).get_app_for(name, version).service_name())
+
+

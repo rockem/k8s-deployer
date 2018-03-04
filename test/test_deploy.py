@@ -28,6 +28,7 @@ class ConnectorStub(object):
         self.healthy = healthy
         self.applied_descriptors = {}
         self.applied_scale = {}
+        self.activated_deployments = []
         self.applied_services = {}
         self.applied_deployments = {}
 
@@ -65,6 +66,10 @@ class ConnectorStub(object):
 
         else:
             return {}
+
+    def activate(self, deployment):
+        self.activated_deployments.append(deployment)
+
 
 
 class TestImageDeployer(object):

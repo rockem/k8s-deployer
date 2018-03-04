@@ -87,14 +87,6 @@ class LoggingRepository(GitRepository):
         assert yaml.load(open(self.swagger_location("int"), "r"))['url'] == yaml.load(
             SwaggerFileCreator.SWAGGER_YML_URL)
 
-    def verify_recipe_is_logged_for(self, app):
-        super(LoggingRepository, self)._checkout_repo()
-        source_recipe = yaml.load(open(app.recipe_path(), "r"))
-        recipe = self.get_recipe_for(app)
-        for k in source_recipe.keys():
-            assert recipe[k] == source_recipe[k]
-
-
 class FileCreator():
     @staticmethod
     def create_for(path, data):
