@@ -37,8 +37,8 @@ class DeployerDriver:
 
     def run_deploy_command(self, app_image):
         self.__run(
-            "%s deploy --image_name %s --target %s --git_repository %s --domain=%s --deploy-timeout=20 %s --mongo_uri=%s" % (
-                APP, app_image.image_name(), self.target, self.git_repo, self.domain,
+            "%s deploy --image_name %s --target %s --domain=%s --deploy-timeout=20 %s --mongo_uri=%s" % (
+                APP, app_image.image_name(), self.target, self.domain,
                 self.__get_recipe_option_for(app_image.recipe_path()), self.mongo_uri))
 
     def __get_recipe_option_for(self, path):
@@ -61,5 +61,5 @@ class DeployerDriver:
 
     def rollback(self, service_name):
             self.__run(
-                "%s rollback --target %s --git_repository %s --domain=%s --deploy-timeout=20 --service_name=%s --mongo_uri=%s" % (
-                    APP, self.target, self.git_repo, self.domain, service_name, self.mongo_uri))
+                "%s rollback --target %s --domain=%s --deploy-timeout=20 --service_name=%s --mongo_uri=%s" % (
+                    APP, self.target, self.domain, service_name, self.mongo_uri))

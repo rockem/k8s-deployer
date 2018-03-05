@@ -1,12 +1,11 @@
 import click
-
 from commands import WriteToLogCommandRegularDeploy, DeployCommand, PromoteCommand, ConfigureCommand, SwaggerCommand, \
     RollbackCommand
 from deploy import DeployError
 from k8s import K8sConnector
 from log import DeployerLogger
-from repository import MongoDeploymentRepository, DummyMongoConnector
 from recipe import Recipe
+from repository import MongoDeploymentRepository, DummyMongoConnector
 from util import EnvironmentParser
 from yml import YmlReader
 
@@ -33,7 +32,7 @@ class ActionRunner:
         if action == 'deploy':
             recipe = Recipe.builder().ingredients(YmlReader(self.recipe_path).read()).image(self.image_name).build()
             env = EnvironmentParser(self.target).name()
-            WriteToLogCommandRegularDeploy(self.git_repository, mongo_connector, recipe, env,
+            WriteToLogCommandRegularDeploy(mongo_connector, recipe, env,
                                            DeployCommand(self.target, self.git_repository, self.domain, connector,
                                                          recipe, self.timeout)).run()
         elif action == 'promote':

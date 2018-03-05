@@ -19,11 +19,8 @@ def recipe_location(env, recipe):
 
 
 class WriteToLogCommand(object):
-    def __init__(self, git_repository, mongo_connector, recipe, env, deploy_command):
-        self.git_log_repository = DeployLogGitRepository(git_repository)
+    def __init__(self, deploy_command):
         self.deploy_command = deploy_command
-        self.recipe = recipe
-        self.env = env
 
     def post_run(self): pass
 
@@ -33,9 +30,8 @@ class WriteToLogCommand(object):
 
 
 class WriteToLogCommandRegularDeploy(WriteToLogCommand):
-    def __init__(self, git_repository, mongo_connector, recipe, env, deploy_command):
-        super(WriteToLogCommandRegularDeploy, self).__init__(git_repository, mongo_connector, recipe, env,
-                                                             deploy_command)
+    def __init__(self, mongo_connector, recipe, env, deploy_command):
+        super(WriteToLogCommandRegularDeploy, self).__init__(deploy_command)
         self.mongo_log_repository = ProtectedRollbackProxy(mongo_connector, env, ImageNameParser(recipe.image()).name())
         self.recipe = recipe
 
@@ -44,8 +40,8 @@ class WriteToLogCommandRegularDeploy(WriteToLogCommand):
 
 
 class WriteToLogCommandRollback(WriteToLogCommand):
-    def __init__(self, git_repository, recipe, mongo_connector, env, service_name, deploy_command):
-        super(WriteToLogCommandRollback, self).__init__(git_repository, mongo_connector, recipe, env, deploy_command)
+    def __init__(self,mongo_connector, env, service_name, deploy_command):
+        super(WriteToLogCommandRollback, self).__init__(deploy_command)
         self.mongo_log_repository = ProtectedRollbackProxy(mongo_connector, env, service_name)
 
     def post_run(self):
@@ -85,7 +81,7 @@ class PromoteCommand(object):
         recipes = ProtectedRollbackProxy(self.mongo_connector, self.from_env).get_all_recipes()
         for recipe in recipes:
             r = Recipe.builder().ingredients(recipe).build()
-            WriteToLogCommandRegularDeploy(self.git_repository, self.mongo_connector, r, self.to_env,
+            WriteToLogCommandRegularDeploy(self.mongo_connector, r, self.to_env,
                                            DeployCommand(self.to_env, self.git_repository,
                                                          self.domain,
                                                          self.connector,
@@ -145,7 +141,7 @@ class RollbackCommand(object):
 
         recipe = Recipe.builder().ingredients(mongo_repository.get_previous_recipe()).build()
 
-        WriteToLogCommandRollback(self.git_repository, recipe, self.mongo_connector, env,
+        WriteToLogCommandRollback(self.mongo_connector, env,
                                   self.service_name,
                                   DeployCommand(self.target,
                                                 self.git_repository,
