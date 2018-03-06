@@ -12,11 +12,13 @@ class ProtectedRollbackProxy:
                                          "timestamp": int(round(time.time() * 1000)), "recipe": recipe_data})
 
     def get_previous_recipe(self):
-        deployment = self.repository.get_previous_deployment(self.service_name, self.env)
+
+        current_deployment = self.repository.get_current_deployment(self.service_name, self.env)
 
         self.check_if_newer_deployment_exist(
-            self.repository.get_all_deployment_from_time(self.env, deployment['timestamp'], self.service_name))
-        return deployment['recipe']
+            self.repository.get_all_deployment_from_time(self.env, current_deployment['timestamp'], self.service_name))
+
+        return self.repository.get_previous_deployment(self.service_name, self.env)['recipe']
 
     def check_if_newer_deployment_exist(self, deployments_lst):
         if len(deployments_lst) > 0:

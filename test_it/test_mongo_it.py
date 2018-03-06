@@ -153,6 +153,20 @@ class TestMongoConnectorIT:
 
         assert lst[0]['recipe']['image_name'] == self.NEW_MAGNIFICENT['recipe']['image_name']
 
+    @raises(NotEnoughDeployments)
+    def should_fail_when_no_service_deployments(self):
+        obj = self.connector.get_current_deployment("wizard", "int")
+
+    def test_should_get_current_deployment(self):
+        self.connector.write_deployment(self.OLD_WIZARD)
+        self.connector.write_deployment(self.NEW_WIZARD)
+
+        obj = self.connector.get_current_deployment("wizard", "int")
+        assert obj['recipe']['image_name'] == self.NEW_WIZARD['recipe']['image_name']
+
+
+
+
     @staticmethod
     def create_list_from_cursor(lst):
         new_lst = []

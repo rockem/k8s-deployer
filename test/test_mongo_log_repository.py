@@ -10,6 +10,9 @@ class MongoConnectorStub:
         self.deployments = []
         self.deployment_number = 0
 
+    def get_current_deployment(self, service_name, env):
+        return self.get_service_deployments_sorted(service_name, env)[0]
+
     def get_previous_deployment(self, service_name, env):
         lst = self.get_service_deployments_sorted(service_name, env)
         return lst[1]

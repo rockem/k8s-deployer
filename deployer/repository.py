@@ -15,13 +15,19 @@ class MongoDeploymentRepository:
         self.ignore_duplicate_key_error(lambda: self.collection.insert(deploy_log))
 
     def get_previous_deployment(self, service_name, env):
+        return self.get_the_n_newest_service_deployment(service_name, env, 1)
+
+    def get_current_deployment(self, service_name, env):
+        return self.get_the_n_newest_service_deployment(service_name, env)
+
+    def get_the_n_newest_service_deployment(self, service_name, env, n=0):
         return self.cursor_to_obj(
             self.collection.find(
                 self.__combine_filters(
                     self.__eq_env(env),
                     self.__eq_service_name(service_name),
                     self.__not_rolled_back()))
-                .sort("timestamp", pymongo.DESCENDING).skip(1).limit(1))
+                .sort("timestamp", pymongo.DESCENDING).skip(n).limit(1))
 
     def get_all_deployment_from_time(self, env, timestamp, service_name):
         return self.create_list_from_cursor(
