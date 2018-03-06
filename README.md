@@ -37,7 +37,7 @@ if it does, remove it for the test time.it limits the resources being used by k8
 * `--image_name            image to deploy, to be used only with command 'deploy' (default=False)`
 >
 * `--target                Target Namespace for the target ENV`
-* `--git_repository        Repo for services to apply (git.dnsk.io/platform-k8s-config/k8s-services-envs.git)`
+* `--mongo_uri             Mongo address for deployments log`            
 * `--recipe                recipe path (default="")`
 * `--deploy-timeout        Deploy timeout, (default=120)`
 
@@ -47,7 +47,8 @@ if it does, remove it for the test time.it limits the resources being used by k8
 >
 * `--target                Target Namespace for the target ENV`
 * `--source                Source env to promote from, to be used only with command 'promote' (default=False)`
-* `--git_repository        Repo for services to apply (git.dnsk.io/platform-k8s-config/k8s-services-envs.gi)``
+* `--mongo_uri             Mongo address for deployments log`
+* `--git_repository        Repo for swagger`
 * `--deploy-timeout        Deploy timeout, (default=120)`
  
 
@@ -68,6 +69,6 @@ if it does, remove it for the test time.it limits the resources being used by k8
 'rollback'         - rollback to previous version
 >
 * `--target                Target Namespace for the target ENV`
-* `--git_repository        Repo for services to apply (git.dnsk.io/platform-k8s-config/k8s-services-envs.git)`
+* `--mongo_uri             Mongo address for deployments log`
 * `--deploy-timeout        Deploy timeout, (default=120)`
 * `--service_name                service name we wish to rollback (default="")`

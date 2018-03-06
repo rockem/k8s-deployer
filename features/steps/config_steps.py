@@ -37,7 +37,7 @@ def clear_namespace(context, namespace):
 @when("configuring(?: \"(.+)\")?")
 def executing(context, namespace=None):
     DeployerDriver(ConfigRepository.GIT_REPO_URL,
-                   Context(context).default_namespace() if namespace is None else namespace, context.domain).configure()
+                   Context(context).default_namespace() if namespace is None else namespace, context.domain, Context(context).get_mongo_uri()).configure()
 
 
 @then("config \"(.*)\" uploaded(?: to \"(.+)\" namespace)?")
@@ -65,7 +65,7 @@ def _validate_job_was_invoked(domain):
 
 @when("deploying swagger")
 def deploy_swagger(context):
-    DeployerDriver(LoggingRepository.GIT_REPO_URL, Context(context).default_namespace(), context.domain) \
+    DeployerDriver(LoggingRepository.GIT_REPO_URL, Context(context).default_namespace(), context.domain, Context(context).get_mongo_uri()) \
         .deploy_swagger(SwaggerFileCreator.SWAGGER_YML_URL)
 
 

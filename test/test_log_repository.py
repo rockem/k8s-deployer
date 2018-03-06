@@ -1,11 +1,11 @@
 from nose.tools import raises, with_setup
-from deployer.repository import DeployLogRepository
 import git
 import os
 import shutil
 import yaml
 import errno
 from deployer.git_util import NotEnoughCommitsError
+from deployer.git_repository import DeployLogGitRepository
 
 
 class GitRepositoryClient(object):
@@ -49,7 +49,7 @@ class TestDeployLogRepository(object):
         self.git_client = GitRepositoryClient("rollback_repo")
         self.git_repo = self.git_client.create()
         self.git_client.clone_repo()
-        self.repository = DeployLogRepository(self.git_client.git_url, self.TARGET)
+        self.repository = DeployLogGitRepository(self.git_client.git_url, self.TARGET)
 
 
     def test_retrieve_previous_version(self):

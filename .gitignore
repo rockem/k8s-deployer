@@ -38,5 +38,3 @@ rollback_repo
 tmp
 it_repo
 .DS_Store
-venv/
-venv1/

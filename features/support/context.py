@@ -53,3 +53,9 @@ class Context:
     def default_namespace(self):
         return self.__user_data()["namespace"]
 
+    def set_mongo_uri(self, mongo_uri):
+        self.__user_data()["mongo_uri"] = mongo_uri
+
+    def get_mongo_uri(self):
+        return self.__user_data()["mongo_uri"]
+

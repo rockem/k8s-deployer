@@ -6,7 +6,7 @@ Feature: deploy service on k8s
 
   Scenario: service is written to git after deployment
     When deploy "version:healthy" service
-    Then it should be logged in git
+    Then it should be logged in mongo
 
   Scenario: deploy restless service
     When deploy "restless:1.0" service
@@ -14,7 +14,7 @@ Feature: deploy service on k8s
 
   Scenario: recipe written to git after deployment
     When deploy "restless:1.0" service
-    Then recipe should be logged in git
+    Then recipe should be logged in mongo
 
   Scenario: expose another port
     When deploy "ported:1.0" service

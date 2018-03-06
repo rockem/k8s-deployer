@@ -2,6 +2,7 @@ import copy
 
 from log import DeployerLogger
 
+
 EXPOSE_LABEL = 'expose'
 IMAGE_LABEL = 'image_name'
 LOGGING_LABEL = 'logging'
