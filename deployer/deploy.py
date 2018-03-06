@@ -57,12 +57,14 @@ class ImageDeployer(object):
 
     def __deploy(self):
         self.configuration = self.__create_props(True)
+        self.connector.apply_service_account(self.configuration)
         self.connector.apply_deployment(self.configuration)
         print("going to force deploy with this config {}".format(self.configuration))
 
     def __dark_deploy(self):
         self.configuration = self.__create_props(False)
         print("going to dark deploy with this config {}".format(self.configuration))
+        self.connector.apply_service_account(self.configuration)
         self.connector.apply_deployment(self.configuration)
         self.connector.apply_service(self.configuration)
 
@@ -113,6 +115,7 @@ class ImageDeployer(object):
             'logging': self.recipe.logging(),
             'ports': self.recipe.ports(),
             'domain': self.domain,
-            'serviceType': self.recipe.service_type()
+            'serviceType': self.recipe.service_type(),
+            'target': self.target#@@
         }
 

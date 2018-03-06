@@ -100,7 +100,8 @@ class TestConnectorIt:
             'logging': recipe.logging(),
             'ports': recipe.ports(),
             'domain': 'heed-dev.io',
-            'serviceType': recipe.service_type()
+            'serviceType': recipe.service_type(),
+            'target': self.__namespace
         }
 
     def test_scale_deployment(self):
@@ -117,9 +118,22 @@ class TestConnectorIt:
         deployment_description = self.__connector.describe_deployment(deployment_name)
         assert deployment_description['metadata']['name'] == deployment_name
 
+
+    def test_create_service_account(self):
+        properties = self.create_service_account()
+
+        service_account_name = properties['serviceName']
+        service_account_description = self.__connector.describe_service_account(service_account_name)
+        assert service_account_description['metadata']['name'] == service_account_name
+
     def create_api_type_deployment(self):
         properties = self.__create_properties_with(Recipe.SERVICE_TYPE_API)
         self.__connector.apply_deployment(properties)
+        return properties
+
+    def create_service_account(self):
+        properties = self.__create_properties_with(Recipe.SERVICE_TYPE_API)
+        self.__connector.apply_service_account(properties)
         return properties
 
 
