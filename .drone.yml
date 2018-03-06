@@ -22,7 +22,7 @@ pipeline:
     image: plugins/ecr
     repo: 911479539546.dkr.ecr.us-east-1.amazonaws.com/k8s-deployer
     secrets: [ecr_secret_key,ecr_access_key]
-    tags: 1.1
+    tags: 1.2
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     when:
