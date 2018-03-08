@@ -50,6 +50,8 @@ spec:
                secretKeyRef:
                  name: vault
                  key: vault_token
+           - name: VAULT_ROLE
+             value: {serviceName}-role
            - name: MY_ENV
              value: {myEnv}
          resources:
