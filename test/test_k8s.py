@@ -44,15 +44,15 @@ class TestK8sDescriptorFactory:
         no_internal_load_balancer_factory = K8sDescriptorFactory(
             self.TEMPLATE_PATH,
             {'serviceColor': 'green', 'serviceType': Recipe.SERVICE_TYPE_API})
-        self.assert_internal_LB_in_annotations(internal_load_balancer_factory, '0.0.0.0/0')
-        self.assert_internal_LB_in_annotations(no_internal_load_balancer_factory, None)
+        assert self.assert_internal_LB_in_annotations(internal_load_balancer_factory) is True
+        assert self.assert_internal_LB_in_annotations(no_internal_load_balancer_factory) is False
 
     @staticmethod
-    def assert_internal_LB_in_annotations(factory, expected):
+    def assert_internal_LB_in_annotations(factory):
         with open(factory.service(), 'r') as f:
             annotations = yaml.load(f)['metadata']['annotations']
             key = 'service.beta.kubernetes.io/aws-load-balancer-internal'
-            assert key in annotations and annotations[key] == expected
+            return key in annotations
 
     def test_set_cluster_ip_type(self):
         service_path = self.__create_service({'serviceColor': 'green', 'serviceType': Recipe.SERVICE_TYPE_API})

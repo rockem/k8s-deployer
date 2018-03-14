@@ -103,8 +103,9 @@ class K8sDescriptorFactory(object):
         }
 
     def __update_internal_load_balancer(self, conf):
-        conf['internalLoadBalancerAddress'] = \
-            '0.0.0.0/0' if self.configuration['serviceType'] == Recipe.SERVICE_TYPE_LOCAL_UI else ''
+        conf['internalLoadBalancerEntry'] = \
+            'service.beta.kubernetes.io/aws-load-balancer-internal: 0.0.0.0/0' \
+                if self.configuration['serviceType'] == Recipe.SERVICE_TYPE_LOCAL_UI else ''
 
     def deployment(self):
         creator = FileYmlCreator(self.template_path, 'deployment').config(self.configuration)
