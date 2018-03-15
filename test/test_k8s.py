@@ -40,7 +40,7 @@ class TestK8sDescriptorFactory:
     def test_add_internal_load_balancer_definition_to_service(self):
         internal_load_balancer_factory = K8sDescriptorFactory(
             self.TEMPLATE_PATH,
-            {'serviceColor': 'green', 'serviceType': Recipe.SERVICE_TYPE_LOCAL_UI})
+            {'serviceColor': 'green', 'serviceType': Recipe.SERVICE_TYPE_INTERNAL_UI})
         no_internal_load_balancer_factory = K8sDescriptorFactory(
             self.TEMPLATE_PATH,
             {'serviceColor': 'green', 'serviceType': Recipe.SERVICE_TYPE_API})
@@ -63,7 +63,7 @@ class TestK8sDescriptorFactory:
         self.__assert_service_type(service_path, k8s.LOAD_BALANCER_SERVICE)
 
     def test_set_load_balancer_type_LOCAL_UI(self):
-        service_path = self.__create_service({'serviceColor': 'green', 'serviceType': Recipe.SERVICE_TYPE_LOCAL_UI})
+        service_path = self.__create_service({'serviceColor': 'green', 'serviceType': Recipe.SERVICE_TYPE_INTERNAL_UI})
         self.__assert_service_type(service_path, k8s.LOAD_BALANCER_SERVICE)
 
     def __create_service(self, configuration):
