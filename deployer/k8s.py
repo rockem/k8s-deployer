@@ -64,7 +64,8 @@ class K8sDescriptorFactory(object):
     DEPLOYMENT_PORTS_LOCATION = 'spec.template.spec.containers'
     service_type_map = {
         Recipe.SERVICE_TYPE_UI: LOAD_BALANCER_SERVICE,
-        Recipe.SERVICE_TYPE_API: CLUSTER_IP_SERVICE
+        Recipe.SERVICE_TYPE_API: CLUSTER_IP_SERVICE,
+        Recipe.SERVICE_TYPE_INTERNAL_UI: LOAD_BALANCER_SERVICE,
     }
 
     def __init__(self, template_path, configuration):
@@ -73,6 +74,7 @@ class K8sDescriptorFactory(object):
 
     def service(self):
         config = self.__convert_service_type()
+        self.__update_internal_load_balancer(config)
         creator = FileYmlCreator(self.template_path, 'service').config(config)
         self.__add_ports(creator, 'service-port', ByPath('spec.ports'))
         return creator.create(self.DEST_DIR)
@@ -92,12 +94,18 @@ class K8sDescriptorFactory(object):
                 locator,
                 map(self.__port_props_from, self.configuration['ports']))
 
-    def __port_props_from(self, mapping):
+    @staticmethod
+    def __port_props_from(mapping):
         ports = mapping.split(':')
         return {
             'outPort': ports[0],
             'port': ports[1]
         }
+
+    def __update_internal_load_balancer(self, conf):
+        conf['internalLoadBalancerEntry'] = \
+            'service.beta.kubernetes.io/aws-load-balancer-internal: 0.0.0.0/0' \
+                if self.configuration['serviceType'] == Recipe.SERVICE_TYPE_INTERNAL_UI else ''
 
     def deployment(self):
         creator = FileYmlCreator(self.template_path, 'deployment').config(self.configuration)
@@ -113,6 +121,7 @@ class K8sDescriptorFactory(object):
 
     def job(self):
         return FileYmlCreator(self.template_path, 'cronjob').config(self.configuration).create(self.DEST_DIR)
+
 
 
 class ByContainerPorts:

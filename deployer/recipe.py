@@ -40,6 +40,7 @@ class Recipe(object):
     EXPOSE_DEFAULT = True
     SERVICE_TYPE_UI = 'ui'
     SERVICE_TYPE_API = 'api'
+    SERVICE_TYPE_INTERNAL_UI = 'internal_ui'
 
     def __init__(self, ingredients):
         self.ingredients = ingredients

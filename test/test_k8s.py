@@ -11,9 +11,9 @@ class ConnectorStub(object):
     def __init__(self):
         pass
 
-    def describe_service(self, service_name):
+    @staticmethod
+    def describe_service(service_name):
         json.loads('Error from server (NotFound): services.extensions %s not found' % service_name)
-
 
 
 class TestK8sDescriptorFactory:
@@ -37,22 +37,44 @@ class TestK8sDescriptorFactory:
             ports = yaml.load(f)['spec']['ports']
             assert {'targetPort': 5000, 'port': 50} in ports
 
+    def test_add_internal_load_balancer_definition_to_service(self):
+        internal_load_balancer_factory = K8sDescriptorFactory(
+            self.TEMPLATE_PATH,
+            {'serviceColor': 'green', 'serviceType': Recipe.SERVICE_TYPE_INTERNAL_UI})
+        no_internal_load_balancer_factory = K8sDescriptorFactory(
+            self.TEMPLATE_PATH,
+            {'serviceColor': 'green', 'serviceType': Recipe.SERVICE_TYPE_API})
+        assert self.assert_internal_LB_in_annotations(internal_load_balancer_factory) is True
+        assert self.assert_internal_LB_in_annotations(no_internal_load_balancer_factory) is False
+
+    @staticmethod
+    def assert_internal_LB_in_annotations(factory):
+        with open(factory.service(), 'r') as f:
+            annotations = yaml.load(f)['metadata']['annotations']
+            key = 'service.beta.kubernetes.io/aws-load-balancer-internal'
+            return key in annotations
+
     def test_set_cluster_ip_type(self):
         service_path = self.__create_service({'serviceColor': 'green', 'serviceType': Recipe.SERVICE_TYPE_API})
         self.__assert_service_type(service_path, k8s.CLUSTER_IP_SERVICE)
 
-    def __assert_service_type(self, service_path, expected_type):
-        with open(service_path, 'r') as f:
-            service_type = yaml.load(f)['spec']['type']
-            assert service_type == expected_type
-
-    def test_set_load_balancer_type(self):
+    def test_set_load_balancer_type_UI(self):
         service_path = self.__create_service({'serviceColor': 'green', 'serviceType': Recipe.SERVICE_TYPE_UI})
+        self.__assert_service_type(service_path, k8s.LOAD_BALANCER_SERVICE)
+
+    def test_set_load_balancer_type_LOCAL_UI(self):
+        service_path = self.__create_service({'serviceColor': 'green', 'serviceType': Recipe.SERVICE_TYPE_INTERNAL_UI})
         self.__assert_service_type(service_path, k8s.LOAD_BALANCER_SERVICE)
 
     def __create_service(self, configuration):
         factory = K8sDescriptorFactory(self.TEMPLATE_PATH, configuration)
         return factory.service()
+
+    @staticmethod
+    def __assert_service_type(service_path, expected_type):
+        with open(service_path, 'r') as f:
+            service_type = yaml.load(f)['spec']['type']
+            assert service_type == expected_type
 
     def test_should_return_one_as_default_scale(self):
         assert AppExplorer(ConnectorStub()).get_deployment_scale("not_existing_service") == 1
