@@ -40,3 +40,4 @@ it_repo
 .DS_Store
 pyvenv/
 envname/
+deployer.iml

@@ -1,5 +1,7 @@
-import os
 import json
+import os
+from subprocess import CalledProcessError
+
 import yaml
 
 from deployer import k8s
@@ -10,6 +12,10 @@ from deployer.recipe import Recipe
 class ConnectorStub(object):
     def __init__(self):
         pass
+
+
+    def describe_deployment(self, deployment_name):
+        raise CalledProcessError(0, None)
 
     @staticmethod
     def describe_service(service_name):

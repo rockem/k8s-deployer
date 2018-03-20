@@ -2,13 +2,12 @@ import copy
 import os
 import re
 import subprocess
+from flask import json
 from time import sleep
 
-from flask import json
-
+from log import DeployerLogger
 from recipe import Recipe
 from yml import ByPath
-from log import DeployerLogger
 from yml import FileYmlCreator
 from yml import find_node
 
@@ -48,14 +47,21 @@ class AppExplorer(object):
 
     def get_deployment_scale(self, service_name, default_scale=1):
         deployment_name = self.get_deployment_name(service_name)
-        return default_scale if deployment_name == '' else \
-            self.connector.describe_deployment(deployment_name)['spec']['replicas']
+        return self.success_or_default(
+            lambda : self.connector.describe_deployment(deployment_name)['spec']['replicas'],
+            default_scale)
 
     def get_deployment_name(self, service_name):
+        return self.success_or_default(
+            lambda : self.connector.describe_service(service_name)['spec']['selector']['name'], '')
+
+    def success_or_default(self, func, default):
         try:
-            return self.connector.describe_service(service_name)['spec']['selector']['name']
+            return func()
         except (subprocess.CalledProcessError, KeyError, ValueError) as e:
-            return ''
+            return default
+
+
 
 
 class K8sDescriptorFactory(object):
