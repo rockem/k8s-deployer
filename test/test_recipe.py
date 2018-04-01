@@ -36,3 +36,11 @@ class TestRecipe(object):
 
     def test_empty_ports_list_as_default(self):
         assert Recipe.builder().build().ports() == []
+
+    def test_metrics_should_be_disabled_by_default(self):
+        recipe = Recipe.builder().build()
+        assert recipe.metrics()['enabled'] is False
+
+    def test_metrics_should_be_delegated_from_ingredients(self):
+        recipe = Recipe.builder().ingredients({'metrics': {'enabled': True}}).build()
+        assert recipe.metrics()['enabled'] is True

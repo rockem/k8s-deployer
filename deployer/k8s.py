@@ -75,6 +75,7 @@ class K8sDescriptorFactory(object):
     def service(self):
         config = self.__convert_service_type()
         self.__update_internal_load_balancer(config)
+        self.__update_metrics(config)
         creator = FileYmlCreator(self.template_path, 'service').config(config)
         self.__add_ports(creator, 'service-port', ByPath('spec.ports'))
         return creator.create(self.DEST_DIR)
@@ -107,6 +108,14 @@ class K8sDescriptorFactory(object):
             'service.beta.kubernetes.io/aws-load-balancer-internal: 0.0.0.0/0' \
                 if self.configuration['serviceType'] == Recipe.SERVICE_TYPE_INTERNAL_UI else ''
 
+    def __update_metrics(self, conf):
+        if 'metrics' in self.configuration and self.configuration['metrics']['enabled'] == 'true':
+            conf['prometheusPortEntry'] = 'prometheus.io/port: 8080'
+            conf['prometheusScrapeEntry'] = 'prometheus.io/scrape: true'
+        else:
+            conf['prometheusPortEntry'] = ''
+            conf['prometheusScrapeEntry'] = ''
+
     def deployment(self):
         creator = FileYmlCreator(self.template_path, 'deployment').config(self.configuration)
         self.__add_ports(creator, 'deployment-port', ByContainerPorts(self.configuration['name']))
@@ -121,7 +130,6 @@ class K8sDescriptorFactory(object):
 
     def job(self):
         return FileYmlCreator(self.template_path, 'cronjob').config(self.configuration).create(self.DEST_DIR)
-
 
 
 class ByContainerPorts:
@@ -176,8 +184,8 @@ class K8sConnector(object):
         return json.loads(self.__run("kubectl --namespace %s get svc %s -o json" % (self.namespace, service_name)))
 
     def describe_service_account(self, service_account_name):
-        return json.loads(self.__run("kubectl --namespace %s get sa %s -o json" % (self.namespace, service_account_name)))
-
+        return json.loads(
+            self.__run("kubectl --namespace %s get sa %s -o json" % (self.namespace, service_account_name)))
 
     def cluster_info(self):
         return self.__run("kubectl cluster-info")
@@ -202,7 +210,7 @@ class K8sConnector(object):
         service_type = properties['serviceType']
         if self.__service_exists(service_name):
             logger.info("Service %s exists, fetch its type and recreate it if its current type: \'%s\' was changed." % (
-            service_name, K8sDescriptorFactory.service_type_map[service_type]))
+                service_name, K8sDescriptorFactory.service_type_map[service_type]))
             if self.__fetch_service_type(service_name) != K8sDescriptorFactory.service_type_map[service_type]:
                 self.__delete_service(service_name)
 
@@ -228,12 +236,10 @@ class K8sConnector(object):
             "kubectl --namespace %s apply --validate=false --record -f %s" %
             (self.namespace, K8sDescriptorFactory(self.TEMPLATE_PATH, properties).deployment()))
 
-
     def apply_service_account(self, properties):
         self.__run(
             "kubectl --namespace %s apply --validate=false --record -f %s" %
             (self.namespace, K8sDescriptorFactory(self.TEMPLATE_PATH, properties).service_account()))
-
 
     def upload_config_map(self, config_file_path):
         self.__run_ignore_error("kubectl --namespace %s delete configmap global-config" % self.namespace)

@@ -116,6 +116,7 @@ class ImageDeployer(object):
             'ports': self.recipe.ports(),
             'domain': self.domain,
             'serviceType': self.recipe.service_type(),
-            'target': EnvironmentParser(self.target).namespace()
+            'target': EnvironmentParser(self.target).namespace(),
+            'enable_metrics': self.recipe.metrics()
         }
 

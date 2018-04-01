@@ -2,6 +2,8 @@ metadata:
   annotations:
       external-dns.alpha.kubernetes.io/hostname: external
       {internalLoadBalancerEntry}
+      {prometheusPortEntry}
+      {prometheusScrapeEntry}
 spec:
   selector:
     color: {serviceColor}
