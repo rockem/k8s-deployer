@@ -50,15 +50,8 @@ class TestK8sDescriptorFactory:
         no_internal_load_balancer_factory = K8sDescriptorFactory(
             self.TEMPLATE_PATH,
             {'serviceColor': 'green', 'serviceType': Recipe.SERVICE_TYPE_API})
-        assert self.assert_internal_LB_in_annotations(internal_load_balancer_factory) is True
-        assert self.assert_internal_LB_in_annotations(no_internal_load_balancer_factory) is False
-
-    @staticmethod
-    def assert_internal_LB_in_annotations(factory):
-        with open(factory.service(), 'r') as f:
-            annotations = yaml.load(f)['metadata']['annotations']
-            key = 'service.beta.kubernetes.io/aws-load-balancer-internal'
-            return key in annotations
+        assert self.__assert_internal_LB_in_annotations(internal_load_balancer_factory.service()) is True
+        assert self.__assert_internal_LB_in_annotations(no_internal_load_balancer_factory.service()) is False
 
     def test_set_cluster_ip_type(self):
         service_path = self.__create_service({'serviceColor': 'green', 'serviceType': Recipe.SERVICE_TYPE_API})
@@ -76,11 +69,39 @@ class TestK8sDescriptorFactory:
         factory = K8sDescriptorFactory(self.TEMPLATE_PATH, configuration)
         return factory.service()
 
+    def test_metrics_should_be_disabled(self):
+        service_path = K8sDescriptorFactory(
+            self.TEMPLATE_PATH,
+            {'serviceColor': 'green', 'serviceType': Recipe.SERVICE_TYPE_INTERNAL_UI}).service()
+        assert self.__assert_prometheus_enabled(service_path) is False
+
+    def test_metrics_should_be_enabled(self):
+        service_path = K8sDescriptorFactory(
+                self.TEMPLATE_PATH,
+                {'serviceColor': 'green', 'serviceType': Recipe.SERVICE_TYPE_API,
+                 'metrics': {'enabled': 'true'}}).service()
+        assert self.__assert_prometheus_enabled(service_path) is True
+
     @staticmethod
     def __assert_service_type(service_path, expected_type):
         with open(service_path, 'r') as f:
             service_type = yaml.load(f)['spec']['type']
             assert service_type == expected_type
+
+    @staticmethod
+    def __assert_internal_LB_in_annotations(service_path):
+        with open(service_path, 'r') as f:
+            annotations = yaml.load(f)['metadata']['annotations']
+            key = 'service.beta.kubernetes.io/aws-load-balancer-internal'
+            return key in annotations
+
+    @staticmethod
+    def __assert_prometheus_enabled(service_path):
+        with open(service_path, 'r') as f:
+            annotations = yaml.load(f)['metadata']['annotations']
+            prometheus_port_key = 'prometheus.io/port'
+            prometheus_scrape_key = 'prometheus.io/scrape'
+            return prometheus_port_key in annotations and prometheus_scrape_key in annotations
 
     def test_should_return_one_as_default_scale(self):
         assert AppExplorer(ConnectorStub()).get_deployment_scale("not_existing_service") == 1

@@ -8,6 +8,7 @@ IMAGE_LABEL = 'image_name'
 LOGGING_LABEL = 'logging'
 PORTS_LABEL = 'ports'
 SERVICE_TYPE = 'service_type'
+METRICS_LABEL = 'metrics'
 
 logger = DeployerLogger(__name__).getLogger()
 
@@ -55,6 +56,8 @@ class Recipe(object):
             self.ingredients[SERVICE_TYPE] = self.SERVICE_TYPE_API
         if PORTS_LABEL not in self.ingredients:
             self.ingredients[PORTS_LABEL] = []
+        if METRICS_LABEL not in self.ingredients:
+            self.ingredients[METRICS_LABEL] = {'enabled': False}
 
     @staticmethod
     def builder():
@@ -77,3 +80,6 @@ class Recipe(object):
 
     def ports(self):
         return self.ingredients[PORTS_LABEL]
+
+    def metrics(self):
+        return self.ingredients[METRICS_LABEL]
