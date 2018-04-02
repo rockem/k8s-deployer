@@ -120,7 +120,8 @@ class K8sDescriptorFactory(object):
             conf['prometheusPortEntry'] = 'prometheus.io/port: 80'
             conf['prometheusScrapeEntry'] = 'prometheus.io/scrape: true'
         else:
-            logger.info('metrics disabled: %s', self.configuration['metrics']['enabled'])
+            logger.info('metrics disabled: %s', self.configuration['metrics']['enabled']
+                        if 'metrics' in self.configuration else '')
             conf['prometheusPortEntry'] = ''
             conf['prometheusScrapeEntry'] = ''
 
