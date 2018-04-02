@@ -79,7 +79,7 @@ class TestK8sDescriptorFactory:
         service_path = K8sDescriptorFactory(
                 self.TEMPLATE_PATH,
                 {'serviceColor': 'green', 'serviceType': Recipe.SERVICE_TYPE_API,
-                 'metrics': {'enabled': 'true'}}).service()
+                 'metrics': {'enabled': True}}).service()
         assert self.__assert_prometheus_enabled(service_path) is True
 
     @staticmethod
