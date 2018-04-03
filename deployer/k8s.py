@@ -117,8 +117,8 @@ class K8sDescriptorFactory(object):
     def __update_metrics(self, conf):
         if 'metrics' in self.configuration and self.configuration['metrics']['enabled'] is True:
             logger.info('metrics enabled, going to configure prometheus scraping')
-            conf['prometheusPortEntry'] = 'prometheus.io/port: 80'
-            conf['prometheusScrapeEntry'] = 'prometheus.io/scrape: true'
+            conf['prometheusPortEntry'] = 'prometheus.io/port: \'80\''
+            conf['prometheusScrapeEntry'] = 'prometheus.io/scrape: \'true\''
         else:
             logger.info('metrics disabled: %s', self.configuration['metrics']['enabled']
                         if 'metrics' in self.configuration else '')
