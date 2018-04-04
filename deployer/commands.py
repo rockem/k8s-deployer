@@ -88,12 +88,6 @@ class PromoteCommand(object):
                                                          r,
                                                          self.timeout)).run()
 
-        logger.debug('After Deploy')
-        SwaggerCommand(self.__swagger_url(), self.git_repository).run()
-
-    def __swagger_url(self):
-        return DeployLogGitRepository(self.git_repository, self.from_env).get_swagger()['url']
-
 
 class ConfigureCommand(object):
     def __init__(self, target, git_repository, connector):
