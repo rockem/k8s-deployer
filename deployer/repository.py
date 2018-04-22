@@ -1,6 +1,5 @@
 import pymongo
 from pymongo import MongoClient
-from pymongo.helpers import DuplicateKeyError
 
 
 class MongoDeploymentRepository:
@@ -9,10 +8,22 @@ class MongoDeploymentRepository:
     def __init__(self, uri):
         self.client = MongoClient(uri)
         self.collection = self.client.get_database()[self.COLLECTION]
-        self.collection.create_index("recipe.image_name", unique=True)
 
-    def write_deployment(self, deploy_log):
-        self.ignore_duplicate_key_error(lambda: self.collection.insert(deploy_log))
+    def write_deployment(self, deployment):
+        image_name = deployment['recipe']['image_name']
+        if(self.not_have_element(
+                self.collection.find(
+                    self.__combine_filters(
+                        self.__eq_env(deployment["env"]),
+                        self.__eq_service_name(deployment["service_name"]),
+                        self.__eq_image_name(image_name))))):
+            self.collection.insert_one(deployment)
+
+    def not_have_element(self, res):
+        return res.count() == 0
+
+    def __eq_image_name(self, image_name):
+        return {"recipe.image_name": {"$eq": image_name}}
 
     def get_previous_deployment(self, service_name, env):
         return self.get_the_n_newest_service_deployment(service_name, env, 1)
@@ -102,12 +113,6 @@ class MongoDeploymentRepository:
     def fail_if_not_enough_elements(self, lst):
         if len(lst) < 2:
             raise NotEnoughDeployments
-
-    def ignore_duplicate_key_error(self, func):
-        try:
-            func()
-        except DuplicateKeyError:
-            pass
 
     def create_recipe_list_from_cursor(self, cursor):
         new_lst = []

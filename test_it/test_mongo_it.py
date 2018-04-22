@@ -58,6 +58,7 @@ class TestMongoConnectorIT:
     def setup(self):
         self.connector.clean_all_docs_from_default()
 
+
     def test_write_deployment(self):
         self.connector.write_deployment(self.OLD_WIZARD)
 
@@ -69,7 +70,7 @@ class TestMongoConnectorIT:
                    and item['env'] == 'int'
                    and item['recipe']['image_name'] == 'wizard:123' for item in lst)
 
-    def test_dont_write_new_deployment_if_exist_image_name(self):
+    def test_should_not_allow_same_image_on_same_env(self):
         self.connector.write_deployment(self.OLD_WIZARD)
         self.connector.write_deployment(self.OLD_WIZARD_WITH_GREATER_TIME)
 
@@ -78,6 +79,15 @@ class TestMongoConnectorIT:
         self.assert_lst_size(new_lst, 1)
 
         assert any(item['timestamp'] == self.OLD_WIZARD['timestamp'] for item in new_lst)
+
+    def test_should_allow_same_image_on_different_env(self):
+        self.connector.write_deployment(self.NEW_WIZARD)
+        self.connector.write_deployment(self.NEW_WIZARD_STG)
+
+        collection = self.client.get_database()[self.collection_name]
+        new_lst = self.create_list_from_cursor(collection.find({}))
+        self.assert_lst_size(new_lst, 2)
+
 
     def test_should_get_only_top_recipes(self):
         self.connector.write_deployment(self.OLD_WIZARD)
