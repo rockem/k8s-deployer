@@ -31,6 +31,10 @@ class TestMongoConnectorIT:
                            "recipe": {"expose": "true", "image_name": "wizard:456", "logging": "log4j", "ports": "[]",
                                       "service_type": "api"}}
 
+        self.NEW_WIZARD_WITH_GREATER_TIME = {"service_name": "wizard", "env": "int", "timestamp": time_now + 300, "rolled_back": False,
+                           "recipe": {"expose": "true", "image_name": "wizard:456", "logging": "log4j", "ports": "[]",
+                                      "service_type": "api"}}
+
         self.NEW_WIZARD_STG = {"service_name": "wizard", "env": "stg", "timestamp": time_now + 100,
                                "rolled_back": False,
                                "recipe": {"expose": "true", "image_name": "wizard:456", "logging": "log4j",
@@ -70,13 +74,24 @@ class TestMongoConnectorIT:
                    and item['env'] == 'int'
                    and item['recipe']['image_name'] == 'wizard:123' for item in lst)
 
-    def test_should_not_allow_same_image_on_same_env(self):
+    def test_should_not_allow_same_image_on_same_env_for_not_rollback_exist(self):
         self.connector.write_deployment(self.OLD_WIZARD)
-        self.connector.write_deployment(self.OLD_WIZARD_WITH_GREATER_TIME)
+        self.connector.write_deployment(self.NEW_WIZARD)
+        self.connector.rollback("wizard", "int")
+        self.connector.write_deployment(self.NEW_WIZARD_WITH_GREATER_TIME)
 
         collection = self.client.get_database()[self.collection_name]
         new_lst = self.create_list_from_cursor(collection.find({}))
-        self.assert_lst_size(new_lst, 1)
+        self.assert_lst_size(new_lst, 3)
+
+    def test_should_allow_same_image_on_same_env_for_rollbacked(self):
+        self.connector.write_deployment(self.OLD_WIZARD)
+        self.connector.write_deployment(self.NEW_WIZARD)
+        self.connector.write_deployment(self.NEW_WIZARD_WITH_GREATER_TIME)
+
+        collection = self.client.get_database()[self.collection_name]
+        new_lst = self.create_list_from_cursor(collection.find({}))
+        self.assert_lst_size(new_lst, 2)
 
         assert any(item['timestamp'] == self.OLD_WIZARD['timestamp'] for item in new_lst)
 

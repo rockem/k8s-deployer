@@ -16,7 +16,8 @@ class MongoDeploymentRepository:
                     self.__combine_filters(
                         self.__eq_env(deployment["env"]),
                         self.__eq_service_name(deployment["service_name"]),
-                        self.__eq_image_name(image_name))))):
+                        self.__eq_image_name(image_name),
+                        self.__not_rolled_back())))):
             self.collection.insert_one(deployment)
 
     def not_have_element(self, res):
