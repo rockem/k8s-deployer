@@ -28,6 +28,12 @@ pipeline:
     when:
       event: push
       branch: develop
+      
+  notify:
+    image: docker.heed-dev.io/drone-email
+    secrets: [email_password]
+    when:
+      status: failure
 
 services:
   mongo:
