@@ -1,6 +1,9 @@
 metadata:
   annotations:
       external-dns.alpha.kubernetes.io/hostname: external
+      {externalLoadBalancerEntry_sslCert}
+      {externalLoadBalancerEntry_sslPorts}
+      {externalLoadBalancerEntry_backendProtocol}
       {internalLoadBalancerEntry}
       {prometheusPortEntry}
       {prometheusScrapeEntry}
@@ -8,5 +11,6 @@ spec:
   selector:
     color: {serviceColor}
   ports:
-    - name: tcp-80
+    - name: tcp-{podPort}
+      port: {podPort}
   type: {serviceType}

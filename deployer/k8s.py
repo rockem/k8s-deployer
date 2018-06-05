@@ -2,9 +2,11 @@ import copy
 import os
 import re
 import subprocess
-from flask import json
 from time import sleep
 
+from flask import json
+
+from aws import AwsConnector
 from log import DeployerLogger
 from recipe import Recipe
 from yml import ByPath
@@ -48,20 +50,18 @@ class AppExplorer(object):
     def get_deployment_scale(self, service_name, default_scale=1):
         deployment_name = self.get_deployment_name(service_name)
         return self.success_or_default(
-            lambda : self.connector.describe_deployment(deployment_name)['spec']['replicas'],
+            lambda: self.connector.describe_deployment(deployment_name)['spec']['replicas'],
             default_scale)
 
     def get_deployment_name(self, service_name):
         return self.success_or_default(
-            lambda : self.connector.describe_service(service_name)['spec']['selector']['name'], '')
+            lambda: self.connector.describe_service(service_name)['spec']['selector']['name'], '')
 
     def success_or_default(self, func, default):
         try:
             return func()
         except (subprocess.CalledProcessError, KeyError, ValueError) as e:
             return default
-
-
 
 
 class K8sDescriptorFactory(object):
@@ -74,13 +74,16 @@ class K8sDescriptorFactory(object):
         Recipe.SERVICE_TYPE_INTERNAL_UI: LOAD_BALANCER_SERVICE,
     }
 
-    def __init__(self, template_path, configuration):
+    def __init__(self, template_path, configuration, aws_connector=AwsConnector()):
         self.configuration = configuration
         self.template_path = template_path
+        self.aws_connector = aws_connector
 
     def service(self):
         config = self.__convert_service_type()
+        self.__set_pod_port(config)
         self.__update_internal_load_balancer(config)
+        self.__update_external_load_balancer(config)
         self.__update_metrics(config)
         creator = FileYmlCreator(self.template_path, 'service').config(config)
         self.__add_ports(creator, 'service-port', ByPath('spec.ports'))
@@ -93,6 +96,12 @@ class K8sDescriptorFactory(object):
 
     def __get_service_type(self, configuration):
         return self.service_type_map[configuration['serviceType']]
+
+    def __set_pod_port(self, config):
+        port_number = 80
+        if (self.configuration['serviceType'] == Recipe.SERVICE_TYPE_UI):
+            port_number = 443
+        config['podPort'] = port_number
 
     def __add_ports(self, creator, yml, locator):
         if 'ports' in self.configuration:
@@ -114,6 +123,19 @@ class K8sDescriptorFactory(object):
             'service.beta.kubernetes.io/aws-load-balancer-internal: 0.0.0.0/0' \
                 if self.configuration['serviceType'] == Recipe.SERVICE_TYPE_INTERNAL_UI else ''
 
+    def __update_external_load_balancer(self, conf):
+        conf['externalLoadBalancerEntry_sslCert'] = ''
+        conf['externalLoadBalancerEntry_sslPorts'] = ''
+        conf['externalLoadBalancerEntry_backendProtocol'] = ''
+        if (self.configuration['serviceType'] == Recipe.SERVICE_TYPE_UI):
+            arn_certificate = self.aws_connector.get_certificate_for(('*.%s' % conf['domain']))
+            conf['externalLoadBalancerEntry_sslCert'] = \
+                'service.beta.kubernetes.io/aws-load-balancer-ssl-cert: \'%s\'' % arn_certificate
+            conf['externalLoadBalancerEntry_sslPorts'] = \
+                'service.beta.kubernetes.io/aws-load-balancer-ssl-ports: \'443\''
+            conf['externalLoadBalancerEntry_backendProtocol'] = \
+                'service.beta.kubernetes.io/aws-load-balancer-backend-protocol: http'
+
     def __update_metrics(self, conf):
         if 'metrics' in self.configuration and self.configuration['metrics']['enabled'] is True:
             logger.info('metrics enabled, going to configure prometheus scraping')
@@ -121,7 +143,7 @@ class K8sDescriptorFactory(object):
             conf['prometheusScrapeEntry'] = 'prometheus.io/scrape: \'true\''
         else:
             logger.info('metrics disabled: %s', self.configuration['metrics']['enabled']
-                        if 'metrics' in self.configuration else '')
+            if 'metrics' in self.configuration else '')
             conf['prometheusPortEntry'] = ''
             conf['prometheusScrapeEntry'] = ''
 

@@ -87,7 +87,7 @@ class TestConnectorIt:
         return self.__connector.describe_service(service_name)['spec']['type']
 
     def __create_properties_with(self, service_type):
-        recipe = RecipeBuilder().image("dummy-image").ingredients({'service_type':service_type}).build()
+        recipe = RecipeBuilder().image("dummy-image").ingredients({'service_type': service_type}).build()
         return {
             'env': 'int',
             'name': 'dummy-deployment',
@@ -118,7 +118,6 @@ class TestConnectorIt:
         deployment_description = self.__connector.describe_deployment(deployment_name)
         assert deployment_description['metadata']['name'] == deployment_name
 
-
     def test_create_service_account(self):
         properties = self.create_service_account()
 
@@ -135,7 +134,6 @@ class TestConnectorIt:
         properties = self.__create_properties_with(Recipe.SERVICE_TYPE_API)
         self.__connector.apply_service_account(properties)
         return properties
-
 
     def _deployment_scale(self, deployment_name):
         deployment = subprocess.check_output("kubectl --namespace %s get deployment %s -o json"
