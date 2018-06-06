@@ -31,7 +31,7 @@ class PodHealthChecker(object):
         if match:
             return match.group(1)
         else:
-            raise Exception('service %s has no pod!' % pod_name)
+            raise Exception('Service %s has no pod!' % pod_name)
 
 
 class AppExplorer(object):
