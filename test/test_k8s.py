@@ -39,7 +39,7 @@ class TestK8sDescriptorFactory(object):
     TEMPLATE_PATH = os.path.join(os.path.dirname(__file__), 'orig')
 
     def test_add_port_definition_to_deployment(self):
-        factory = K8sDescriptorFactory(self.TEMPLATE_PATH, {'ports': ['50:5000'], 'name': 'kuku'})
+        factory = K8sDescriptorFactory(self.TEMPLATE_PATH, {'ports': ['50:5000'], 'name': 'kuku'}, self._aws_connector)
         with open(factory.deployment(), 'r') as f:
             deployment = yaml.load(f)
             ports = deployment['spec']['template']['spec']['containers'][0]['ports']
@@ -58,7 +58,8 @@ class TestK8sDescriptorFactory(object):
     def test_add_https_port_definition_to_ui_service(self):
         factory = K8sDescriptorFactory(
             self.TEMPLATE_PATH,
-            {'serviceColor': 'green', 'serviceType': Recipe.SERVICE_TYPE_UI, 'domain': 'domain'})
+            {'serviceColor': 'green', 'serviceType': Recipe.SERVICE_TYPE_UI, 'domain': 'domain'},
+            self._aws_connector)
         assert self.__assert_port_with_number(443, factory.service()) is True
 
     def __assert_port_with_number(self, port_number, service_path):
@@ -75,10 +76,12 @@ class TestK8sDescriptorFactory(object):
     def test_add_internal_load_balancer_definition_to_service(self):
         internal_load_balancer_factory = K8sDescriptorFactory(
             self.TEMPLATE_PATH,
-            {'serviceColor': 'green', 'serviceType': Recipe.SERVICE_TYPE_INTERNAL_UI})
+            {'serviceColor': 'green', 'serviceType': Recipe.SERVICE_TYPE_INTERNAL_UI},
+            self._aws_connector)
         no_internal_load_balancer_factory = K8sDescriptorFactory(
             self.TEMPLATE_PATH,
-            {'serviceColor': 'green', 'serviceType': Recipe.SERVICE_TYPE_API})
+            {'serviceColor': 'green', 'serviceType': Recipe.SERVICE_TYPE_API},
+            self._aws_connector)
         assert self.__assert_internal_LB_in_annotations(internal_load_balancer_factory.service()) is True
         assert self.__assert_internal_LB_in_annotations(no_internal_load_balancer_factory.service()) is False
 
@@ -89,7 +92,8 @@ class TestK8sDescriptorFactory(object):
             self._aws_connector)
         no_external_load_balancer_factory = K8sDescriptorFactory(
             self.TEMPLATE_PATH,
-            {'serviceColor': 'green', 'serviceType': Recipe.SERVICE_TYPE_API})
+            {'serviceColor': 'green', 'serviceType': Recipe.SERVICE_TYPE_API},
+            self._aws_connector)
         assert self.__assert_external_lb_in_annotations(external_load_balancer_factory.service()) is True
         assert self.__assert_external_lb_in_annotations(no_external_load_balancer_factory.service()) is False
 
@@ -135,20 +139,23 @@ class TestK8sDescriptorFactory(object):
         self.__assert_service_type(service_path, k8s.LOAD_BALANCER_SERVICE)
 
     def __create_service(self, configuration):
-        factory = K8sDescriptorFactory(self.TEMPLATE_PATH, configuration)
+        factory = K8sDescriptorFactory(self.TEMPLATE_PATH,
+                                       configuration,
+                                       self._aws_connector)
         return factory.service()
 
     def test_metrics_should_be_disabled(self):
         service_path = K8sDescriptorFactory(
             self.TEMPLATE_PATH,
-            {'serviceColor': 'green', 'serviceType': Recipe.SERVICE_TYPE_INTERNAL_UI}).service()
+            {'serviceColor': 'green', 'serviceType': Recipe.SERVICE_TYPE_INTERNAL_UI},
+            self._aws_connector).service()
         assert self.__assert_prometheus_enabled(service_path) is False
 
     def test_metrics_should_be_enabled(self):
         service_path = K8sDescriptorFactory(
             self.TEMPLATE_PATH,
             {'serviceColor': 'green', 'serviceType': Recipe.SERVICE_TYPE_API,
-             'metrics': {'enabled': True}}).service()
+             'metrics': {'enabled': True}}, self._aws_connector).service()
         assert self.__assert_prometheus_enabled(service_path) is True
 
     @staticmethod
