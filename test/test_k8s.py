@@ -32,6 +32,7 @@ class AwsConnectorStub(object):
     def _called_with_domain(self):
         return self._domain
 
+
 class TestK8sDescriptorFactory(object):
     _aws_connector = AwsConnectorStub()
 
@@ -125,7 +126,8 @@ class TestK8sDescriptorFactory(object):
         self.__assert_service_type(service_path, k8s.CLUSTER_IP_SERVICE)
 
     def test_set_load_balancer_type_UI(self):
-        service_path = self.__create_service({'serviceColor': 'green', 'serviceType': Recipe.SERVICE_TYPE_UI, 'domain': 'domain'})
+        service_path = self.__create_service(
+            {'serviceColor': 'green', 'serviceType': Recipe.SERVICE_TYPE_UI, 'domain': 'domain'})
         self.__assert_service_type(service_path, k8s.LOAD_BALANCER_SERVICE)
 
     def test_set_load_balancer_type_LOCAL_UI(self):
