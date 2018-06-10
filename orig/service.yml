@@ -21,7 +21,7 @@ spec:
   ports:
     - protocol: TCP
       targetPort: 8080
-      port: {podPort}
-      name: tcp-{podPort}
+      port: 80
+      name: tcp-80
   type: {serviceType}
 

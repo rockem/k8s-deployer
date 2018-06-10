@@ -1,2 +1,3 @@
 targetPort: {port}
 port: {outPort}
+name: tcp-{outPort}

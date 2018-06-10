@@ -34,12 +34,12 @@ class AwsConnectorStub(object):
 
 
 class TestK8sDescriptorFactory(object):
-    _aws_connector = AwsConnectorStub()
-
+    AWS_CONNECTOR = AwsConnectorStub()
     TEMPLATE_PATH = os.path.join(os.path.dirname(__file__), 'orig')
+    PROPERTIES_FOR_UI_SERVICE = {'serviceColor': 'green', 'serviceType': Recipe.SERVICE_TYPE_UI, 'domain': 'domain', 'ports': []}
 
     def test_add_port_definition_to_deployment(self):
-        factory = K8sDescriptorFactory(self.TEMPLATE_PATH, {'ports': ['50:5000'], 'name': 'kuku'}, self._aws_connector)
+        factory = K8sDescriptorFactory(self.TEMPLATE_PATH, {'ports': ['50:5000'], 'name': 'kuku'}, self.AWS_CONNECTOR)
         with open(factory.deployment(), 'r') as f:
             deployment = yaml.load(f)
             ports = deployment['spec']['template']['spec']['containers'][0]['ports']
@@ -49,24 +49,31 @@ class TestK8sDescriptorFactory(object):
         factory = K8sDescriptorFactory(
             self.TEMPLATE_PATH,
             {'serviceColor': 'green', 'serviceType': Recipe.SERVICE_TYPE_API},
-            self._aws_connector
+            self.AWS_CONNECTOR
         )
         with open(factory.service(), 'r') as f:
             ports = yaml.load(f)['spec']['ports']
-            assert {'port': 80, 'name': 'tcp-80'} in ports
+            assert {'targetPort':8080, 'port': 80, 'name': 'tcp-80'} in ports
 
-    def test_add_https_port_definition_to_ui_service(self):
+    def test_add_443_port_definition_to_ui_service(self):
         factory = K8sDescriptorFactory(
             self.TEMPLATE_PATH,
-            {'serviceColor': 'green', 'serviceType': Recipe.SERVICE_TYPE_UI, 'domain': 'domain'},
-            self._aws_connector)
+            self.PROPERTIES_FOR_UI_SERVICE,
+            self.AWS_CONNECTOR)
         assert self.__assert_port_with_number(443, factory.service()) is True
+
+    def test_add_80_port_definition_to_ui_service(self):
+        factory = K8sDescriptorFactory(
+            self.TEMPLATE_PATH,
+            self.PROPERTIES_FOR_UI_SERVICE,
+            self.AWS_CONNECTOR)
+        assert self.__assert_port_with_number(80, factory.service()) is True
 
     def __assert_port_with_number(self, port_number, service_path):
         with open(service_path, 'r') as f:
             service_yml = yaml.load(f)
             ports = service_yml['spec']['ports']
-            return {'port': port_number, 'name': ('tcp-%s' % port_number)} in ports
+            return {'targetPort': 8080, 'port': port_number, 'name': ('tcp-%s' % port_number)} in ports
 
     def __port_exists_in(self, port_number, port_entries):
         return [entry is not None
@@ -77,23 +84,23 @@ class TestK8sDescriptorFactory(object):
         internal_load_balancer_factory = K8sDescriptorFactory(
             self.TEMPLATE_PATH,
             {'serviceColor': 'green', 'serviceType': Recipe.SERVICE_TYPE_INTERNAL_UI},
-            self._aws_connector)
+            self.AWS_CONNECTOR)
         no_internal_load_balancer_factory = K8sDescriptorFactory(
             self.TEMPLATE_PATH,
             {'serviceColor': 'green', 'serviceType': Recipe.SERVICE_TYPE_API},
-            self._aws_connector)
+            self.AWS_CONNECTOR)
         assert self.__assert_internal_LB_in_annotations(internal_load_balancer_factory.service()) is True
         assert self.__assert_internal_LB_in_annotations(no_internal_load_balancer_factory.service()) is False
 
     def test_add_external_load_balancer_definition_to_ui_service(self):
         external_load_balancer_factory = K8sDescriptorFactory(
             self.TEMPLATE_PATH,
-            {'serviceColor': 'green', 'serviceType': Recipe.SERVICE_TYPE_UI, 'domain': 'domain'},
-            self._aws_connector)
+            self.PROPERTIES_FOR_UI_SERVICE,
+            self.AWS_CONNECTOR)
         no_external_load_balancer_factory = K8sDescriptorFactory(
             self.TEMPLATE_PATH,
             {'serviceColor': 'green', 'serviceType': Recipe.SERVICE_TYPE_API},
-            self._aws_connector)
+            self.AWS_CONNECTOR)
         assert self.__assert_external_lb_in_annotations(external_load_balancer_factory.service()) is True
         assert self.__assert_external_lb_in_annotations(no_external_load_balancer_factory.service()) is False
 
@@ -109,15 +116,14 @@ class TestK8sDescriptorFactory(object):
             return all(key in annotations for key in (key_ssl_cert, key_ssl_port, key_backend_port))
 
     def test_certificate_was_set_to_ui_service(self):
-        domain = 'myDomain'
         external_load_balancer_factory = K8sDescriptorFactory(
             self.TEMPLATE_PATH,
-            {'serviceColor': 'green', 'serviceType': Recipe.SERVICE_TYPE_UI, 'domain': domain},
-            self._aws_connector)
+            self.PROPERTIES_FOR_UI_SERVICE,
+            self.AWS_CONNECTOR)
 
         service_path = external_load_balancer_factory.service()
-        assert self._aws_connector._called_with_domain() == ('*.%s' % domain)
-        assert self.__assert_external_lb_has_certificate(service_path, self._aws_connector.CERTIFICATE)
+        assert self.AWS_CONNECTOR._called_with_domain() == ('*.%s' % self.PROPERTIES_FOR_UI_SERVICE['domain'])
+        assert self.__assert_external_lb_has_certificate(service_path, self.AWS_CONNECTOR.CERTIFICATE)
 
     def __assert_external_lb_has_certificate(self, service_path, fetched_certificate):
         with open(service_path, 'r') as f:
@@ -131,7 +137,7 @@ class TestK8sDescriptorFactory(object):
 
     def test_set_load_balancer_type_UI(self):
         service_path = self.__create_service(
-            {'serviceColor': 'green', 'serviceType': Recipe.SERVICE_TYPE_UI, 'domain': 'domain'})
+            self.PROPERTIES_FOR_UI_SERVICE)
         self.__assert_service_type(service_path, k8s.LOAD_BALANCER_SERVICE)
 
     def test_set_load_balancer_type_LOCAL_UI(self):
@@ -141,21 +147,21 @@ class TestK8sDescriptorFactory(object):
     def __create_service(self, configuration):
         factory = K8sDescriptorFactory(self.TEMPLATE_PATH,
                                        configuration,
-                                       self._aws_connector)
+                                       self.AWS_CONNECTOR)
         return factory.service()
 
     def test_metrics_should_be_disabled(self):
         service_path = K8sDescriptorFactory(
             self.TEMPLATE_PATH,
             {'serviceColor': 'green', 'serviceType': Recipe.SERVICE_TYPE_INTERNAL_UI},
-            self._aws_connector).service()
+            self.AWS_CONNECTOR).service()
         assert self.__assert_prometheus_enabled(service_path) is False
 
     def test_metrics_should_be_enabled(self):
         service_path = K8sDescriptorFactory(
             self.TEMPLATE_PATH,
             {'serviceColor': 'green', 'serviceType': Recipe.SERVICE_TYPE_API,
-             'metrics': {'enabled': True}}, self._aws_connector).service()
+             'metrics': {'enabled': True}}, self.AWS_CONNECTOR).service()
         assert self.__assert_prometheus_enabled(service_path) is True
 
     @staticmethod

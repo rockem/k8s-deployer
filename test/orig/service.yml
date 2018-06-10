@@ -11,6 +11,7 @@ spec:
   selector:
     color: {serviceColor}
   ports:
-    - name: tcp-{podPort}
-      port: {podPort}
+    - name: tcp-80
+      port: 80
+      targetPort: 8080
   type: {serviceType}

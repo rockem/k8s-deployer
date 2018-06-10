@@ -81,7 +81,7 @@ class K8sDescriptorFactory(object):
 
     def service(self):
         config = self.__convert_service_type()
-        self.__set_pod_port(config)
+        self.__expose_https_port_if_needed()
         self.__update_internal_load_balancer(config)
         self.__update_external_load_balancer(config)
         self.__update_metrics(config)
@@ -97,11 +97,9 @@ class K8sDescriptorFactory(object):
     def __get_service_type(self, configuration):
         return self.service_type_map[configuration['serviceType']]
 
-    def __set_pod_port(self, config):
-        port_number = 80
-        if (self.configuration['serviceType'] == Recipe.SERVICE_TYPE_UI):
-            port_number = 443
-        config['podPort'] = port_number
+    def __expose_https_port_if_needed(self):
+        if self.configuration['serviceType'] == Recipe.SERVICE_TYPE_UI:
+            self.configuration['ports'].append('443:8080')
 
     def __add_ports(self, creator, yml, locator):
         if 'ports' in self.configuration:
