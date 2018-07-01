@@ -4,6 +4,7 @@ from deployer.deploy import DeployError, ImageDeployer, ColorDecider
 from deployer.recipe import RecipeBuilder
 
 
+
 class HealthCheckerStub(object):
     def __init__(self, healthy):
         self.healthy = healthy
@@ -33,14 +34,12 @@ class ConnectorStub(object):
         self.applied_service_accounts = []
         self.applied_deployments = {}
 
-
     def apply_service(self, desc):
         self.applied_descriptors['service'] = desc
         self.applied_services[desc['serviceName']] = desc
 
     def apply_service_account(self, desc):
         self.applied_service_accounts.append(desc)
-
 
     def apply_deployment(self, desc):
         self.applied_descriptors['deployment'] = desc
@@ -61,7 +60,7 @@ class ConnectorStub(object):
         if service_name in self.applied_services:
             service = self.applied_services[service_name]
             return {'spec': {'selector': {'color': service['serviceColor'],
-                                                     'name': service['name']}}}
+                                          'name': service['name']}}}
         else:
             return {}
 
@@ -77,13 +76,22 @@ class ConnectorStub(object):
         self.activated_deployments.append(deployment)
 
 
-
 class TestImageDeployer(object):
     DOMAIN = 'heed'
+    SICK_IMAGE_NAME = 'kuku'
 
     @raises(DeployError)
     def test_should_fail_given_sick_service(self):
-        self.__deploy({'image_name': 'kuku:123'}, ConnectorStub(False))
+        self.__deploy({'image_name': ('%s:123' % self.SICK_IMAGE_NAME)}, ConnectorStub(False))
+
+    def test_should_scale_deployment_given_sick_service(self):
+        connector = ConnectorStub(False)
+        try:
+            self.__deploy({'image_name': ('%s:123' % self.SICK_IMAGE_NAME)}, connector)
+        except:
+            pass
+        color = connector.applied_descriptors['deployment']['serviceColor']
+        assert connector.applied_scale[self.SICK_IMAGE_NAME + '-' + ColorDecider().invert_color(color)] == 0
 
     def __deploy(self, properties, connector):
         deployer = ImageDeployer('test_target', self.DOMAIN, connector, RecipeBuilder().ingredients(
