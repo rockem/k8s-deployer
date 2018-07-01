@@ -33,14 +33,12 @@ class ConnectorStub(object):
         self.applied_service_accounts = []
         self.applied_deployments = {}
 
-
     def apply_service(self, desc):
         self.applied_descriptors['service'] = desc
         self.applied_services[desc['serviceName']] = desc
 
     def apply_service_account(self, desc):
         self.applied_service_accounts.append(desc)
-
 
     def apply_deployment(self, desc):
         self.applied_descriptors['deployment'] = desc
@@ -61,7 +59,7 @@ class ConnectorStub(object):
         if service_name in self.applied_services:
             service = self.applied_services[service_name]
             return {'spec': {'selector': {'color': service['serviceColor'],
-                                                     'name': service['name']}}}
+                                          'name': service['name']}}}
         else:
             return {}
 
@@ -77,7 +75,6 @@ class ConnectorStub(object):
         self.activated_deployments.append(deployment)
 
 
-
 class TestImageDeployer(object):
     DOMAIN = 'heed'
 
@@ -90,7 +87,7 @@ class TestImageDeployer(object):
         try:
             self.__deploy({'image_name': 'kuku:123'}, connector)
         except:
-            print ""
+            pass
         color = connector.applied_descriptors['deployment']['serviceColor']
         assert connector.applied_scale['kuku-' + ColorDecider().invert_color(color)] == 0
 
