@@ -48,6 +48,8 @@ class ImageDeployer(object):
             logger.debug("Lets expose this healthy MF %s" % self.recipe.image())
             self.__expose()
         else:
+            color = ColorDecider().invert_color(self.configuration.get("serviceColor"))
+            self.__scale_deployment_with_color(color, 0)
             raise DeployError('Deploy %s failed! Health check failed. pod description : %s' % (self.recipe.image(),
                                                                                                    self.health_checker.connector.describe_pod(self.configuration["name"])))
 

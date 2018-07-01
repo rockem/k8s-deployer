@@ -85,6 +85,15 @@ class TestImageDeployer(object):
     def test_should_fail_given_sick_service(self):
         self.__deploy({'image_name': 'kuku:123'}, ConnectorStub(False))
 
+    def test_should_scale_deployment_given_sick_service(self):
+        connector = ConnectorStub(False)
+        try:
+            self.__deploy({'image_name': 'kuku:123'}, connector)
+        except:
+            print ""
+        color = connector.applied_descriptors['deployment']['serviceColor']
+        assert connector.applied_scale['kuku-' + ColorDecider().invert_color(color)] == 0
+
     def __deploy(self, properties, connector):
         deployer = ImageDeployer('test_target', self.DOMAIN, connector, RecipeBuilder().ingredients(
             properties).build(), 1)
