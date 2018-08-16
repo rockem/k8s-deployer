@@ -56,9 +56,6 @@ class DeployerDriver:
         self.__run("%s promote --source %s --target %s --git_repository %s --mongo_uri=%s" % (
             APP,source_env, self.target, self.git_repo, self.mongo_uri))
 
-    def deploy_swagger(self, path):
-        self.__run("%s swagger --git_repository %s --yml_path %s" % (APP, self.git_repo, path))
-
     def rollback(self, service_name):
             self.__run(
                 "%s rollback --target %s --domain=%s --deploy-timeout=20 --service_name=%s --mongo_uri=%s" % (

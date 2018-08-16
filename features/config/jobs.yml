@@ -1,4 +1,0 @@
-jobs:
-  - timeout-clips:
-      schedule: "*/1 * * * *"
-      url: "http://deployer-test-stateful/run"

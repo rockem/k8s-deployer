@@ -17,24 +17,6 @@ class ConfigUploader:
     def upload_config(self, config_file_path):
         self.connector.upload_config_map(config_file_path)
 
-    def upload_jobs(self, jobs_file_path): 
-        if jobs_file_path is not None:
-            jobs_list = self.create_jobs_from(jobs_file_path)
-            for job in jobs_list:
-                self.connector.upload_job(job)
-
-    def create_jobs_from(self, jobs_file_path):
-        jobs_list = []
-        logger.info('Going to read the jobs from file \'%s\'' % jobs_file_path)
-        content = YmlReader(jobs_file_path).read()
-        for item in content['jobs']:
-            job_name = next(iter(item))
-            jobs_list.append( {'name': job_name,
-                            'schedule': item[job_name]['schedule'],
-                            'url': item[job_name]['url']})
-
-        return jobs_list
-
 
 class GlobalConfigFetcher:
     def __init__(self, git_repository):

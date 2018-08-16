@@ -1,9 +1,7 @@
 import os
 import sys
 
-from aws import ApiGatewayConnector
 from deploy import ImageDeployer
-from git_repository import DeployLogGitRepository
 from log import DeployerLogger
 from protected_rollback_proxy import ProtectedRollbackProxy
 from recipe import Recipe
@@ -40,7 +38,7 @@ class WriteToLogCommandRegularDeploy(WriteToLogCommand):
 
 
 class WriteToLogCommandRollback(WriteToLogCommand):
-    def __init__(self,mongo_connector, env, service_name, deploy_command):
+    def __init__(self, mongo_connector, env, service_name, deploy_command):
         super(WriteToLogCommandRollback, self).__init__(deploy_command)
         self.mongo_log_repository = ProtectedRollbackProxy(mongo_connector, env, service_name)
 
@@ -100,22 +98,6 @@ class ConfigureCommand(object):
         fetcher.checkout()
         ConfigUploader(self.connector).upload_config(
             fetcher.fetch_global_configuration_for(self.target))
-        ConfigUploader(self.connector).upload_jobs(
-            fetcher.fetch_jobs_for(self.target))
-
-
-class SwaggerCommand(object):
-    def __init__(self, yml_path, git_repository):
-        self.yml_path = yml_path
-        self.git_repository = git_repository
-
-    def run(self):
-        env = EnvironmentParser("").name()
-        swagger_location = os.path.join(env, "api", "swagger.yml")
-        ApiGatewayConnector().upload_swagger(self.yml_path)
-        DeployLogGitRepository(self.git_repository, env).write(swagger_location, {'url': self.yml_path})
-        logger.debug("finished promote swagger:%s" % swagger_location)
-
 
 class RollbackCommand(object):
     def __init__(self, target, git_repo, domain, connector, timeout, service_name, mongo_connector):

@@ -1,5 +1,5 @@
 import click
-from commands import WriteToLogCommandRegularDeploy, DeployCommand, PromoteCommand, ConfigureCommand, SwaggerCommand, \
+from commands import WriteToLogCommandRegularDeploy, DeployCommand, PromoteCommand, ConfigureCommand, \
     RollbackCommand
 from deploy import DeployError
 from k8s import K8sConnector
@@ -40,8 +40,6 @@ class ActionRunner:
                            mongo_connector).run()
         elif action == 'configure':
             ConfigureCommand(self.target, self.git_repository, connector).run()
-        elif action == 'swagger':
-            SwaggerCommand(self.yml_path, self.git_repository).run()
         elif action == 'rollback':
             RollbackCommand(self.target, self.git_repository, self.domain, connector, self.timeout,
                             self.service_name, mongo_connector).run()
@@ -53,7 +51,7 @@ class ActionRunner:
 
 
 @click.command()
-@click.argument('action', type=click.Choice(['deploy', 'promote', 'configure', 'swagger', 'rollback']))
+@click.argument('action', type=click.Choice(['deploy', 'promote', 'configure', 'rollback']))
 @click.option('--image_name', default=False)
 @click.option('--source', default=False)
 @click.option('--target')

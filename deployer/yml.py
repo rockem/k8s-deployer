@@ -66,14 +66,6 @@ class ByPath:
         return find_node(self.path, data)
 
 
-class SwaggerFileReader(object):
-    def __init__(self, swagger_yml_path):
-        self.sw_yml_path = swagger_yml_path
-
-    def read(self):
-        return subprocess.check_output(" curl " + self.sw_yml_path, shell=True)
-
-
 class FileYmlCreator:
     def __init__(self, yml_dir, base_yml):
         self.yml_dir = yml_dir

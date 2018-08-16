@@ -9,7 +9,7 @@ from features.support.context import Context
 from features.support.deploy import DeployerDriver
 from features.support.http import http_get, url_for
 from features.support.k8s import K8sDriver
-from features.support.repository import ConfigRepository, LocalConfig, SwaggerFileCreator, LoggingRepository
+from features.support.repository import ConfigRepository, LocalConfig, LoggingRepository
 
 use_step_matcher("re")
 
@@ -61,12 +61,6 @@ def jobs_were_invoked_on_service(context, service, version):
 
 def _validate_job_was_invoked(domain):
     assert http_get('http://%s/verify' % domain).status_code == 200
-
-
-@when("deploying swagger")
-def deploy_swagger(context):
-    DeployerDriver(LoggingRepository.GIT_REPO_URL, Context(context).default_namespace(), context.domain, Context(context).get_mongo_uri()) \
-        .deploy_swagger(SwaggerFileCreator.SWAGGER_YML_URL)
 
 
 @then("uploaded to api gw")

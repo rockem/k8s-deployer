@@ -26,32 +26,10 @@ class GitRepository(object):
         return "file://" + os.getcwd() + '/' + repo_name
 
 
-class SwaggerFileCreator(GitRepository):
-    SWAGGER_YML_PATH = "out/swagger.yml"
-    SWAGGER_YML_URL = "file://" + os.getcwd() + '/' + SWAGGER_YML_PATH
-
-    def __init__(self):
-        super(SwaggerFileCreator, self).__init__("swagger_repo", "swagger_co")
-
-    def create_yml_with(self, value):
-        FileCreator().create_for(self.SWAGGER_YML_PATH, yaml.load(open('features/config/swagger.yml', "r")))
-        self.__update_with(self.__read_content().replace('hello', value))
-
-    def __update_with(self, content):
-        with open(self.SWAGGER_YML_PATH, 'w') as f:
-            f.write(content)
-
-    def __read_content(self):
-        with open(self.SWAGGER_YML_PATH, 'r') as file:
-            file_data = file.read()
-        return file_data
-
-
 class LoggingRepository(GitRepository):
     REPO_NAME = 'env_repo'
     GIT_REPO_URL = "file://" + os.getcwd() + '/' + REPO_NAME
     CHECKOUT_DIR = 'env_co'
-    SWAGGER_CONTENT = {'url': SwaggerFileCreator.SWAGGER_YML_URL}
 
     def __init__(self):
         super(LoggingRepository, self).__init__(self.REPO_NAME, self.CHECKOUT_DIR)
@@ -81,11 +59,6 @@ class LoggingRepository(GitRepository):
         repo.git.add('--all')
         repo.index.commit("updated by tests")
         repo.remote().push()
-
-    def verify_swagger_is_logged(self):
-        super(LoggingRepository, self)._checkout_repo()
-        assert yaml.load(open(self.swagger_location("int"), "r"))['url'] == yaml.load(
-            SwaggerFileCreator.SWAGGER_YML_URL)
 
 class FileCreator():
     @staticmethod
@@ -128,13 +101,11 @@ class ConfigRepository(GitRepository):
         self.__push(config_dict)
 
     def push_config(self, config_name):
-        config_dict = {config_name: self.GLOBAL_CONFIG_PATH,
-                       "jobs_default.yml": self.JOBS_PATH}
+        config_dict = {config_name: self.GLOBAL_CONFIG_PATH}
         self.__push(config_dict)
 
     def push_config_folder(self, config_name):
-        config_dict = {config_name: self.MAIN_CONFIG_PATH,
-                       "jobs_default.yml": self.JOBS_PATH}
+        config_dict = {config_name: self.MAIN_CONFIG_PATH}
         self.__push(config_dict)
 
     def __push(self, config_dict):
