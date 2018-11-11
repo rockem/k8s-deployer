@@ -20,10 +20,8 @@ Feature: deploy service on k8s
     When deploy "ported:1.0" service
     Then port 5000 is available
 
-  Scenario: rollback service
-    Given "version:1.0" service was deployed successfully
-    And "version:2.0" service was deployed successfully
-    When rollback "version:2.0" service
-    Then  "version:1.0" service is serving
+  Scenario: force deploy service
+    When force deploy "version:sick" service should succeed
+    Then all is good
 
 

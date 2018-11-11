@@ -10,21 +10,18 @@ from features.support.repository import LoggingRepository
 use_step_matcher("re")
 
 
-@when("deploy \"(.*):(.*)\" service(?: should (.*))?")
-def deploy_healthy_service(context, name, version, status):
-    __deploy_service(context, name, version, status)
+@when("(?:(.*) )?deploy \"(.*):(.*)\" service(?: should (.*))?")
+def deploy_healthy_service(context, force, name, version, status):
+    __deploy_service(context, name, version, status, force)
 
-
-@given("\"(.*):(.*)\" service was deployed successfully")
-def deploy_service_successfully(context, name, version):
-    __deploy_service(context, name, version, 'success')
-
-
-def __deploy_service(context, name, version, status):
+def __deploy_service(context, name, version, status, force):
     app = Context(context).get_app_for(name, version)
-    DeployerDriver(LoggingRepository.GIT_REPO_URL,
-                   Context(context).default_namespace(), context.domain, Context(context).get_mongo_uri()).deploy(app, status == 'fail')
+    DeployerDriver(LoggingRepository.GIT_REPO_URL, Context(context).default_namespace(), context.domain, Context(context).get_mongo_uri(), force == 'force').deploy(app, status == 'fail')
     Context(context).set_last_deployed_app(app)
+
+@then("all is good")
+def all_is_good(context):
+    print("all is good")
 
 
 @then("\"(.*)\" service is serving")

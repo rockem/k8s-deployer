@@ -3,7 +3,8 @@ from features.support.docker import AppImage
 LAST_DEPLOYED = 'lastDeployed'
 APPS = 'apps'
 NS_TO_DELETE = 'ns-delete'
-SWAGGER_YML_COMMIT_AND_PATH="swagger_yml_path"
+SWAGGER_YML_COMMIT_AND_PATH = "swagger_yml_path"
+
 
 class Context:
     def __init__(self, context):
@@ -15,7 +16,6 @@ class Context:
         except KeyError:
             self.__user_data()[APPS] = {}
         self.__user_data()[APPS][app.app_key()] = app
-
 
     def __user_data(self):
         return self.context.config.userdata

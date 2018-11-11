@@ -1,4 +1,5 @@
 from __future__ import print_function
+
 import time
 
 from k8s import PodHealthChecker, AppExplorer
@@ -27,31 +28,21 @@ class ColorDecider(object):
 
 
 class ImageDeployer(object):
-    def __init__(self, target, domain, connector, recipe, timeout):
-        self.target = target
-        self.domain = domain
+    def __init__(self, args, connector, recipe):
+        self.target = args["target"]
+        self.domain = args["domain"]
         self.configuration = {}
         self.connector = connector
         self.health_checker = PodHealthChecker(connector)
         self.recipe = recipe
-        self.timeout = timeout
+        self.timeout = args["deploy_timeout"]
+        self.force = args["force"]
 
     def deploy(self):
-        if not self.__exposed():
+        if not self.__exposed() or self.force:
             self.__deploy()
         else:
             self.__blue_green_deploy()
-
-    def __blue_green_deploy(self):
-        self.__dark_deploy()  # create config
-        if self.__is_healthy():
-            logger.debug("Lets expose this healthy MF %s" % self.recipe.image())
-            self.__expose()
-        else:
-            color = ColorDecider().invert_color(self.configuration.get("serviceColor"))
-            self.__scale_deployment_with_color(color, 0)
-            raise DeployError('Deploy %s failed! Health check failed. pod description : %s' % (self.recipe.image(),
-                                                                                                   self.health_checker.connector.describe_pod(self.configuration["name"])))
 
     def __exposed(self):
         logger.debug("recipe path is %s" % self.recipe)
@@ -62,43 +53,6 @@ class ImageDeployer(object):
         self.connector.apply_service_account(self.configuration)
         self.connector.apply_deployment(self.configuration)
         print("going to force deploy with this config {}".format(self.configuration))
-
-    def __dark_deploy(self):
-        self.configuration = self.__create_props(False)
-        print("going to dark deploy with this config {}".format(self.configuration))
-        self.connector.apply_service_account(self.configuration)
-        self.connector.apply_deployment(self.configuration)
-        self.connector.apply_service(self.configuration)
-
-    def __is_healthy(self):
-        name = "%s" % self.configuration["name"]
-        print("Waiting for %s to be healthy..." % name)
-        return self.__busy_wait(self.health_checker.health_check, name)
-
-    def __busy_wait(self, run_func, *args):
-        print('')
-        result = False
-        for _ in range(self.timeout):
-            print('.', end='')
-            try:
-                if run_func(args[0]):
-                    result = True
-                    break
-            except Exception:
-                pass
-            time.sleep(1)
-        print('')
-        return result
-
-    def __expose(self):
-        color = self.configuration.get("serviceColor")
-        self.configuration['serviceColor'] = ColorDecider().invert_color(color)
-        self.connector.apply_service(self.configuration)
-        self.__scale_deployment_with_color(color, 0)
-
-    def __scale_deployment_with_color(self, color, new_scale):
-        name = ImageNameParser(self.recipe.image()).name()
-        self.connector.scale_deployment(name + '-' + color, new_scale)
 
     def __create_props(self, force):
         name = ImageNameParser(self.recipe.image()).name()
@@ -122,3 +76,53 @@ class ImageDeployer(object):
             'metrics': self.recipe.metrics()
         }
 
+    def __blue_green_deploy(self):
+        self.__dark_deploy()  # create config
+        if self.__is_healthy():
+            logger.debug("Lets force expose this MF %s" % self.recipe.image())
+            self.__expose()
+        else:
+            self.__revert_bad_deploy()
+            raise DeployError('Deploy %s failed! Health check failed. pod description : %s' % (self.recipe.image(),
+                                                                                               self.health_checker.connector.describe_pod(
+                                                                                                   self.configuration[
+                                                                                                       "name"])))
+
+    def __dark_deploy(self):
+        self.configuration = self.__create_props(False)
+        print("going to dark deploy with this config {}".format(self.configuration))
+        self.connector.apply_service_account(self.configuration)
+        self.connector.apply_deployment(self.configuration)
+        self.connector.apply_service(self.configuration)
+
+    def __revert_bad_deploy(self):
+        color = ColorDecider().invert_color(self.configuration.get("serviceColor"))
+        self.__scale_deployment_with_color(color, 0)
+
+    def __is_healthy(self):
+        name = "%s" % self.configuration["name"]
+        print("Waiting for %s to be healthy..." % name)
+        return self.__busy_wait(self.health_checker.health_check, name)
+
+    def __busy_wait(self, run_func, *args):
+        result = False
+        for _ in range(self.timeout):
+            print('.', end='')
+            try:
+                if run_func(args[0]):
+                    result = True
+                    break
+            except Exception:
+                pass
+            time.sleep(1)
+        return result
+
+    def __expose(self):
+        color = self.configuration.get("serviceColor")
+        self.configuration['serviceColor'] = ColorDecider().invert_color(color)
+        self.connector.apply_service(self.configuration)
+        self.__scale_deployment_with_color(color, 0)
+
+    def __scale_deployment_with_color(self, color, new_scale):
+        name = ImageNameParser(self.recipe.image()).name()
+        self.connector.scale_deployment(name + '-' + color, new_scale)

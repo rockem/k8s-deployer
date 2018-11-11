@@ -10,7 +10,7 @@ class HealthCheckerStub(object):
         self.healthy = healthy
         self.health_called = False
 
-    def health_check(self, pod_name):
+    def health_check(self):
         self.health_called = True
         return self.healthy
 
@@ -84,6 +84,9 @@ class TestImageDeployer(object):
     def test_should_fail_given_sick_service(self):
         self.__deploy({'image_name': ('%s:123' % self.SICK_IMAGE_NAME)}, ConnectorStub(False))
 
+    def test_should_force_deploy(self):
+        self.__deploy({'image_name': ('%s:123' % self.SICK_IMAGE_NAME)}, ConnectorStub(False), force='--force')
+
     def test_should_scale_deployment_given_sick_service(self):
         connector = ConnectorStub(False)
         try:
@@ -93,9 +96,10 @@ class TestImageDeployer(object):
         color = connector.applied_descriptors['deployment']['serviceColor']
         assert connector.applied_scale[self.SICK_IMAGE_NAME + '-' + ColorDecider().invert_color(color)] == 0
 
-    def __deploy(self, properties, connector):
-        deployer = ImageDeployer('test_target', self.DOMAIN, connector, RecipeBuilder().ingredients(
-            properties).build(), 1)
+    def __deploy(self, properties, connector, force=''):
+        args = {"target" : 'test_target', "domain": self.DOMAIN, "deploy_timeout": 1, "force": force}
+        deployer = ImageDeployer(args, connector, RecipeBuilder().ingredients(
+            properties).build())
         deployer.deploy()
 
     def test_should_update_service_color_given_colorless_service(self):
@@ -145,3 +149,6 @@ class TestImageDeployer(object):
         connector = ConnectorStub(True)
         self.__deploy({'image_name': 'magnificent:123', 'service_type': 'some_type'}, connector)
         assert len(connector.applied_service_accounts) > 0
+
+
+

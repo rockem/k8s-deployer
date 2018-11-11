@@ -23,6 +23,7 @@ def push_config(context, config_name):
 def push_config(context, config_name):
     ConfigRepository().push_config_folder(config_name)
 
+
 @given("job \"(.*)\" was pushed to git")
 def push_config(context, job_name):
     ConfigRepository().push_job(job_name)
@@ -37,7 +38,8 @@ def clear_namespace(context, namespace):
 @when("configuring(?: \"(.+)\")?")
 def executing(context, namespace=None):
     DeployerDriver(ConfigRepository.GIT_REPO_URL,
-                   Context(context).default_namespace() if namespace is None else namespace, context.domain, Context(context).get_mongo_uri()).configure()
+                   Context(context).default_namespace() if namespace is None else namespace, context.domain,
+                   Context(context).get_mongo_uri()).configure()
 
 
 @then("config \"(.*)\" uploaded(?: to \"(.+)\" namespace)?")
@@ -58,6 +60,7 @@ def jobs_were_invoked_on_service(context, service, version):
         '%s/state' % url_for(Context(context).get_app_for(service, version)),
         lambda output: json.loads(output)['state']
     )
+
 
 def _validate_job_was_invoked(domain):
     assert http_get('http://%s/verify' % domain).status_code == 200
