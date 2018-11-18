@@ -1,77 +1,84 @@
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-   name: {name}
-   labels:
-       name: {name}
+  name: {name}
+  labels:
+    name: {name}
 spec:
-   replicas: {scale}
-   selector:
-     matchLabels:
-       name: {name}
-   template:
-     metadata:
-       labels:
-         name: {name}
-         type: {name}
-         color: {podColor}
-     spec:
-       serviceAccountName: {serviceName}
-       containers:
-       - image: {image}
-         name: {name}
-         volumeMounts:
-           - name: shared-logs
-             mountPath: /opt/log/
-           - name: config-volume
-             mountPath: /opt/service/config
-           - name: log-config-volume
-             mountPath: /opt/config
-         ports:
-           - name: liveness-port
-             containerPort: 8080
-         livenessProbe:
-           httpGet:
-             path: /health
-             port: liveness-port
-           initialDelaySeconds: 60
-           timeoutSeconds: 5
-         env:
-           - name: MY_POD_NAME
-             valueFrom:
-               fieldRef:
-                 fieldPath: metadata.name
-           - name: MY_POD_NAMESPACE
-             valueFrom:
-               fieldRef:
-                 fieldPath: metadata.namespace
-           - name: VAULT_TOKEN
-             valueFrom:
-               secretKeyRef:
-                 name: vault
-                 key: vault_token
-           - name: VAULT_ROLE
-             value: {serviceName}-role
-           - name: MY_ENV
-             value: {myEnv}
-         securityContext:
-            privileged: true
-       nodeSelector:
-         type: node
-       volumes:
-         - name: shared-logs
-           emptyDir: {{}}
-         - name: log-config-volume
-           configMap:
-             name: log4j
-             items:
-             - key: log4j2.xml
-               path: log4j2.xml
-         - name: config-volume
-           configMap:
-             name: global-config
-             items:
-             - key: global.yml
-               path: application.yml
-             - key: bootstrap.yml
-               path: bootstrap.yml
+  replicas: {scale}
+  selector:
+    matchLabels:
+      name: {name}
+  template:
+    metadata:
+      labels:
+        name: {name}
+        type: {name}
+        color: {podColor}
+    spec:
+      serviceAccountName: {serviceName}
+      containers:
+      - image: {image}
+        name: {name}
+        volumeMounts:
+        - name: shared-logs
+          mountPath: /opt/log/
+        - name: config-volume
+          mountPath: /opt/service/config
+        - name: log-config-volume
+          mountPath: /opt/config
+        ports:
+        - name: liveness-port
+          containerPort: 8080
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: liveness-port
+          initialDelaySeconds: 60
+          timeoutSeconds: 5
+        env:
+        - name: MY_POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: MY_POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: VAULT_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: vault
+              key: vault_token
+        - name: VAULT_ROLE
+          value: {serviceName}-role
+        - name: MY_ENV
+          value: {myEnv}
+        resources:
+          requests:
+            memory: "600Mi"
+            cpu: "250m"
+          limits:
+            memory: "4Gi"
+            cpu: "2000m"
+        securityContext:
+          privileged: true
+      nodeSelector:
+        type: node
+      volumes:
+      - name: shared-logs
+        emptyDir: {{}}
+      - name: log-config-volume
+        configMap:
+          name: log4j
+          items:
+          - key: log4j2.xml
+            path: log4j2.xml
+      - name: config-volume
+        configMap:
+          name: global-config
+          items:
+          - key: global.yml
+            path: application.yml
+          - key: bootstrap.yml
+            path: bootstrap.yml
