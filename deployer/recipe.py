@@ -2,13 +2,13 @@ import copy
 
 from log import DeployerLogger
 
-
 EXPOSE_LABEL = 'expose'
 IMAGE_LABEL = 'image_name'
 LOGGING_LABEL = 'logging'
 PORTS_LABEL = 'ports'
 SERVICE_TYPE = 'service_type'
 METRICS_LABEL = 'metrics'
+ADMIN_PRIVILEGES_LABEL = 'adminPrivileges'
 
 logger = DeployerLogger(__name__).getLogger()
 
@@ -58,6 +58,8 @@ class Recipe(object):
             self.ingredients[PORTS_LABEL] = []
         if METRICS_LABEL not in self.ingredients:
             self.ingredients[METRICS_LABEL] = {'enabled': False}
+        if ADMIN_PRIVILEGES_LABEL not in self.ingredients:
+            self.ingredients[ADMIN_PRIVILEGES_LABEL] = {'enabled': False}
 
     @staticmethod
     def builder():
@@ -83,3 +85,6 @@ class Recipe(object):
 
     def metrics(self):
         return self.ingredients[METRICS_LABEL]
+
+    def admin_privileges(self):
+        return self.ingredients[ADMIN_PRIVILEGES_LABEL]

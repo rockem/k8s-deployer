@@ -44,3 +44,11 @@ class TestRecipe(object):
     def test_metrics_should_be_delegated_from_ingredients(self):
         recipe = Recipe.builder().ingredients({'metrics': {'enabled': True}}).build()
         assert recipe.metrics()['enabled'] is True
+
+    def test_admin_privileges_should_be_disabled_by_default(self):
+        recipe = Recipe.builder().build()
+        assert recipe.admin_privileges()['enabled'] is False
+
+    def test_admin_privileges_should_be_delegated_from_ingredients(self):
+        recipe = Recipe.builder().ingredients({'adminPrivileges': {'enabled': True}}).build()
+        assert recipe.admin_privileges()['enabled'] is True

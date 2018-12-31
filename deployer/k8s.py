@@ -147,8 +147,26 @@ class K8sDescriptorFactory(object):
 
     def deployment(self):
         creator = FileYmlCreator(self.template_path, 'deployment').config(self.configuration)
+        self._add_admin_privileged_entities(creator, self.configuration)
         self.__add_ports(creator, 'deployment-port', ByContainerPorts(self.configuration['name']))
         return creator.create(self.DEST_DIR)
+
+    def _add_admin_privileged_entities(self, creator, configuration):
+        if 'adminPrivileges' in configuration and configuration['adminPrivileges']:
+            self.add_docker_volume_mount(creator)
+            self.add_docker_volume(creator)
+
+    def add_docker_volume_mount(self, creator):
+        creator.append_many(
+            'deployment-volume-mount',
+            ByContainerVolumeMounts(self.configuration['name']),
+            [{'name': 'docker-socket-volume', 'path': '/var/run/docker.sock'}])
+
+    def add_docker_volume(self, creator):
+        creator.append_many(
+            'deployment-file-volume',
+            ByPath('spec.template.spec.volumes'),
+            [{'name': 'docker-socket-volume', 'path': '/var/run/docker.sock'}])
 
     def service_account(self):
         creator = FileYmlCreator(self.template_path, 'serviceAccount').config(self.configuration)
@@ -171,6 +189,26 @@ class ByContainerPorts:
             if c['name'] == self.name:
                 return c['ports']
         return None
+
+
+class ByContainerVolumeMounts:
+    def __init__(self, name):
+        self.name = name
+
+    def locate(self, data):
+        containers = find_node('spec.template.spec.containers', data)
+        for c in containers:
+            if c['name'] == self.name:
+                return c['volumeMounts']
+        return None
+
+
+class ByPath:
+    def __init__(self, path):
+        self.path = path
+
+    def locate(self, data):
+        return find_node(self.path, data)
 
 
 class K8sConnector(object):

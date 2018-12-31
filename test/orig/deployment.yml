@@ -4,6 +4,12 @@ spec:
        containers:
           - b: 777
             name: kuku
+            volumeMounts:
+            - name: shared-logs
+              mountPath: /opt/log/
             ports:
               - name: default
                 containerPort: 1111
+       volumes:
+        - name: shared-logs
+          emptyDir: dir

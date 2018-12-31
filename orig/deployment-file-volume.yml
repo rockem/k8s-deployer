@@ -1,0 +1,4 @@
+name: {name}
+hostPath:
+  path: {path}
+  type: File

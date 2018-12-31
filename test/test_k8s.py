@@ -45,6 +45,34 @@ class TestK8sDescriptorFactory(object):
             ports = deployment['spec']['template']['spec']['containers'][0]['ports']
             assert {'containerPort': 5000} in ports
 
+    def test_should_add_admin_privelege_to_deployment_when_admin_privileges_set(self):
+        factory = K8sDescriptorFactory(self.TEMPLATE_PATH, {'adminPrivileges': True, 'name': 'kuku'}, self.AWS_CONNECTOR)
+        with open(factory.deployment(), 'r') as f:
+            deployment = yaml.load(f)
+
+            assert self.docker_volume_mount() in self.deployment_volume_mounts(deployment)
+            assert self.docker_socket_volume() in self.spec_volumes(deployment)
+
+    def test_should_not_add_admin_privelege_to_deployment_when_admin_privileges_not_set(self):
+        factory = K8sDescriptorFactory(self.TEMPLATE_PATH, {'adminPrivileges': False, 'name': 'kuku'}, self.AWS_CONNECTOR)
+        with open(factory.deployment(), 'r') as f:
+            deployment = yaml.load(f)
+
+            assert not self.docker_volume_mount() in self.deployment_volume_mounts(deployment)
+            assert not self.docker_socket_volume() in self.spec_volumes(deployment)
+
+    def docker_volume_mount(self):
+        return {'mountPath': '/var/run/docker.sock', 'name': 'docker-socket-volume'}
+
+    def deployment_volume_mounts(self, deployment):
+        return deployment['spec']['template']['spec']['containers'][0]['volumeMounts']
+
+    def docker_socket_volume(self):
+        return {'hostPath': {'path': '/var/run/docker.sock', 'type': 'File'}, 'name': 'docker-socket-volume'}
+
+    def spec_volumes(self, deployment):
+        return deployment['spec']['template']['spec']['volumes']
+
     def test_add_port_definition_to_service(self):
         factory = K8sDescriptorFactory(
             self.TEMPLATE_PATH,
