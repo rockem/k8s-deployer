@@ -1,4 +1,5 @@
 from __future__ import print_function
+
 import time
 
 from k8s import PodHealthChecker, AppExplorer
@@ -72,7 +73,8 @@ class ImageDeployer(object):
             'domain': self.domain,
             'serviceType': self.recipe.service_type(),
             'target': EnvironmentParser(self.target).namespace(),
-            'metrics': self.recipe.metrics()
+            'metrics': self.recipe.metrics(),
+            'adminPrivileges': self.recipe.admin_privileges()['enabled']
         }
 
     def __blue_green_deploy(self):
