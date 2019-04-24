@@ -1,8 +1,7 @@
 from nose.tools import raises
-import json
+
 from deployer.deploy import DeployError, ImageDeployer, ColorDecider
 from deployer.recipe import RecipeBuilder
-
 
 
 class HealthCheckerStub(object):
@@ -33,6 +32,7 @@ class ConnectorStub(object):
         self.applied_services = {}
         self.applied_service_accounts = []
         self.applied_deployments = {}
+        self.applied_autoscale = False
 
     def apply_service(self, desc):
         self.applied_descriptors['service'] = desc
@@ -47,6 +47,9 @@ class ConnectorStub(object):
 
     def describe_pod(self, name):
         return "Name: %s" % name
+
+    def apply_autoscale(self, properties):
+        self.applied_autoscale = True
 
     def scale_deployment(self, deployment_name, scale):
         self.applied_scale[deployment_name] = scale
@@ -97,7 +100,7 @@ class TestImageDeployer(object):
         assert connector.applied_scale[self.SICK_IMAGE_NAME + '-' + ColorDecider().invert_color(color)] == 0
 
     def __deploy(self, properties, connector, force=''):
-        args = {"target" : 'test_target', "domain": self.DOMAIN, "deploy_timeout": 1, "force": force}
+        args = {"target" : 'test_target', "domain": self.DOMAIN, "deploy_timeout": 1, "force": force, "min_pods": 1, "max_pods": 1}
         deployer = ImageDeployer(args, connector, RecipeBuilder().ingredients(
             properties).build())
         deployer.deploy()
@@ -107,6 +110,18 @@ class TestImageDeployer(object):
         self.__deploy({'image_name': 'no_color:123'}, connector)
         assert connector.applied_descriptors['service']['serviceColor'] == 'green'
         assert connector.applied_descriptors['deployment']['serviceColor'] == 'green'
+
+    def test_should_not_autoscale_when_autoscale_set_to_false(self):
+        connector = ConnectorStub(True)
+        self.__deploy({'image_name': 'no_color:123',
+                'autoscale': {'enabled': False}}, connector)
+        assert not connector.applied_autoscale
+
+    def test_should_autoscale(self):
+        connector = ConnectorStub(True)
+        self.__deploy({'image_name': 'no_color:123',
+                       'autoscale': {'enabled': True}}, connector)
+        assert connector.applied_autoscale
 
     def test_should_update_service_domain(self):
         connector = ConnectorStub(True)

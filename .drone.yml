@@ -22,13 +22,13 @@ pipeline:
     image: plugins/ecr
     repo: 911479539546.dkr.ecr.us-east-1.amazonaws.com/k8s-deployer
     secrets: [ecr_secret_key,ecr_access_key]
-    tags: [1.5]
+    tags: [1.6]
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     when:
       event: push
       branch: develop
-      
+
   notify:
     image: docker.heed-dev.io/drone-email
     secrets: [email_password]

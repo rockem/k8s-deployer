@@ -31,6 +31,7 @@ def check_logged_in_mongo(context):
     MongoDriver(Context(context).get_mongo_uri()).verify_app_is_logged(Context(context).last_deployed_app())
 
 
+
 @then("recipe should be logged in mongo")
 def check_recipe_logged_ong_mongo(context):
     MongoDriver(Context(context).get_mongo_uri()).verify_recipe_is_logged_for(Context(context).last_deployed_app())

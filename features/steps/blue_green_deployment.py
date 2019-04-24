@@ -30,6 +30,14 @@ def service_is_serving(context, service_name):
         context.config.userdata['apps'][service_name])
 
 
+@then("it should have deployment with autoscaler")
+def should_exist_autoscaler(context):
+    service_name = context.config.userdata['lastDeployed']._service_name
+    K8sDriver(Context(context).default_namespace()).has_autoscaler(service_name)
+
+
+
+
 @then("service \"(.*)\" updated to version (.*)")
 def service_updated(context, name, version):
     K8sDriver(Context(context).default_namespace()).verify_get(

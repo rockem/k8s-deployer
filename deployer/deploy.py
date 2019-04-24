@@ -29,18 +29,16 @@ class ColorDecider(object):
 
 class ImageDeployer(object):
     def __init__(self, args, connector, recipe):
-        self.target = args["target"]
-        self.domain = args["domain"]
-        self.configuration = {}
         self.connector = connector
         self.health_checker = PodHealthChecker(connector)
         self.recipe = recipe
         self.timeout = args["deploy_timeout"]
         self.force = args["force"]
+        self.configuration = DeployPropsCreator(recipe, args, connector).create()
 
     def deploy(self):
         if not self.__exposed() or self.force:
-            self.__deploy()
+            self.__force_deploy()
         else:
             self.__blue_green_deploy()
 
@@ -48,34 +46,8 @@ class ImageDeployer(object):
         logger.debug("recipe path is %s" % self.recipe)
         return self.recipe.expose()
 
-    def __deploy(self):
-        self.configuration = self.__create_props(True)
-        self.connector.apply_service_account(self.configuration)
-        self.connector.apply_deployment(self.configuration)
-        print("going to force deploy with this config {}".format(self.configuration))
-
-    def __create_props(self, force):
-        name = ImageNameParser(self.recipe.image()).name()
-        color = AppExplorer(self.connector).get_color(name)
-        scale = AppExplorer(self.connector).get_deployment_scale(name)
-        invert_color = ColorDecider().invert_color(color)
-        return {
-            'env': EnvironmentParser(self.target).env(),
-            'name': name if force else name + "-" + invert_color,
-            'scale': scale,
-            'serviceName': name,
-            'image': self.recipe.image(),
-            'podColor': invert_color,
-            'serviceColor': color,
-            'myEnv': EnvironmentParser(self.target).name(),
-            'logging': self.recipe.logging(),
-            'ports': self.recipe.ports(),
-            'domain': self.domain,
-            'serviceType': self.recipe.service_type(),
-            'target': EnvironmentParser(self.target).namespace(),
-            'metrics': self.recipe.metrics(),
-            'adminPrivileges': self.recipe.admin_privileges()['enabled']
-        }
+    def __force_deploy(self):
+        self.__deploy(self.configuration)
 
     def __blue_green_deploy(self):
         self.__dark_deploy()  # create config
@@ -86,15 +58,20 @@ class ImageDeployer(object):
             self.__revert_bad_deploy()
             raise DeployError('Deploy %s failed! Health check failed. pod description : %s' % (self.recipe.image(),
                                                                                                self.health_checker.connector.describe_pod(
-                                                                                                   self.configuration[
-                                                                                                       "name"])))
+                                                                                                   self.configuration["name"])))
+
+    def __deploy(self, configuration):
+        self.connector.apply_service_account(configuration)
+        self.connector.apply_deployment(configuration)
+        self.apply_autoscale_if_needed(configuration)
 
     def __dark_deploy(self):
-        self.configuration = self.__create_props(False)
-        print("going to dark deploy with this config {}".format(self.configuration))
-        self.connector.apply_service_account(self.configuration)
-        self.connector.apply_deployment(self.configuration)
+        self.__deploy(self.configuration)
         self.connector.apply_service(self.configuration)
+
+    def apply_autoscale_if_needed(self, configuration):
+        if configuration['autoScaleInfo']['enabled']:
+            self.connector.apply_autoscale(configuration)
 
     def __revert_bad_deploy(self):
         color = ColorDecider().invert_color(self.configuration.get("serviceColor"))
@@ -127,3 +104,37 @@ class ImageDeployer(object):
     def __scale_deployment_with_color(self, color, new_scale):
         name = ImageNameParser(self.recipe.image()).name()
         self.connector.scale_deployment(name + '-' + color, new_scale)
+
+
+class DeployPropsCreator(object):
+    def __init__(self, recipe, args, connector):
+        self.recipe = recipe
+        self.args = args
+        self.connector = connector
+
+    def create(self):
+        force = not self.recipe.expose() or self.args["force"]
+        name = ImageNameParser(self.recipe.image()).name()
+        color = AppExplorer(self.connector).get_color(name)
+        scale = AppExplorer(self.connector).get_deployment_scale(name)
+        invert_color = ColorDecider().invert_color(color)
+        return {
+            'env': EnvironmentParser(self.args["target"]).env(),
+            'name': name if force else name + "-" + invert_color,
+            'scale': scale,
+            'serviceName': name,
+            'image': self.recipe.image(),
+            'podColor': invert_color,
+            'serviceColor': color,
+            'myEnv': EnvironmentParser(self.args["target"]).name(),
+            'logging': self.recipe.logging(),
+            'ports': self.recipe.ports(),
+            'domain': self.args["domain"],
+            'serviceType': self.recipe.service_type(),
+            'target': EnvironmentParser(self.args["target"]).namespace(),
+            'metrics': self.recipe.metrics(),
+            'adminPrivileges': self.recipe.admin_privileges()['enabled'],
+            'autoScaleInfo': self.recipe.autoscale(self.args["min_pods"], self.args["max_pods"])
+            # enrich autoscale info here
+        }
+

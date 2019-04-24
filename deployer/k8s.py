@@ -151,6 +151,20 @@ class K8sDescriptorFactory(object):
         self.__add_ports(creator, 'deployment-port', ByContainerPorts(self.configuration['name']))
         return creator.create(self.DEST_DIR)
 
+    def autoscale(self):
+        autoscale_info = self.configuration['autoScaleInfo']
+        return FileYmlCreator(self.template_path, 'autoscale') \
+            .config(self.__autoscale_configuration(autoscale_info)) \
+            .create(self.DEST_DIR)
+
+    def __autoscale_configuration(self, autoscale_info):
+        return {
+            'cpu': CpuCalculator(autoscale_info['cpu']).calculate(),
+            'name': self.configuration['name'],
+            'minReplicas': autoscale_info['minPods'],
+            'maxReplicas': autoscale_info['maxPods']
+        }
+
     def _add_admin_privileged_entities(self, creator, configuration):
         if 'adminPrivileges' in configuration and configuration['adminPrivileges']:
             self.add_docker_volume_mount(creator)
@@ -303,6 +317,11 @@ class K8sConnector(object):
             "kubectl --namespace %s apply --validate=false --record -f %s" %
             (self.namespace, K8sDescriptorFactory(self.TEMPLATE_PATH, properties).deployment()))
 
+    def apply_autoscale(self, properties):
+        self.__run(
+            "kubectl --namespace %s apply --validate=false --record -f %s" %
+            (self.namespace, K8sDescriptorFactory(self.TEMPLATE_PATH, properties).autoscale()))
+
     def apply_service_account(self, properties):
         self.__run(
             "kubectl --namespace %s apply --validate=false --record -f %s" %
@@ -330,3 +349,22 @@ class K8sConnector(object):
 
     def __run_ignore_error(self, command):
         os.system(command)
+
+
+class CpuCalculator():
+    def __init__(self, cpu_level):
+        self.cpu_level = cpu_level
+        self.cpu_mapping = {'low': 90, 'medium': 80, 'high': 70}
+
+    def calculate(self):
+        if self.cpu_level is None or \
+                self.cpu_level not in self.cpu_mapping:
+            raise CpuLevelNotValid("autoscale cpu parameter is either missing or invalid, valid values are: %s" %
+                                   self.cpu_mapping.keys())
+
+        return self.cpu_mapping[self.cpu_level]
+
+
+class CpuLevelNotValid(Exception):
+    def __init(self, message):
+        super(CpuLevelNotValid, self).__init__(message)

@@ -94,8 +94,13 @@ class AWSImagePusher:
                                     shell=True)
 
     def __is_image_exists_in_aws(self, name,version):
-        output = subprocess.check_output(
-            'aws ecr batch-get-image --repository-name %s --image-ids imageTag=%s' % (name, version),
-            shell=True)
 
-        return len(json.loads(output)['images']) > 0
+        try:
+            output = subprocess.check_output(
+                'aws ecr batch-get-image --repository-name %s --image-ids imageTag=%s' % (name, version),
+                shell=True)
+            return len(json.loads(output)['images']) > 0
+        except:
+            return False
+
+

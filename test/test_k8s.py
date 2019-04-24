@@ -3,9 +3,10 @@ import os
 from subprocess import CalledProcessError
 
 import yaml
+from nose.tools import raises
 
 from deployer import k8s
-from deployer.k8s import K8sDescriptorFactory, AppExplorer
+from deployer.k8s import K8sDescriptorFactory, AppExplorer, CpuCalculator, CpuLevelNotValid
 from deployer.recipe import Recipe
 
 
@@ -60,6 +61,20 @@ class TestK8sDescriptorFactory(object):
 
             assert not self.docker_volume_mount() in self.deployment_volume_mounts(deployment)
             assert not self.docker_socket_volume() in self.spec_volumes(deployment)
+
+    def test_should_create_autoscale(self):
+        factory = K8sDescriptorFactory(self.TEMPLATE_PATH, {'autoScaleInfo':
+                                                                {'minPods': 1, 'enabled': True, 'cpu': 'low', 'maxPods': 3}, 'name': 'kuku'}, self.AWS_CONNECTOR)
+
+        with open(factory.autoscale(), 'r') as f:
+            autoscale = yaml.load(f)
+            assert autoscale['metadata']['name'] == 'kuku'
+            assert autoscale['spec']['scaleTargetRef']['name'] == 'kuku'
+            assert autoscale['spec']['minReplicas'] == 1
+            assert autoscale['spec']['maxReplicas'] == 3
+            assert autoscale['spec']['targetCPUUtilizationPercentage'] == 90
+
+
 
     def docker_volume_mount(self):
         return {'mountPath': '/var/run/docker.sock', 'name': 'docker-socket-volume'}
@@ -218,3 +233,19 @@ class TestK8sDescriptorFactory(object):
 
     def test_should_return_desired_default_scale(self):
         assert AppExplorer(ConnectorStub()).get_deployment_scale("not_existing_service", 10) == 10
+
+
+class TestCpuCalculator(object):
+    pass
+
+    @raises(CpuLevelNotValid)
+    def test_should_fail_when_no_cpu_level(self):
+        CpuCalculator(None).calculate()
+
+    @raises(CpuLevelNotValid)
+    def test_should_fail_when_cpu_level_invalid(self):
+        CpuCalculator('notFound').calculate()
+
+    def test_should_calculate_cpu(self):
+        calculator = CpuCalculator('medium')
+        assert calculator.calculate() == calculator.cpu_mapping['medium']

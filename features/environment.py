@@ -16,6 +16,7 @@ logger = DeployerLogger(__name__).getLogger()
 
 APP_BUILDERS = [
     AppImageBuilder('version', 'healthy', ['VERSION=healthy']),
+    AppImageBuilder('autoscaled', '1.1'),
     AppImageBuilder('version', 'sick', ['VERSION=sick']),
     AppImageBuilder('restless', '1.0'),
     AppImageBuilder('stateful', '2.0'),

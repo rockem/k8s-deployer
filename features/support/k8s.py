@@ -1,9 +1,10 @@
 import json
+import os
 import re
 import subprocess
-import yaml
-import os
 from os import listdir
+
+import yaml
 
 from features.support.app import BusyWait
 from features.support.http import url_for
@@ -36,6 +37,20 @@ class K8sDriver:
 
     def describe_service(self, service_name):
         return json.loads(self.__run("kubectl --namespace %s get svc %s -o json" % (self.namespace, service_name)))
+
+    def describe_horizontal_autoscalers(self):
+        return json.loads(self.__run("kubectl --namespace %s get HorizontalPodAutoscaler -o json" % (self.namespace)))
+
+    def has_autoscaler(self, service_name):
+        service = self.describe_service(service_name)
+        deployment_name = service['spec']['selector']['name']
+
+        if not any(item['spec']['scaleTargetRef']['kind'] == "Deployment" and
+                   item['spec']['scaleTargetRef']['name'] == deployment_name
+                   for item in self.describe_horizontal_autoscalers()['items']):
+            raise Exception('service %s has no autoscalers!' % service_name)
+
+
 
     def __pod_running(self, image_name):
         pod_name = self.__grab_pod_name(image_name)

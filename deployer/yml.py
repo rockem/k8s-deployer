@@ -1,9 +1,8 @@
 
 import os
-import subprocess
+from exceptions import Exception
 
 import yaml
-from exceptions import Exception
 
 from log import DeployerLogger
 

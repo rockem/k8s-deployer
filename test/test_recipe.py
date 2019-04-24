@@ -52,3 +52,14 @@ class TestRecipe(object):
     def test_admin_privileges_should_be_delegated_from_ingredients(self):
         recipe = Recipe.builder().ingredients({'adminPrivileges': {'enabled': True}}).build()
         assert recipe.admin_privileges()['enabled'] is True
+
+    def test_autoscale_should_be_disabled_by_default(self):
+        recipe = Recipe.builder().build()
+        assert recipe.autoscale(1, 1)['enabled'] is False
+
+    def test_autoscale_should_be_delegate_from_ingredients(self):
+        recipe = Recipe.builder().ingredients({'autoscale': {'enabled': True, 'cpu': 'low' }}).build()
+        assert recipe.autoscale(1, 3)['enabled'] is True
+        assert recipe.autoscale(1, 3)['cpu'] is 'low'
+        assert recipe.autoscale(1, 3)['minPods'] is 1
+        assert recipe.autoscale(1, 3)['maxPods'] is 3

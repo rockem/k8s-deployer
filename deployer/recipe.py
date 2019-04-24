@@ -9,6 +9,7 @@ PORTS_LABEL = 'ports'
 SERVICE_TYPE = 'service_type'
 METRICS_LABEL = 'metrics'
 ADMIN_PRIVILEGES_LABEL = 'adminPrivileges'
+AUTOSCALE_LABEL = 'autoscale'
 
 logger = DeployerLogger(__name__).getLogger()
 
@@ -60,6 +61,8 @@ class Recipe(object):
             self.ingredients[METRICS_LABEL] = {'enabled': False}
         if ADMIN_PRIVILEGES_LABEL not in self.ingredients:
             self.ingredients[ADMIN_PRIVILEGES_LABEL] = {'enabled': False}
+        if AUTOSCALE_LABEL not in self.ingredients:
+            self.ingredients[AUTOSCALE_LABEL] = {'enabled': False}
 
     @staticmethod
     def builder():
@@ -88,3 +91,9 @@ class Recipe(object):
 
     def admin_privileges(self):
         return self.ingredients[ADMIN_PRIVILEGES_LABEL]
+
+    def autoscale(self, min_pods, max_pods):
+        base = self.ingredients[AUTOSCALE_LABEL]
+        base['minPods'] = min_pods
+        base['maxPods'] = max_pods
+        return base

@@ -4,6 +4,11 @@ Feature: deploy service on k8s
     When deploy "version:healthy" service
     Then "version:healthy" service is serving
 
+  Scenario: healthy service with autoscale enabled will deploy with able to scale
+    When deploy "autoscaled:1.1" service
+    Then "autoscaled:1.1" service is serving
+    And it should have deployment with autoscaler
+
   Scenario: service is written to git after deployment
     When deploy "version:healthy" service
     Then it should be logged in mongo
