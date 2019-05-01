@@ -106,6 +106,9 @@ class ImageDeployer(object):
         self.connector.scale_deployment(name + '-' + color, new_scale)
 
 
+
+
+
 class DeployPropsCreator(object):
     def __init__(self, recipe, args, connector):
         self.recipe = recipe
@@ -134,7 +137,12 @@ class DeployPropsCreator(object):
             'target': EnvironmentParser(self.args["target"]).namespace(),
             'metrics': self.recipe.metrics(),
             'adminPrivileges': self.recipe.admin_privileges()['enabled'],
-            'autoScaleInfo': self.recipe.autoscale(self.args["min_pods"], self.args["max_pods"])
-            # enrich autoscale info here
+            'autoScaleInfo': self.__prepate_auto_scale_info(self.recipe, self.args["autoscale_min_pods"], self.args["autoscale_max_pods"])
         }
+
+    def __prepate_auto_scale_info(self, recipe, minPods, maxPods):
+        base = recipe.autoscale()
+        base['minPods'] = minPods
+        base['maxPods'] = maxPods
+        return base
 

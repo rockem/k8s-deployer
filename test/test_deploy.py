@@ -100,7 +100,7 @@ class TestImageDeployer(object):
         assert connector.applied_scale[self.SICK_IMAGE_NAME + '-' + ColorDecider().invert_color(color)] == 0
 
     def __deploy(self, properties, connector, force=''):
-        args = {"target" : 'test_target', "domain": self.DOMAIN, "deploy_timeout": 1, "force": force, "min_pods": 1, "max_pods": 1}
+        args = {"target" : 'test_target', "domain": self.DOMAIN, "deploy_timeout": 1, "force": force, "autoscale_min_pods": 1, "autoscale_max_pods": 1}
         deployer = ImageDeployer(args, connector, RecipeBuilder().ingredients(
             properties).build())
         deployer.deploy()

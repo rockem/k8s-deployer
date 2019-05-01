@@ -92,8 +92,5 @@ class Recipe(object):
     def admin_privileges(self):
         return self.ingredients[ADMIN_PRIVILEGES_LABEL]
 
-    def autoscale(self, min_pods, max_pods):
-        base = self.ingredients[AUTOSCALE_LABEL]
-        base['minPods'] = min_pods
-        base['maxPods'] = max_pods
-        return base
+    def autoscale(self):
+        return self.ingredients[AUTOSCALE_LABEL]

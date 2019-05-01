@@ -41,8 +41,8 @@ class ActionRunner:
 @click.option('--yml_path', default="")
 @click.option('--service_name', default="")
 @click.option('--mongo_uri', default="")
-@click.option('--min_pods', default=1)
-@click.option('--max_pods', default=10)
+@click.option('--autoscale_min_pods', default=1)
+@click.option('--autoscale_max_pods', default=10)
 @click.option('--force', is_flag=True, required=False)
 def main(action, **args):
     ActionRunner(action, args).run()
