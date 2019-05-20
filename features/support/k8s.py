@@ -38,6 +38,9 @@ class K8sDriver:
     def describe_service(self, service_name):
         return json.loads(self.__run("kubectl --namespace %s get svc %s -o json" % (self.namespace, service_name)))
 
+    def describe_ingresses(self):
+        return json.loads(self.__run("kubectl --namespace %s get ingress -o json" % (self.namespace)))["items"]
+
     def describe_horizontal_autoscalers(self):
         return json.loads(self.__run("kubectl --namespace %s get HorizontalPodAutoscaler -o json" % (self.namespace)))
 
@@ -50,7 +53,16 @@ class K8sDriver:
                    for item in self.describe_horizontal_autoscalers()['items']):
             raise Exception('service %s has no autoscalers!' % service_name)
 
+    def has_ingress(self, service_name):
+        if not any(self.rule_exists_for_service(service_name, item) for item in (self.describe_ingresses())):
+            raise Exception('service %s doesnt gave ingress rule!' % service_name)
 
+    def rule_exists_for_service(self, service_name, ingress):
+        rules = ingress['spec']['rules']
+        return any(self.path_exist_with_service_name(rule['http']['paths'], service_name) for rule in rules)
+
+    def path_exist_with_service_name(self, paths, service_name):
+        return any(path['backend']['serviceName'] == service_name for path in paths)
 
     def __pod_running(self, image_name):
         pod_name = self.__grab_pod_name(image_name)

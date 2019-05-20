@@ -1,7 +1,7 @@
 from nose.tools import raises
 
-from deployer.deploy import DeployError, ImageDeployer, ColorDecider
-from deployer.recipe import RecipeBuilder
+from deployer.deploy import DeployError, ImageDeployer, ColorDecider, DeployPropsCreator
+from deployer.recipe import RecipeBuilder, Recipe
 
 
 class HealthCheckerStub(object):
@@ -33,10 +33,14 @@ class ConnectorStub(object):
         self.applied_service_accounts = []
         self.applied_deployments = {}
         self.applied_autoscale = False
+        self.applied_ingress = False
 
     def apply_service(self, desc):
         self.applied_descriptors['service'] = desc
         self.applied_services[desc['serviceName']] = desc
+
+    def apply_ingress(self, desc):
+        self.applied_ingress = True
 
     def apply_service_account(self, desc):
         self.applied_service_accounts.append(desc)
@@ -121,7 +125,21 @@ class TestImageDeployer(object):
         connector = ConnectorStub(True)
         self.__deploy({'image_name': 'no_color:123',
                        'autoscale': {'enabled': True}}, connector)
-        assert connector.applied_autoscale
+        assert connector.applied_autoscale == True
+
+    def test_should_apply_ingress(self):
+        connector = ConnectorStub(True)
+        self.__deploy({'image_name': 'no_color:123',
+                       'ingress': {'enabled': True}}, connector)
+
+        assert connector.applied_ingress
+
+    def test_should_not_apply_ingress_when_not_needed(self):
+        connector = ConnectorStub(True)
+        self.__deploy({'image_name': 'no_color:123',
+                       'ingress': {'enabled': False}}, connector)
+
+        assert not connector.applied_ingress
 
     def test_should_update_service_domain(self):
         connector = ConnectorStub(True)
@@ -166,4 +184,21 @@ class TestImageDeployer(object):
         assert len(connector.applied_service_accounts) > 0
 
 
+class TestDeployPropsCreator(object):
 
+    def test_should_add_ingress_props(self):
+        connector = ConnectorStub(True)
+        recipe = Recipe.builder().ingredients({'ingress': {'enabled': True}, 'image_name': 'my-service:1.1'}).build()
+        props = self.create_props(connector, recipe)
+        assert props["ingressInfo"] == {"enabled": True, "host": "my-service.heed.io"}
+
+    def create_props(self, connector, recipe):
+        return DeployPropsCreator(recipe,
+                                  {"domain": "heed.io", "force": False, "target": "int", "autoscale_min_pods": 1,
+                                   "autoscale_max_pods": 2}, connector).create()
+
+    def test_should_not_add_ingress_info_when_ingress_not_enabled(self):
+        connector = ConnectorStub(True)
+        recipe = Recipe.builder().ingredients({'ingress': {'enabled': False}, 'image_name': 'my-service:1.1'}).build()
+        props = self.create_props(connector, recipe)
+        assert props["ingressInfo"] == {"enabled": False}

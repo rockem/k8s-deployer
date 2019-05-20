@@ -75,6 +75,17 @@ class TestK8sDescriptorFactory(object):
             assert autoscale['spec']['targetCPUUtilizationPercentage'] == 90
 
 
+    def test_should_create_ingress(self):
+        factory = K8sDescriptorFactory(self.TEMPLATE_PATH, {'ingressInfo':
+                                                                {'enabled': True, 'host': 'mich.dev.io'}, 'serviceName': 'kuku'}, self.AWS_CONNECTOR)
+
+        with open(factory.ingress(), 'r') as f:
+            assert yaml.load(f)['spec']['rules'] == \
+                   [{'host': 'mich.dev.io',
+                     'http': {'paths': [{'path': '/', 'backend': {'serviceName': 'kuku', 'servicePort': 8080}}]}}]
+
+
+
 
     def docker_volume_mount(self):
         return {'mountPath': '/var/run/docker.sock', 'name': 'docker-socket-volume'}

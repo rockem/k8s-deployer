@@ -10,6 +10,7 @@ SERVICE_TYPE = 'service_type'
 METRICS_LABEL = 'metrics'
 ADMIN_PRIVILEGES_LABEL = 'adminPrivileges'
 AUTOSCALE_LABEL = 'autoscale'
+INGRESS_LABEL = 'ingress'
 
 logger = DeployerLogger(__name__).getLogger()
 
@@ -63,6 +64,8 @@ class Recipe(object):
             self.ingredients[ADMIN_PRIVILEGES_LABEL] = {'enabled': False}
         if AUTOSCALE_LABEL not in self.ingredients:
             self.ingredients[AUTOSCALE_LABEL] = {'enabled': False}
+        if INGRESS_LABEL not in self.ingredients:
+            self.ingredients[INGRESS_LABEL] = {'enabled': False}
 
     @staticmethod
     def builder():
@@ -94,3 +97,6 @@ class Recipe(object):
 
     def autoscale(self):
         return self.ingredients[AUTOSCALE_LABEL]
+
+    def ingress(self):
+        return self.ingredients[INGRESS_LABEL]

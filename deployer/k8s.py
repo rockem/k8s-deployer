@@ -192,6 +192,9 @@ class K8sDescriptorFactory(object):
     def job(self):
         return FileYmlCreator(self.template_path, 'cronjob').config(self.configuration).create(self.DEST_DIR)
 
+    def ingress(self):
+        return FileYmlCreator(self.template_path, 'ingress').config({'serviceName': self.configuration['serviceName'], 'host': self.configuration['ingressInfo']['host']}).create(self.DEST_DIR)
+
 
 class ByContainerPorts:
     def __init__(self, name):
@@ -286,6 +289,11 @@ class K8sConnector(object):
             "kubectl --namespace %s apply --validate=false --record -f %s" %
             (self.namespace, K8sDescriptorFactory(self.TEMPLATE_PATH, properties).service()))
 
+    def apply_ingress(self, properties):
+        self.__run(
+            "kubectl --namespace %s apply --validate=false --record -f %s" %
+            (self.namespace, K8sDescriptorFactory(self.TEMPLATE_PATH, properties).ingress()))
+
     def __delete_service_when_type_changed(self, properties):
         service_name = properties['serviceName']
         service_type = properties['serviceType']
@@ -321,6 +329,11 @@ class K8sConnector(object):
         self.__run(
             "kubectl --namespace %s apply --validate=false --record -f %s" %
             (self.namespace, K8sDescriptorFactory(self.TEMPLATE_PATH, properties).autoscale()))
+
+    def apply_ingress(self, properties):
+        self.__run(
+            "kubectl --namespace %s apply --validate=false --record -f %s" %
+            (self.namespace, K8sDescriptorFactory(self.TEMPLATE_PATH, properties).ingress()))
 
     def apply_service_account(self, properties):
         self.__run(

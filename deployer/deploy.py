@@ -64,6 +64,11 @@ class ImageDeployer(object):
         self.connector.apply_service_account(configuration)
         self.connector.apply_deployment(configuration)
         self.apply_autoscale_if_needed(configuration)
+        self.apply_ingress_if_needed()
+
+    def apply_ingress_if_needed(self):
+        if self.configuration['ingressInfo']['enabled']:
+            self.connector.apply_ingress(self.configuration)
 
     def __dark_deploy(self):
         self.__deploy(self.configuration)
@@ -106,9 +111,6 @@ class ImageDeployer(object):
         self.connector.scale_deployment(name + '-' + color, new_scale)
 
 
-
-
-
 class DeployPropsCreator(object):
     def __init__(self, recipe, args, connector):
         self.recipe = recipe
@@ -137,7 +139,8 @@ class DeployPropsCreator(object):
             'target': EnvironmentParser(self.args["target"]).namespace(),
             'metrics': self.recipe.metrics(),
             'adminPrivileges': self.recipe.admin_privileges()['enabled'],
-            'autoScaleInfo': self.__prepate_auto_scale_info(self.recipe, self.args["autoscale_min_pods"], self.args["autoscale_max_pods"])
+            'autoScaleInfo': self.__prepate_auto_scale_info(self.recipe, self.args["autoscale_min_pods"], self.args["autoscale_max_pods"]),
+            'ingressInfo': self.__prepare_ingress_info(self.recipe, self.args["domain"], name)
         }
 
     def __prepate_auto_scale_info(self, recipe, minPods, maxPods):
@@ -145,4 +148,13 @@ class DeployPropsCreator(object):
         base['minPods'] = minPods
         base['maxPods'] = maxPods
         return base
+
+    def __prepare_ingress_info(self, recipe, domain, service_name):
+        base = recipe.ingress()
+
+        if base["enabled"]:
+            base["host"] = service_name + "." + domain
+
+        return base
+
 

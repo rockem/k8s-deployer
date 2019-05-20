@@ -9,6 +9,11 @@ Feature: deploy service on k8s
     Then "autoscaled:1.1" service is serving
     And it should have deployment with autoscaler
 
+  Scenario: healthy service with ingress will expose ingress
+    When deploy "ingress:1.0" service
+    Then "ingress:1.0" service is serving
+    And  it should have ingress
+
   Scenario: service is written to git after deployment
     When deploy "version:healthy" service
     Then it should be logged in mongo

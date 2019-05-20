@@ -35,7 +35,10 @@ def should_exist_autoscaler(context):
     service_name = context.config.userdata['lastDeployed']._service_name
     K8sDriver(Context(context).default_namespace()).has_autoscaler(service_name)
 
-
+@then("it should have ingress")
+def should_have_ingress(context):
+    service_name = context.config.userdata['lastDeployed']._service_name
+    K8sDriver(Context(context).default_namespace()).has_ingress(service_name)
 
 
 @then("service \"(.*)\" updated to version (.*)")

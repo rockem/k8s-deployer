@@ -61,3 +61,12 @@ class TestRecipe(object):
         recipe = Recipe.builder().ingredients({'autoscale': {'enabled': True, 'cpu': 'low' }}).build()
         assert recipe.autoscale()['enabled'] is True
         assert recipe.autoscale()['cpu'] is 'low'
+
+    def test_ingress_should_be_disabled_by_default(self):
+        recipe = Recipe.builder().build()
+        assert recipe.ingress()['enabled'] is False
+
+    def test_ingress_should_be_delegate_from_ingredients(self):
+        recipe = Recipe.builder().ingredients({'ingress': {'enabled': True, 'host': 'service-ingress.io' }}).build()
+        assert recipe.ingress()['enabled'] is True
+        assert recipe.ingress()['host'] is 'service-ingress.io'
