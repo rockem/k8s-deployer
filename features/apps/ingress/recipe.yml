@@ -2,4 +2,3 @@ logging: none
 
 ingress:
   enabled: true
-  host: cms-ingress

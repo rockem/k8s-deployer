@@ -1,4 +1,5 @@
 from nose.tools import raises
+from os import environ
 
 from deployer.deploy import DeployError, ImageDeployer, ColorDecider, DeployPropsCreator
 from deployer.recipe import RecipeBuilder, Recipe
@@ -129,6 +130,7 @@ class TestImageDeployer(object):
 
     def test_should_apply_ingress(self):
         connector = ConnectorStub(True)
+        environ["TARGET_ENV"] = 'int'
         self.__deploy({'image_name': 'no_color:123',
                        'ingress': {'enabled': True}}, connector)
 
@@ -187,10 +189,11 @@ class TestImageDeployer(object):
 class TestDeployPropsCreator(object):
 
     def test_should_add_ingress_props(self):
+        environ["TARGET_ENV"] = 'int'
         connector = ConnectorStub(True)
         recipe = Recipe.builder().ingredients({'ingress': {'enabled': True}, 'image_name': 'my-service:1.1'}).build()
         props = self.create_props(connector, recipe)
-        assert props["ingressInfo"] == {"enabled": True, "host": "my-service.heed.io"}
+        assert props["ingressInfo"] == {"enabled": True, "host": "int-my-service.heed.io"}
 
     def create_props(self, connector, recipe):
         return DeployPropsCreator(recipe,

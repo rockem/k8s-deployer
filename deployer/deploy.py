@@ -140,7 +140,7 @@ class DeployPropsCreator(object):
             'metrics': self.recipe.metrics(),
             'adminPrivileges': self.recipe.admin_privileges()['enabled'],
             'autoScaleInfo': self.__prepate_auto_scale_info(self.recipe, self.args["autoscale_min_pods"], self.args["autoscale_max_pods"]),
-            'ingressInfo': self.__prepare_ingress_info(self.recipe, self.args["domain"], name)
+            'ingressInfo': self.__prepare_ingress_info(self.recipe, self.args, name)
         }
 
     def __prepate_auto_scale_info(self, recipe, minPods, maxPods):
@@ -149,11 +149,11 @@ class DeployPropsCreator(object):
         base['maxPods'] = maxPods
         return base
 
-    def __prepare_ingress_info(self, recipe, domain, service_name):
+    def __prepare_ingress_info(self, recipe, args, service_name):
         base = recipe.ingress()
 
         if base["enabled"]:
-            base["host"] = service_name + "." + domain
+            base["host"] = EnvironmentParser(self.args["target"]).name() + "-" + service_name + "." + args["domain"]
 
         return base
 
